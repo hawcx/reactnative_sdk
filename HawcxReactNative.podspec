@@ -21,6 +21,4 @@ Pod::Spec.new do |s|
   s.vendored_frameworks = 'ios/Frameworks/HawcxFramework.xcframework'
 
   s.dependency 'React-Core'
-  s.dependency 'React-RCTBridge'
-  s.dependency 'React-RCTEventEmitter'
 end

@@ -1,5 +1,6 @@
 node_modules/
 lib/
+example/
 .eslintrc.js
 babel.config.js
 bob.config.js

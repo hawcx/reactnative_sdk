@@ -24,8 +24,8 @@ class HawcxReactNative: RCTEventEmitter {
 
     @objc
     func initialize(_ config: NSDictionary,
-                    resolver resolve: RCTPromiseResolveBlock,
-                    rejecter reject: RCTPromiseRejectBlock) {
+                    resolver resolve: @escaping RCTPromiseResolveBlock,
+                    rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let projectApiKey = config["projectApiKey"] as? String, !projectApiKey.isEmpty else {
             reject("hawcx.config", "projectApiKey is required", nil)
             return
@@ -54,8 +54,8 @@ class HawcxReactNative: RCTEventEmitter {
 
     @objc
     func authenticate(_ userId: NSString,
-                      resolver resolve: RCTPromiseResolveBlock,
-                      rejecter reject: RCTPromiseRejectBlock) {
+                      resolver resolve: @escaping RCTPromiseResolveBlock,
+                      rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let sdk = hawcxSDK else {
             reject("hawcx.sdk", "initialize must be called before authenticate", nil)
             return
@@ -80,8 +80,8 @@ class HawcxReactNative: RCTEventEmitter {
 
     @objc
     func submitOtp(_ otp: NSString,
-                   resolver resolve: RCTPromiseResolveBlock,
-                   rejecter reject: RCTPromiseRejectBlock) {
+                   resolver resolve: @escaping RCTPromiseResolveBlock,
+                   rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let sdk = hawcxSDK else {
             reject("hawcx.sdk", "initialize must be called before submitOtp", nil)
             return
@@ -116,8 +116,8 @@ class HawcxReactNative: RCTEventEmitter {
 
     @objc
     func webLogin(_ pin: NSString,
-                  resolver resolve: RCTPromiseResolveBlock,
-                  rejecter reject: RCTPromiseRejectBlock) {
+                  resolver resolve: @escaping RCTPromiseResolveBlock,
+                  rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let sdk = hawcxSDK else {
             reject("hawcx.sdk", "initialize must be called before webLogin", nil)
             return
@@ -139,8 +139,8 @@ class HawcxReactNative: RCTEventEmitter {
 
     @objc
     func webApprove(_ token: NSString,
-                    resolver resolve: RCTPromiseResolveBlock,
-                    rejecter reject: RCTPromiseRejectBlock) {
+                    resolver resolve: @escaping RCTPromiseResolveBlock,
+                    rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let sdk = hawcxSDK else {
             reject("hawcx.sdk", "initialize must be called before webApprove", nil)
             return
@@ -273,13 +273,15 @@ private final class PushDelegateProxy: NSObject, HawcxPushAuthDelegate {
     }
 
     func hawcx(didReceiveLoginRequest requestId: String, details: PushLoginRequestDetails) {
-        let payload: [String: Any] = [
+        var payload: [String: Any] = [
             "requestId": requestId,
-            "projectId": details.project_id ?? "",
-            "relyingParty": details.relying_party ?? "",
-            "location": details.location ?? "",
-            "timestamp": details.timestamp ?? ""
+            "ipAddress": details.ipAddress,
+            "deviceInfo": details.deviceInfo,
+            "timestamp": details.timestamp
         ]
+        if let location = details.location {
+            payload["location"] = location
+        }
         emitter?.emitPushEvent(["type": "push_login_request", "payload": payload])
     }
 

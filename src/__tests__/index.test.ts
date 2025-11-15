@@ -110,13 +110,21 @@ describe('HawcxClient helpers', () => {
       type: 'push_login_request',
       payload: {
         requestId: 'req',
-        projectId: 'proj',
-        relyingParty: 'domain',
+        ipAddress: '1.1.1.1',
+        deviceInfo: 'Safari on Mac',
+        location: 'SF',
+        timestamp: '2025-01-01T00:00:00Z',
       },
     });
     expect(handler).toHaveBeenCalledWith({
       type: 'push_login_request',
-      payload: { requestId: 'req', projectId: 'proj', relyingParty: 'domain' },
+      payload: {
+        requestId: 'req',
+        ipAddress: '1.1.1.1',
+        deviceInfo: 'Safari on Mac',
+        location: 'SF',
+        timestamp: '2025-01-01T00:00:00Z',
+      },
     });
     subscription.remove();
   });

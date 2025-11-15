@@ -49,10 +49,10 @@ export type SessionEvent =
 
 export type PushLoginPayload = {
   requestId: string;
-  projectId: string;
-  relyingParty: string;
+  ipAddress: string;
+  deviceInfo: string;
   location?: string;
-  timestamp?: string;
+  timestamp: string;
 };
 
 export type PushEvent =
