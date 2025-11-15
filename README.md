@@ -81,7 +81,7 @@ function WebLoginScreen() {
 
 ## Example App & E2E
 - `cd example && npm install` to bootstrap the sample app.
-- Update `src/App.tsx` with your dev project key and run `npm run ios` or `npm run android`.
+- Edit `example/src/hawcx.config.ts` with your project API key plus the OAuth client ID, token endpoint, and PEM from `dev_ios/ios_demo_dev`, then run `npm run ios` or `npm run android`.
 - Use `example/e2e/hawcx-login.yaml` with [Maestro](https://maestro.mobile.dev/) to drive a smoke test through OTP login. Adjust selectors to match your bundle ID and UI tweaks.
 
 ## Release Process

@@ -1,12 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import {
-  initialize,
-  hawcxClient,
-  useHawcxAuth,
-  useHawcxWebLogin,
-  useHawcxAuth as useAuthHook,
-} from '@hawcx/react-native-sdk';
+import { initialize, useHawcxAuth, useHawcxWebLogin, type HawcxInitializeConfig } from '@hawcx/react-native-sdk';
+import { DEFAULT_HAWCX_CONFIG } from './hawcx.config';
 
 const COLORS = {
   bg: '#0f172a',
@@ -14,10 +9,18 @@ const COLORS = {
   accent: '#38bdf8',
   text: '#f8fafc',
   muted: '#94a3b8',
+  error: '#f87171',
+  success: '#4ade80',
 };
 
 const App = () => {
-  const [apiKey, setApiKey] = useState('YOUR_PROJECT_KEY');
+  const activeConfig: HawcxInitializeConfig | null = DEFAULT_HAWCX_CONFIG;
+  const [initStatus, setInitStatus] = useState<'idle' | 'initializing' | 'ready' | 'error'>(
+    DEFAULT_HAWCX_CONFIG ? 'initializing' : 'error',
+  );
+  const [initError, setInitError] = useState<string | null>(
+    DEFAULT_HAWCX_CONFIG ? null : 'Set credentials in example/src/hawcx.config.ts to continue.',
+  );
   const [email, setEmail] = useState('user@example.com');
   const [otp, setOtp] = useState('');
   const [pin, setPin] = useState('');
@@ -27,14 +30,49 @@ const App = () => {
   const web = useHawcxWebLogin();
 
   useEffect(() => {
-    initialize({ projectApiKey: apiKey }).catch((err) => console.warn('Init failed', err));
-  }, [apiKey]);
+    if (!activeConfig) {
+      return;
+    }
+    setInitStatus('initializing');
+    setInitError(null);
+    initialize(activeConfig)
+      .then(() => setInitStatus('ready'))
+      .catch((err) => {
+        console.warn('Init failed', err);
+        setInitStatus('error');
+        setInitError(err?.message ?? 'Failed to initialize the Hawcx SDK');
+      });
+  }, [activeConfig]);
+
+  const isReady = initStatus === 'ready';
+  const maskedKey = useMemo(() => {
+    if (!activeConfig?.projectApiKey) {
+      return '';
+    }
+    const suffix = activeConfig.projectApiKey.slice(-4);
+    return `Active key ••••${suffix}`;
+  }, [activeConfig?.projectApiKey]);
+  const oauthStatus = activeConfig?.oauthConfig ? 'Configured' : 'Not provided';
+
+  const requireReady = () => {
+    if (!isReady) {
+      setInitError('Initialize the SDK with your credentials in hawcx.config.ts before calling this action.');
+      return false;
+    }
+    return true;
+  };
 
   const startAuth = () => {
+    if (!requireReady()) {
+      return;
+    }
     authenticate(email);
   };
 
   const submitOtpCode = () => {
+    if (!requireReady()) {
+      return;
+    }
     submitOtp(otp);
     setOtp('');
   };
@@ -42,6 +80,14 @@ const App = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Hawcx React Native SDK</Text>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>SDK Status</Text>
+        <Text style={styles.status}>State: {initStatus === 'ready' ? 'Ready' : initStatus}</Text>
+        {!!maskedKey && <Text style={styles.status}>{maskedKey}</Text>}
+        <Text style={styles.status}>OAuth: {oauthStatus}</Text>
+        {!!initError && <Text style={[styles.status, styles.errorText]}>{initError}</Text>}
+      </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>V5 Authentication</Text>
@@ -53,7 +99,10 @@ const App = () => {
           onChangeText={setEmail}
           autoCapitalize="none"
         />
-        <TouchableOpacity style={styles.button} onPress={startAuth}>
+        <TouchableOpacity
+          style={[styles.button, !isReady && styles.buttonDisabled]}
+          onPress={startAuth}
+          disabled={!isReady}>
           <Text style={styles.buttonText}>Authenticate</Text>
         </TouchableOpacity>
         {authState.status === 'otp' && (
@@ -66,12 +115,23 @@ const App = () => {
               onChangeText={setOtp}
               keyboardType="number-pad"
             />
-            <TouchableOpacity style={[styles.button, styles.otpButton]} onPress={submitOtpCode}>
+            <TouchableOpacity
+              style={[styles.button, styles.otpButton, !isReady && styles.buttonDisabled]}
+              onPress={submitOtpCode}
+              disabled={!isReady}>
               <Text style={styles.buttonText}>Submit</Text>
             </TouchableOpacity>
           </View>
         )}
         <Text style={styles.status}>State: {authState.status}</Text>
+        {authState.status === 'error' && (
+          <Text style={[styles.status, styles.errorText]}>
+            {authState.error.code}: {authState.error.message}
+          </Text>
+        )}
+        {authState.status === 'success' && (
+          <Text style={[styles.status, styles.successText]}>Tokens received from Hawcx</Text>
+        )}
       </View>
 
       <View style={styles.card}>
@@ -83,7 +143,14 @@ const App = () => {
           value={pin}
           onChangeText={setPin}
         />
-        <TouchableOpacity style={styles.button} onPress={() => web.webLogin(pin)}>
+        <TouchableOpacity
+          style={[styles.button, !isReady && styles.buttonDisabled]}
+          disabled={!isReady}
+          onPress={() => {
+            if (requireReady()) {
+              web.webLogin(pin);
+            }
+          }}>
           <Text style={styles.buttonText}>Validate PIN</Text>
         </TouchableOpacity>
         <TextInput
@@ -93,10 +160,22 @@ const App = () => {
           value={token}
           onChangeText={setToken}
         />
-        <TouchableOpacity style={styles.button} onPress={() => web.webApprove(token)}>
+        <TouchableOpacity
+          style={[styles.button, !isReady && styles.buttonDisabled]}
+          disabled={!isReady}
+          onPress={() => {
+            if (requireReady()) {
+              web.webApprove(token);
+            }
+          }}>
           <Text style={styles.buttonText}>Approve Token</Text>
         </TouchableOpacity>
         <Text style={styles.status}>Web State: {web.state.status}</Text>
+        {web.state.status === 'error' && (
+          <Text style={[styles.status, styles.errorText]}>
+            {web.state.error.code}: {web.state.error.message}
+          </Text>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -138,12 +217,21 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
   buttonText: {
     color: '#0f172a',
     fontWeight: '600',
   },
   status: {
     color: COLORS.muted,
+  },
+  errorText: {
+    color: COLORS.error,
+  },
+  successText: {
+    color: COLORS.success,
   },
   otpRow: {
     flexDirection: 'row',

@@ -1,5 +1,7 @@
 node_modules/
 ios/Pods/
+ios/build/
+ios/.xcode.env.local
 android/app/build/
 android/.gradle/
 .DS_Store

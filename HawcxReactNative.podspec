@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.author       = { 'Hawcx Engineering' => 'engineering@hawcx.com' }
   s.source       = { :git => 'https://github.com/hawcx/react-native-sdk.git', :tag => "v#{s.version}" }
 
-  s.platform     = :ios, '14.0'
+  s.platform     = :ios, '17.5'
   s.swift_version = '5.9'
 
   s.source_files = 'ios/**/*.{h,m,mm,swift}'
