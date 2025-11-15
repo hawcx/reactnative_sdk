@@ -1,0 +1,14 @@
+appId: com.hawcx.example
+---
+- launchApp
+- tapOn:
+    text: "Authenticate"
+- inputText:
+    text: "test.user@example.com"
+    placeholder: "Email"
+- tapOn:
+    text: "Authenticate"
+- waitFor:
+    visible: "State:"
+- assertVisible:
+    text: "State: otp"
