@@ -1,0 +1,100 @@
+buildscript {
+    ext {
+        androidGradlePluginVersion = '8.5.2'
+        kotlinVersion = '1.9.24'
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:$androidGradlePluginVersion")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'maven-publish'
+
+def safeExtGet(prop, fallback) {
+    return rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+}
+
+group = 'com.hawcx.reactnative'
+version = project.findProperty('HAWCX_REACT_NATIVE_ANDROID_VERSION') ?: '0.1.0'
+
+repositories {
+    mavenCentral()
+    google()
+    maven { url "$rootDir/../node_modules/react-native/android" }
+    maven { url "$rootDir/../node_modules/jsc-android/dist" }
+}
+
+android {
+    namespace 'com.hawcx.reactnative'
+    compileSdkVersion safeExtGet('compileSdkVersion', 34)
+
+    defaultConfig {
+        minSdkVersion safeExtGet('minSdkVersion', 23)
+        targetSdkVersion safeExtGet('targetSdkVersion', 34)
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildFeatures {
+        buildConfig = false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    lint {
+        abortOnError = true
+        textReport = true
+        textOutput = file("${project.buildDir}/reports/lint-results.txt")
+        htmlReport = true
+        htmlOutput = file("${project.buildDir}/reports/lint-results.html")
+    }
+
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.hawcx'
+                artifactId = 'react-native-hawcx'
+                version = project.version
+                pom {
+                    name = 'Hawcx React Native SDK - Android'
+                    description = 'React Native bridge for the Hawcx Android SDK.'
+                    url = 'https://github.com/hawcx/react-native-sdk'
+                    licenses {
+                        license {
+                            name = 'MIT'
+                            url = 'https://opensource.org/licenses/MIT'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.aar'])
+    implementation 'com.facebook.react:react-native:+' // resolve to the React Native version in the app
+    implementation 'androidx.annotation:annotation:1.8.1'
+}

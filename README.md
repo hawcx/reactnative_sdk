@@ -5,6 +5,7 @@ This package provides the React Native wrapper for the Hawcx V5 mobile authentic
 ## Repository Layout
 - `src/` – TypeScript entry point and public API surface.
 - `ios/` – Native bridge sources (Swift) plus the Podspec that embeds `HawcxFramework`.
+- `android/` – React Native Android bridge module (Gradle library) plus the bundled Hawcx SDK AAR.
 - `example/` – Runnable React Native demo app using the SDK (`npm install` -> `npm run ios`).
 - `react_mobile_sdk_plan.md` – Detailed delivery plan and progress tracker. **Always read and update this file when working on the SDK.**
 
@@ -17,6 +18,15 @@ This package provides the React Native wrapper for the Hawcx V5 mobile authentic
 | `npm run build` | Builds distributable bundles via `react-native-builder-bob`. |
 
 > Note: Dependencies are declared in `package.json` but not yet installed. Install them once local tooling is in place (`npm install`).
+
+## Android Module (WIP)
+- `android/` hosts the Gradle-based library that React Native autolinks for Android builds. It already references the Hawcx Android SDK via `android/libs/hawcx-5.1.0.aar` and exposes `./gradlew` helpers for linting/publishing.
+- Run Gradle tasks from the repo root with `./gradlew -p android <task>` (for example, `./gradlew -p android :hawcxreactnative:lintRelease`). The first invocation requires network/Gradle cache access for AGP + React Native dependencies.
+
+### Refreshing the Hawcx Android SDK AAR
+1. Build the native Android SDK (`cd ~/dev_android/android_sdk && ./gradlew :app:assembleRelease`).
+2. Copy the generated `app/build/outputs/aar/hawcx-<version>.aar` into `android/libs/`, replacing the existing binary.
+3. Update any documentation or release notes (e.g., `react_mobile_sdk_plan.md`, `CHANGELOG.md`) to reflect the new Hawcx SDK version.
 
 ## Usage (WIP)
 

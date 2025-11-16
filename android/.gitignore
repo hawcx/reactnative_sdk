@@ -1,0 +1,6 @@
+/.gradle/
+/local.properties
+/captures/
+/.cxx/
+/build/
+*.iml
