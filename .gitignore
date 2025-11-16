@@ -22,3 +22,6 @@ DerivedData/
 # IDE
 .vscode/
 .idea/
+
+# Other Files
+react_mobile_sdk_plan.md
