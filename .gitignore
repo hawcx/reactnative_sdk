@@ -28,3 +28,4 @@ react_mobile_sdk_plan.md
 example/ios/HawcxExampleApp.xcodeproj/xcuserdata/
 example/android/app/debug.keystore
 docs/RELEASE.md
+example/android/local.properties
