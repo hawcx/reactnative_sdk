@@ -1,9 +1,21 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Platform,
+  SafeAreaView,
+  ScrollView as RNScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   initialize,
   useHawcxAuth,
   useHawcxWebLogin,
+  addAuthListener,
+  addSessionListener,
   addPushListener,
   setPushDeviceToken,
   notifyUserAuthenticated,
@@ -12,6 +24,8 @@ import {
   declinePushRequest,
   type HawcxInitializeConfig,
   type PushEvent,
+  type AuthEvent,
+  type SessionEvent,
 } from '@hawcx/react-native-sdk';
 import { DEFAULT_HAWCX_CONFIG } from './hawcx.config';
 
@@ -43,9 +57,22 @@ const App = () => {
   const [pushEvents, setPushEvents] = useState<PushEvent[]>([]);
   const [pushStatus, setPushStatus] = useState<string | null>(null);
   const [pushError, setPushError] = useState<string | null>(null);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [loggingEnabled, setLoggingEnabled] = useState(false);
 
   const { state: authState, authenticate, submitOtp } = useHawcxAuth();
   const web = useHawcxWebLogin();
+
+  const appendLog = useCallback(
+    (message: string) => {
+      if (!loggingEnabled) {
+        return;
+      }
+      const timestamp = new Date().toLocaleTimeString();
+      setLogs((prev) => [`[${timestamp}] ${message}`, ...prev].slice(0, 100));
+    },
+    [loggingEnabled],
+  );
 
   useEffect(() => {
     if (!activeConfig) {
@@ -54,21 +81,42 @@ const App = () => {
     setInitStatus('initializing');
     setInitError(null);
     initialize(activeConfig)
-      .then(() => setInitStatus('ready'))
+      .then(() => {
+        setInitStatus('ready');
+        appendLog('SDK initialized successfully');
+      })
       .catch((err) => {
         console.warn('Init failed', err);
         setInitStatus('error');
         setInitError(err?.message ?? 'Failed to initialize the Hawcx SDK');
+        appendLog(`SDK initialization failed: ${err?.message ?? 'unknown error'}`);
       });
-  }, [activeConfig]);
+  }, [activeConfig, appendLog]);
 
   useEffect(() => {
-    const subscription = addPushListener((event) => {
+    const authSubscription = addAuthListener((event: AuthEvent) => {
+      appendLog(`auth event: ${event.type}`);
+      if (event.type === 'auth_error') {
+        appendLog(`auth error payload: ${event.payload.code} ${event.payload.message}`);
+      }
+    });
+    const sessionSubscription = addSessionListener((event: SessionEvent) => {
+      appendLog(`session event: ${event.type}`);
+      if (event.type === 'session_error') {
+        appendLog(`session error payload: ${event.payload.code} ${event.payload.message}`);
+      }
+    });
+    const pushSubscription = addPushListener((event) => {
       setPushEvents((prev) => [event, ...prev].slice(0, 4));
       setPushStatus(`Received push event: ${event.type}`);
+      appendLog(`push event: ${event.type}`);
     });
-    return () => subscription.remove();
-  }, []);
+    return () => {
+      authSubscription.remove();
+      sessionSubscription.remove();
+      pushSubscription.remove();
+    };
+  }, [appendLog]);
 
   const isReady = initStatus === 'ready';
   const maskedKey = useMemo(() => {
@@ -92,6 +140,7 @@ const App = () => {
     if (!requireReady()) {
       return;
     }
+    appendLog(`trigger authenticate for ${email}`);
     authenticate(email);
   };
 
@@ -99,6 +148,7 @@ const App = () => {
     if (!requireReady()) {
       return;
     }
+    appendLog('submit OTP');
     submitOtp(otp);
     setOtp('');
   };
@@ -126,6 +176,7 @@ const App = () => {
       } else {
         await setPushDeviceToken(trimmed);
       }
+      appendLog('push token registered with native SDK');
       setPushStatus('Push token submitted to the Hawcx SDK.');
     } catch (error: unknown) {
       setPushError((error as Error)?.message ?? 'Failed to register token');
@@ -140,6 +191,7 @@ const App = () => {
     try {
       const parsed = JSON.parse(pushPayloadInput);
       await forwardPushPayload(parsed);
+      appendLog('forwarded push payload to native SDK');
       setPushStatus('Forwarded payload to the Hawcx SDK.');
     } catch (error: unknown) {
       setPushError((error as Error)?.message ?? 'Invalid JSON payload');
@@ -149,6 +201,7 @@ const App = () => {
   const onApprovePush = async () => {
     try {
       await approvePushRequest(pushRequestId.trim());
+      appendLog(`approved push request ${pushRequestId.trim()}`);
       setPushStatus('Approved push request');
     } catch (error: unknown) {
       setPushError((error as Error)?.message ?? 'Failed to approve push request');
@@ -158,6 +211,7 @@ const App = () => {
   const onDeclinePush = async () => {
     try {
       await declinePushRequest(pushRequestId.trim());
+      appendLog(`declined push request ${pushRequestId.trim()}`);
       setPushStatus('Declined push request');
     } catch (error: unknown) {
       setPushError((error as Error)?.message ?? 'Failed to decline push request');
@@ -167,15 +221,21 @@ const App = () => {
   const markUserAuthenticated = async () => {
     try {
       await notifyUserAuthenticated();
+      appendLog('notified native SDK that user authenticated');
       setPushStatus('Notified native SDK to register push token.');
     } catch (error: unknown) {
       setPushError((error as Error)?.message ?? 'Failed to notify Hawcx SDK');
     }
   };
 
+  const ScrollContainer = RNScrollView ?? View;
+
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Hawcx React Native SDK</Text>
+      <ScrollContainer
+        contentContainerStyle={ScrollContainer === View ? undefined : styles.scrollContent}
+        style={ScrollContainer === View ? styles.viewFallback : undefined}>
+        <Text style={styles.title}>Hawcx React Native SDK</Text>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>SDK Status</Text>
@@ -346,6 +406,30 @@ const App = () => {
           ))}
         </View>
       </View>
+
+      <View style={styles.card}>
+        <View style={styles.loggerHeader}>
+          <Text style={styles.cardTitle}>Logging</Text>
+          <View style={styles.loggerToggle}>
+            <Text style={styles.status}>{loggingEnabled ? 'On' : 'Off'}</Text>
+            <Switch value={loggingEnabled} onValueChange={setLoggingEnabled} />
+          </View>
+        </View>
+        <Text style={styles.status}>
+          Enable logging to see SDK events, errors, and push actions below. Logs are kept in-memory and
+          capped to the most recent 10 entries.
+        </Text>
+        {logs.length === 0 ? (
+          <Text style={styles.status}>No logs yet.</Text>
+        ) : (
+          logs.slice(0, 10).map((log) => (
+            <Text key={`${log}`} style={[styles.status, styles.logLine]}>
+              {log}
+            </Text>
+          ))
+        )}
+      </View>
+      </ScrollContainer>
     </SafeAreaView>
   );
 };
@@ -354,6 +438,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.bg,
+  },
+  scrollContent: {
+    padding: 16,
+    gap: 16,
+    paddingBottom: 32,
+  },
+  viewFallback: {
     padding: 16,
     gap: 16,
   },
@@ -442,6 +533,19 @@ const styles = StyleSheet.create({
   },
   payloadText: {
     marginTop: 4,
+  },
+  loggerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  loggerToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  logLine: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
 });
 
