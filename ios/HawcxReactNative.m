@@ -1,3 +1,4 @@
+#if __has_include(<React/RCTBridgeModule.h>)
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
 
@@ -46,3 +47,5 @@ RCT_EXTERN_METHOD(declinePushRequest:(NSString *)requestId
                   rejecter:(RCTPromiseRejectBlock)reject)
 
 @end
+
+#endif

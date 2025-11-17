@@ -1,6 +1,8 @@
 import Foundation
-import React
 import HawcxFramework
+
+#if canImport(React)
+import React
 
 @objc(HawcxReactNative)
 class HawcxReactNative: RCTEventEmitter {
@@ -295,3 +297,15 @@ private final class PushDelegateProxy: NSObject, HawcxPushAuthDelegate {
         ])
     }
 }
+
+#else
+
+@objc(HawcxReactNative)
+class HawcxReactNative: NSObject {
+    override init() {
+        super.init()
+        assertionFailure("React Native dependency not detected. Link React-Core before using HawcxReactNative.")
+    }
+}
+
+#endif

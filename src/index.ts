@@ -169,7 +169,9 @@ export function setFcmToken(token: string): Promise<void> {
 export function setPushDeviceToken(token: Uint8Array | number[] | string): Promise<void> {
   if (isIOS()) {
     if (typeof token === 'string') {
-      return Promise.reject(new Error('APNs tokens must be provided as byte arrays or Uint8Arrays'));
+      return Promise.reject(
+        new Error('APNs tokens must be provided as byte arrays or Uint8Arrays'),
+      );
     }
     return setApnsDeviceToken(token);
   }
@@ -179,7 +181,9 @@ export function setPushDeviceToken(token: Uint8Array | number[] | string): Promi
     }
     return setFcmToken(token);
   }
-  return Promise.reject(new Error(`Unsupported platform for push token registration: ${Platform.OS}`));
+  return Promise.reject(
+    new Error(`Unsupported platform for push token registration: ${Platform.OS}`),
+  );
 }
 
 export function notifyUserAuthenticated(): Promise<void> {

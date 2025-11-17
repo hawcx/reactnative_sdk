@@ -18,6 +18,7 @@ Pod::Spec.new do |s|
   s.swift_version = '5.9'
 
   s.source_files = 'ios/**/*.{h,m,mm,swift}'
+  s.exclude_files = 'ios/Frameworks/**/*.h'
   s.vendored_frameworks = 'ios/Frameworks/HawcxFramework.xcframework'
 
   s.dependency 'React-Core'
