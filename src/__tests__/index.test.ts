@@ -149,11 +149,15 @@ describe('push token helpers', () => {
 
   it('rejects APNs string tokens on iOS', async () => {
     overridePlatformOS('ios');
-    await expect(setPushDeviceToken('abc')).rejects.toThrow('APNs tokens must be provided as byte arrays or Uint8Arrays');
+    await expect(setPushDeviceToken('abc')).rejects.toThrow(
+      'APNs tokens must be provided as byte arrays or Uint8Arrays',
+    );
   });
 
   it('rejects non-string tokens on Android', async () => {
     overridePlatformOS('android');
-    await expect(setPushDeviceToken([1, 2, 3])).rejects.toThrow('FCM token must be a string on Android');
+    await expect(setPushDeviceToken([1, 2, 3])).rejects.toThrow(
+      'FCM token must be a string on Android',
+    );
   });
 });
