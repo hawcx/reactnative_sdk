@@ -1,6 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { initialize, useHawcxAuth, useHawcxWebLogin, type HawcxInitializeConfig } from '@hawcx/react-native-sdk';
+import { Platform, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  initialize,
+  useHawcxAuth,
+  useHawcxWebLogin,
+  addPushListener,
+  setPushDeviceToken,
+  notifyUserAuthenticated,
+  handlePushNotification as forwardPushPayload,
+  approvePushRequest,
+  declinePushRequest,
+  type HawcxInitializeConfig,
+  type PushEvent,
+} from '@hawcx/react-native-sdk';
 import { DEFAULT_HAWCX_CONFIG } from './hawcx.config';
 
 const COLORS = {
@@ -25,6 +37,12 @@ const App = () => {
   const [otp, setOtp] = useState('');
   const [pin, setPin] = useState('');
   const [token, setToken] = useState('');
+  const [pushTokenInput, setPushTokenInput] = useState('');
+  const [pushPayloadInput, setPushPayloadInput] = useState('{"request_id":"","ip_address":"","deviceInfo":"","timestamp":""}');
+  const [pushRequestId, setPushRequestId] = useState('');
+  const [pushEvents, setPushEvents] = useState<PushEvent[]>([]);
+  const [pushStatus, setPushStatus] = useState<string | null>(null);
+  const [pushError, setPushError] = useState<string | null>(null);
 
   const { state: authState, authenticate, submitOtp } = useHawcxAuth();
   const web = useHawcxWebLogin();
@@ -43,6 +61,14 @@ const App = () => {
         setInitError(err?.message ?? 'Failed to initialize the Hawcx SDK');
       });
   }, [activeConfig]);
+
+  useEffect(() => {
+    const subscription = addPushListener((event) => {
+      setPushEvents((prev) => [event, ...prev].slice(0, 4));
+      setPushStatus(`Received push event: ${event.type}`);
+    });
+    return () => subscription.remove();
+  }, []);
 
   const isReady = initStatus === 'ready';
   const maskedKey = useMemo(() => {
@@ -75,6 +101,76 @@ const App = () => {
     }
     submitOtp(otp);
     setOtp('');
+  };
+
+  const registerPushToken = async () => {
+    if (!requireReady()) {
+      return;
+    }
+    const trimmed = pushTokenInput.trim();
+    if (!trimmed) {
+      setPushError('Enter a token first (FCM token for Android or byte list for iOS).');
+      return;
+    }
+    setPushError(null);
+    try {
+      if (Platform.OS === 'ios') {
+        const bytes = trimmed
+          .split(',')
+          .map((segment) => parseInt(segment.trim(), 10))
+          .filter((value) => !Number.isNaN(value));
+        if (!bytes.length) {
+          throw new Error('Provide a comma-separated list of APNs byte values for iOS.');
+        }
+        await setPushDeviceToken(bytes);
+      } else {
+        await setPushDeviceToken(trimmed);
+      }
+      setPushStatus('Push token submitted to the Hawcx SDK.');
+    } catch (error: unknown) {
+      setPushError((error as Error)?.message ?? 'Failed to register token');
+    }
+  };
+
+  const forwardPush = async () => {
+    if (!requireReady()) {
+      return;
+    }
+    setPushError(null);
+    try {
+      const parsed = JSON.parse(pushPayloadInput);
+      await forwardPushPayload(parsed);
+      setPushStatus('Forwarded payload to the Hawcx SDK.');
+    } catch (error: unknown) {
+      setPushError((error as Error)?.message ?? 'Invalid JSON payload');
+    }
+  };
+
+  const onApprovePush = async () => {
+    try {
+      await approvePushRequest(pushRequestId.trim());
+      setPushStatus('Approved push request');
+    } catch (error: unknown) {
+      setPushError((error as Error)?.message ?? 'Failed to approve push request');
+    }
+  };
+
+  const onDeclinePush = async () => {
+    try {
+      await declinePushRequest(pushRequestId.trim());
+      setPushStatus('Declined push request');
+    } catch (error: unknown) {
+      setPushError((error as Error)?.message ?? 'Failed to decline push request');
+    }
+  };
+
+  const markUserAuthenticated = async () => {
+    try {
+      await notifyUserAuthenticated();
+      setPushStatus('Notified native SDK to register push token.');
+    } catch (error: unknown) {
+      setPushError((error as Error)?.message ?? 'Failed to notify Hawcx SDK');
+    }
   };
 
   return (
@@ -177,6 +273,79 @@ const App = () => {
           </Text>
         )}
       </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Push Approvals (Manual Harness)</Text>
+        <Text style={styles.status}>
+          Token format: Android expects the FCM string. iOS expects a comma-separated list of APNs byte values.
+        </Text>
+        <TextInput
+          style={[styles.input, styles.payloadInput]}
+          placeholder={Platform.OS === 'ios' ? 'e.g. 42, 13, 255' : 'FCM token'}
+          placeholderTextColor={COLORS.muted}
+          value={pushTokenInput}
+          onChangeText={setPushTokenInput}
+          multiline
+        />
+        <View style={styles.row}>
+          <TouchableOpacity style={[styles.button, styles.rowButton]} onPress={registerPushToken} disabled={!isReady}>
+            <Text style={styles.buttonText}>Register Token</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.rowButton]} onPress={markUserAuthenticated} disabled={!isReady}>
+            <Text style={styles.buttonText}>Notify Authenticated</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TextInput
+          style={[styles.input, styles.payloadInput]}
+          placeholder='Raw push payload JSON (e.g. {"request_id": "..."} )'
+          placeholderTextColor={COLORS.muted}
+          value={pushPayloadInput}
+          onChangeText={setPushPayloadInput}
+          multiline
+        />
+        <TouchableOpacity style={[styles.button, !isReady && styles.buttonDisabled]} onPress={forwardPush} disabled={!isReady}>
+          <Text style={styles.buttonText}>Send Payload to SDK</Text>
+        </TouchableOpacity>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Request ID for approve/decline"
+          placeholderTextColor={COLORS.muted}
+          value={pushRequestId}
+          onChangeText={setPushRequestId}
+        />
+        <View style={styles.row}>
+          <TouchableOpacity
+            style={[styles.button, styles.successButton, (!isReady || !pushRequestId.trim()) && styles.buttonDisabled]}
+            onPress={onApprovePush}
+            disabled={!isReady || !pushRequestId.trim()}>
+            <Text style={styles.buttonText}>Approve</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.errorButton, (!isReady || !pushRequestId.trim()) && styles.buttonDisabled]}
+            onPress={onDeclinePush}
+            disabled={!isReady || !pushRequestId.trim()}>
+            <Text style={styles.buttonText}>Decline</Text>
+          </TouchableOpacity>
+        </View>
+
+        {!!pushStatus && <Text style={[styles.status, styles.successText]}>{pushStatus}</Text>}
+        {!!pushError && <Text style={[styles.status, styles.errorText]}>{pushError}</Text>}
+
+        <View>
+          <Text style={styles.status}>Recent Push Events</Text>
+          {pushEvents.length === 0 && <Text style={styles.status}>Waiting for events…</Text>}
+          {pushEvents.map((event, index) => (
+            <View key={`${event.type}-${index}`} style={styles.pushEvent}>
+              <Text style={styles.monoText}>{event.type}</Text>
+              {'payload' in event && event.payload && (
+                <Text style={[styles.monoText, styles.payloadText]}>{JSON.stringify(event.payload, null, 2)}</Text>
+              )}
+            </View>
+          ))}
+        </View>
+      </View>
     </SafeAreaView>
   );
 };
@@ -224,6 +393,17 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     fontWeight: '600',
   },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  rowButton: {
+    flex: 1,
+  },
+  payloadInput: {
+    minHeight: 70,
+    textAlignVertical: 'top',
+  },
   status: {
     color: COLORS.muted,
   },
@@ -232,6 +412,12 @@ const styles = StyleSheet.create({
   },
   successText: {
     color: COLORS.success,
+  },
+  successButton: {
+    backgroundColor: COLORS.success,
+  },
+  errorButton: {
+    backgroundColor: COLORS.error,
   },
   otpRow: {
     flexDirection: 'row',
@@ -242,6 +428,20 @@ const styles = StyleSheet.create({
   },
   otpButton: {
     flex: 0.6,
+  },
+  pushEvent: {
+    backgroundColor: '#0b1527',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  monoText: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 12,
+    color: COLORS.text,
+  },
+  payloadText: {
+    marginTop: 4,
   },
 });
 
