@@ -33,6 +33,7 @@ This example demonstrates the cross-platform APIs exported by `@hawcx/react-nati
   - Register APNs bytes (iOS) or an FCM token (Android) via `setPushDeviceToken`.
   - Forward arbitrary push payload JSON to the native SDK and see emitted `hawcx.push.event` logs.
   - Approve or decline login requests by submitting the `request_id`.
+- Logging card with an on/off switch so you can inspect auth/session/push events directly in the UI.
 
 ## Push Harness Tips
 - On Android, paste the FCM token string and tap **Register Token** followed by **Notify Authenticated** once the user completes login. This calls `setFcmToken` + `userDidAuthenticate` so Hawcx can register for approvals.
