@@ -1,7 +1,7 @@
 buildscript {
     ext {
         androidGradlePluginVersion = '8.5.2'
-        kotlinVersion = '1.9.24'
+        kotlinVersion = '2.0.0'
     }
     repositories {
         google()
@@ -43,7 +43,7 @@ android {
     }
 
     buildFeatures {
-        buildConfig = false
+        buildConfig = true
     }
 
     compileOptions {
@@ -95,7 +95,7 @@ afterEvaluate {
 }
 
 dependencies {
-    api(name: 'hawcx-5.1.0', ext: 'aar')
+    api(files('libs/hawcx-5.1.0.aar'))
     def reactNativeVersion = safeExtGet('reactNativeAndroidVersion', '0.73.9')
     implementation "com.facebook.react:react-android:$reactNativeVersion"
     implementation 'androidx.annotation:annotation:1.8.1'
