@@ -67,6 +67,7 @@ type NativeBridge = {
   webLogin(pin: string): Promise<void>;
   webApprove(token: string): Promise<void>;
   setApnsDeviceToken(tokenBase64: string): Promise<void>;
+  setFcmToken(token: string): Promise<void>;
   userDidAuthenticate(): Promise<void>;
   handlePushNotification(payload: Record<string, unknown>): Promise<boolean>;
   approvePushRequest(requestId: string): Promise<void>;
@@ -86,6 +87,9 @@ const HawcxReactNative = HawcxReactNativeModule;
 const authEventEmitter = new NativeEventEmitter(HawcxReactNativeModule);
 const sessionEventEmitter = new NativeEventEmitter(HawcxReactNativeModule);
 const pushEventEmitter = new NativeEventEmitter(HawcxReactNativeModule);
+
+const isIOS = () => Platform.OS === 'ios';
+const isAndroid = () => Platform.OS === 'android';
 
 const ensureNonEmpty = (value: string, field: string): string => {
   const trimmed = value?.trim();
@@ -144,8 +148,38 @@ export function webApprove(token: string): Promise<void> {
 }
 
 export function setApnsDeviceToken(tokenData: Uint8Array | number[]): Promise<void> {
+  if (!isIOS()) {
+    return Promise.resolve();
+  }
   const buffer = Buffer.from(tokenData);
   return HawcxReactNative.setApnsDeviceToken(buffer.toString('base64'));
+}
+
+export function setFcmToken(token: string): Promise<void> {
+  if (!isAndroid()) {
+    return Promise.resolve();
+  }
+  try {
+    return HawcxReactNative.setFcmToken(ensureNonEmpty(token, 'token'));
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+export function setPushDeviceToken(token: Uint8Array | number[] | string): Promise<void> {
+  if (isIOS()) {
+    if (typeof token === 'string') {
+      return Promise.reject(new Error('APNs tokens must be provided as byte arrays or Uint8Arrays'));
+    }
+    return setApnsDeviceToken(token);
+  }
+  if (isAndroid()) {
+    if (typeof token !== 'string') {
+      return Promise.reject(new Error('FCM token must be a string on Android'));
+    }
+    return setFcmToken(token);
+  }
+  return Promise.reject(new Error(`Unsupported platform for push token registration: ${Platform.OS}`));
 }
 
 export function notifyUserAuthenticated(): Promise<void> {
@@ -320,6 +354,14 @@ export class HawcxClient {
 
   setApnsDeviceToken(tokenData: Uint8Array | number[]): Promise<void> {
     return setApnsDeviceToken(tokenData);
+  }
+
+  setFcmToken(token: string): Promise<void> {
+    return setFcmToken(token);
+  }
+
+  setPushDeviceToken(token: Uint8Array | number[] | string): Promise<void> {
+    return setPushDeviceToken(token);
   }
 
   notifyUserAuthenticated(): Promise<void> {

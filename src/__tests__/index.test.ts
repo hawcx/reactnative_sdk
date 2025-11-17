@@ -6,10 +6,21 @@ import {
   webApprove,
   approvePushRequest,
   declinePushRequest,
+  setPushDeviceToken,
   HawcxClient,
   HawcxAuthError,
   __INTERNAL_EVENTS__,
 } from '../index';
+import { Platform } from 'react-native';
+
+const ORIGINAL_PLATFORM = Platform.OS;
+
+const overridePlatformOS = (os: typeof Platform.OS) => {
+  Object.defineProperty(Platform, 'OS', {
+    configurable: true,
+    get: () => os,
+  });
+};
 
 describe('Hawcx React Native SDK', () => {
   it('rejects initialize call without api key', async () => {
@@ -127,5 +138,22 @@ describe('HawcxClient helpers', () => {
       },
     });
     subscription.remove();
+  });
+});
+
+describe('push token helpers', () => {
+  afterEach(() => {
+    overridePlatformOS(ORIGINAL_PLATFORM);
+    jest.restoreAllMocks();
+  });
+
+  it('rejects APNs string tokens on iOS', async () => {
+    overridePlatformOS('ios');
+    await expect(setPushDeviceToken('abc')).rejects.toThrow('APNs tokens must be provided as byte arrays or Uint8Arrays');
+  });
+
+  it('rejects non-string tokens on Android', async () => {
+    overridePlatformOS('android');
+    await expect(setPushDeviceToken([1, 2, 3])).rejects.toThrow('FCM token must be a string on Android');
   });
 });
