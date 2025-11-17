@@ -22,6 +22,8 @@ This package provides the React Native wrapper for the Hawcx V5 mobile authentic
 ## Android Module (WIP)
 - `android/` hosts the Gradle-based library that React Native autolinks for Android builds. It already references the Hawcx Android SDK via `android/libs/hawcx-5.1.0.aar` and exposes `./gradlew` helpers for linting/publishing.
 - Run Gradle tasks from the repo root with `./gradlew -p android <task>` (for example, `./gradlew -p android :hawcxreactnative:lintRelease`). The first invocation requires network/Gradle cache access for AGP + React Native dependencies.
+- The bridge mirrors the iOS surface: `initialize`, `authenticate`, OTP/session helpers, push lifecycle (`setApnsDeviceToken` on iOS, `setFcmToken` on Android), and emits the same `hawcx.*` events for auth/session/push updates.
+- Android builds require `android/local.properties` pointing at your Android SDK (`sdk.dir=/Users/<you>/Library/Android/sdk`) and target `minSdkVersion` 26 to match the Hawcx AAR.
 
 ### Refreshing the Hawcx Android SDK AAR
 1. Build the native Android SDK (`cd ~/dev_android/android_sdk && ./gradlew :app:assembleRelease`).
