@@ -9,10 +9,10 @@ Pod::Spec.new do |s|
     Production-grade React Native bridge that wraps HawcxFramework (iOS) to expose
     V5 authentication, OTP, push, and web session flows to JavaScript callers.
   DESC
-  s.homepage     = 'https://github.com/hawcx/react-native-sdk'
+  s.homepage     = 'https://github.com/hawcx/reactnative_sdk'
   s.license      = { :type => 'MIT', :file => 'LICENSE' }
   s.author       = { 'Hawcx Engineering' => 'engineering@hawcx.com' }
-  s.source       = { :git => 'https://github.com/hawcx/react-native-sdk.git', :tag => "v#{s.version}" }
+  s.source       = { :git => 'https://github.com/hawcx/reactnative_sdk.git', :tag => "v#{s.version}" }
 
   s.platform     = :ios, '17.5'
   s.swift_version = '5.9'
