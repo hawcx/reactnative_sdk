@@ -80,7 +80,11 @@ type NativeBridge = {
   initialize(config: HawcxInitializeConfig): Promise<void>;
   authenticate(userId: string): Promise<void>;
   submitOtp(otp: string): Promise<void>;
-  storeBackendOAuthTokens(userId: string, accessToken: string, refreshToken?: string | null): Promise<boolean>;
+  storeBackendOAuthTokens(
+    userId: string,
+    accessToken: string,
+    refreshToken?: string | null,
+  ): Promise<boolean>;
   getDeviceDetails(): Promise<void>;
   webLogin(pin: string): Promise<void>;
   webApprove(token: string): Promise<void>;
