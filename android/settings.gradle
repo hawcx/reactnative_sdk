@@ -1,3 +1,8 @@
+import org.gradle.authentication.http.BasicAuthentication
+
+val hawcxMavenUser: String? = System.getenv("HAWCX_MAVEN_USER") ?: System.getenv("GITHUB_USER")
+val hawcxMavenToken: String? = System.getenv("HAWCX_MAVEN_TOKEN") ?: System.getenv("GITHUB_TOKEN")
+
 pluginManagement {
     repositories {
         google()
@@ -11,6 +16,35 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        if (!hawcxMavenUser.isNullOrBlank() && !hawcxMavenToken.isNullOrBlank()) {
+            maven {
+                url = uri("https://raw.githubusercontent.com/hawcx/hawcx_android_sdk/main/maven")
+                content {
+                    includeGroup("api.hawcx")
+                }
+                credentials {
+                    username = hawcxMavenUser
+                    password = hawcxMavenToken
+                }
+                authentication {
+                    create<BasicAuthentication>("basic")
+                }
+                metadataSources {
+                    mavenPom()
+                    artifact()
+                }
+            }
+        }
+        maven {
+            url = uri("${rootDir}/../../prod_android/hawcx_android_sdk/maven")
+            content {
+                includeGroup("api.hawcx")
+            }
+            metadataSources {
+                mavenPom()
+                artifact()
+            }
+        }
     }
 }
 

@@ -29,7 +29,6 @@ repositories {
     google()
     maven { url "$rootDir/../node_modules/react-native/android" }
     maven { url "$rootDir/../node_modules/jsc-android/dist" }
-    flatDir { dirs 'libs' }
 }
 
 android {
@@ -95,7 +94,7 @@ afterEvaluate {
 }
 
 dependencies {
-    api(files('libs/hawcx-5.1.0.aar'))
+    api("api.hawcx:hawcx:5.1.0")
     def reactNativeVersion = safeExtGet('reactNativeAndroidVersion', '0.73.9')
     implementation "com.facebook.react:react-android:$reactNativeVersion"
     implementation 'androidx.annotation:annotation:1.8.1'
