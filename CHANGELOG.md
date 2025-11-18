@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.2] - YYYY-MM-DD
+- TODO: add release notes
+
 ## [1.0.1] - 2025-11-17
 - Point native Android/iOS SDKs at new production authentication endpoint
 - Refresh bundled Hawcx Android/iOS binaries for the 1.0.1 cut
