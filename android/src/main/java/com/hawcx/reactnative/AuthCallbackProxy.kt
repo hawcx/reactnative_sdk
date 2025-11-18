@@ -32,4 +32,22 @@ internal class AuthCallbackProxy(
         }
         dispatcher.emitAuthEvent("auth_error", payload)
     }
+
+    override fun onAuthorizationCode(code: String, expiresIn: Int?) {
+        val payload = Arguments.createMap().apply {
+            putString("code", code)
+            expiresIn?.let { putInt("expiresIn", it) }
+        }
+        dispatcher.emitAuthEvent("authorization_code", payload)
+    }
+
+    override fun onAdditionalVerificationRequired(sessionId: String, detail: String?) {
+        val payload = Arguments.createMap().apply {
+            putString("sessionId", sessionId)
+            if (!detail.isNullOrBlank()) {
+                putString("detail", detail)
+            }
+        }
+        dispatcher.emitAuthEvent("additional_verification_required", payload)
+    }
 }

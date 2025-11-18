@@ -1,109 +1,171 @@
-# Hawcx React Native SDK (iOS)
+# Hawcx React Native SDK
 
-This package provides the React Native wrapper for the Hawcx V5 mobile authentication framework. It reuses the production iOS implementation (`dev_ios/ios_sdk/HawcxFramework`) and exposes a typed JavaScript/TypeScript API for React Native applications.
+Official React Native bindings for the Hawcx V5 mobile authentication platform. The package wraps the production Hawcx iOS and Android SDKs so you can deliver Smart‑Connect (OTP + device trust + push approvals) inside a single cross‑platform API.
 
-## Repository Layout
-- `src/` – TypeScript entry point and public API surface.
-- `ios/` – Native bridge sources (Swift) plus the Podspec that embeds `HawcxFramework`.
-- `android/` – React Native Android bridge module (Gradle library) plus the bundled Hawcx SDK AAR.
-- `example/` – Runnable React Native demo app using the SDK (`npm install` -> `npm run ios`).
-- `react_mobile_sdk_plan.md` – Detailed delivery plan and progress tracker. **Always read and update this file when working on the SDK.**
+## Requirements
 
-## Scripts
-| Command | Description |
-| --- | --- |
-| `npm run clean` | Removes the build output under `lib/`. |
-| `npm run lint` | Runs ESLint using the React Native + TypeScript rules. |
-| `npm run typecheck` | Executes the TypeScript compiler in `--noEmit` mode. |
-| `npm run build` | Builds distributable bundles via `react-native-builder-bob`. |
+* React Native ≥ 0.73 (Hermes enabled by default)
+* iOS 17+ / Android 8+ (SDK requires API level 26 for Android)
+* OAuth client credentials **must stay on your backend**.
 
-> Note: Dependencies are declared in `package.json` but not yet installed. Install them once local tooling is in place (`npm install`).
+## Installation
 
-## Android Module (WIP)
-- `android/` hosts the Gradle-based library that React Native autolinks for Android builds. It already references the Hawcx Android SDK via `android/libs/hawcx-5.1.0.aar` and exposes `./gradlew` helpers for linting/publishing.
-- Run Gradle tasks from the repo root with `./gradlew -p android <task>` (for example, `./gradlew -p android :hawcxreactnative:lintRelease`). The first invocation requires network/Gradle cache access for AGP + React Native dependencies.
-- The bridge mirrors the iOS surface: `initialize`, `authenticate`, OTP/session helpers, push lifecycle (`setApnsDeviceToken` on iOS, `setFcmToken` on Android), and emits the same `hawcx.*` events for auth/session/push updates.
-- Android builds require `android/local.properties` pointing at your Android SDK (`sdk.dir=/Users/<you>/Library/Android/sdk`) and target `minSdkVersion` 26 to match the Hawcx AAR.
+```bash
+npm install @hawcx/react-native-sdk
+# or yarn add @hawcx/react-native-sdk
+```
 
-### Refreshing the Hawcx Android SDK AAR
-1. Build the native Android SDK (`cd ~/dev_android/android_sdk && ./gradlew :app:assembleRelease`).
-2. Copy the generated `app/build/outputs/aar/hawcx-<version>.aar` into `android/libs/`, replacing the existing binary.
-3. Update any documentation or release notes (e.g., `react_mobile_sdk_plan.md`, `CHANGELOG.md`) to reflect the new Hawcx SDK version.
+### iOS
 
-## Usage (WIP)
+```
+cd ios
+pod install
+cd ..
+```
 
-```ts
-import {
-  initialize,
-  authenticate,
-  submitOtp,
-  addAuthListener,
-  hawcxClient,
-  useHawcxAuth,
-  useHawcxWebLogin,
-} from '@hawcx/react-native-sdk';
+Open the workspace (`ios/*.xcworkspace`) in Xcode when you need to run on a device. The pod installs the vendored HawcxFramework.xcframework automatically.
 
-await initialize({ projectApiKey: 'YOUR_PROJECT_KEY' });
+### Android
 
-const subscription = addAuthListener(event => {
-  switch (event.type) {
-    case 'otp_required':
-      // show OTP UI
-      break;
-    case 'auth_success':
-      console.log('Login success', event.payload);
-      break;
-    case 'auth_error':
-      console.error('Auth failed', event.payload.message);
-      break;
-  }
-});
+No manual steps are required—Gradle picks up the bundled `hawcx-*.aar`. Make sure the Android SDK is installed and `ANDROID_HOME`/`adb` are on your path, then run `npm run android`.
 
-await authenticate('user@example.com');
-await submitOtp('123456');
+## Quick Start
 
-subscription.remove();
+```tsx
+import { useEffect } from 'react';
+import { initialize, addAuthListener } from '@hawcx/react-native-sdk';
 
-// HawcxClient helper
-const { promise } = hawcxClient.authenticate('user@example.com', {
-  onOtpRequired: () => console.log('show OTP UI'),
-});
-const result = await promise; // -> { accessToken?, refreshToken?, isLoginFlow }
-
-// React hook example
-function AuthScreen() {
-  const { state, authenticate, submitOtp } = useHawcxAuth();
-
-  const start = () => authenticate('user@example.com');
-  const sendOtp = (otp: string) => submitOtp(otp);
-
-  return null;
-}
-
-function WebLoginScreen() {
-  const { state, webLogin, webApprove, getDeviceDetails } = useHawcxWebLogin();
-
-  const validatePin = (pin: string) => webLogin(pin);
-  const approveSession = (token: string) => webApprove(token);
-  const refreshDevices = () => getDeviceDetails();
-
-  return null;
+export function bootstrapHawcx() {
+  return initialize({ projectApiKey: 'YOUR_PROJECT_API_KEY' }).then(() => {
+    const subscription = addAuthListener(event => {
+      if (event.type === 'auth_error') {
+        console.warn('Hawcx error', event.payload);
+      }
+    });
+    return () => subscription.remove();
+  });
 }
 ```
 
-## Example App & E2E
-- `cd example && npm install` to bootstrap the sample app.
-- Edit `example/src/hawcx.config.ts` with your project API key plus the OAuth client ID, token endpoint, and PEM from `dev_ios/ios_demo_dev`, then run `npm run ios` or `npm run android`.
-- Use `example/e2e/hawcx-login.yaml` with [Maestro](https://maestro.mobile.dev/) to drive a smoke test through OTP login. Adjust selectors to match your bundle ID and UI tweaks.
+Call `bootstrapHawcx()` once when your app starts (e.g., inside your root component or Redux saga). After that you can use hooks or imperative helpers to drive Smart‑Connect.
 
-## Release Process
-Review `docs/RELEASE.md` before publishing. In short:
-1. Run `npm run lint && npm run typecheck && npm test && npm run build`.
-2. Update `package.json` + `CHANGELOG.md`.
-3. Smoke test the example app.
-4. `npm publish --access public` and `pod repo push trunk HawcxReactNative.podspec`.
-5. Tag the repo (`git tag vX.Y.Z && git push origin --tags`).
+### Authentication flow (OTP + authorization code)
 
-## Next Steps
-1. Follow `react_mobile_sdk_plan.md` Phase 1+ to implement the native bridge and JS API.
-2. Keep this README updated with integration steps and release instructions as the SDK matures.
+The SDK now always returns an authorization code. Your frontend must forward it to your backend, which redeems it with Hawcx using the OAuth client credentials we issued for your project.
+
+```tsx
+import React, { useEffect, useState } from 'react';
+import { useHawcxAuth, storeBackendOAuthTokens } from '@hawcx/react-native-sdk';
+
+export function SmartConnectScreen() {
+  const { state, authenticate, submitOtp, reset } = useHawcxAuth();
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+
+  useEffect(() => {
+    if (state.status === 'authorization_code') {
+      void exchangeCode(state.payload).finally(() => reset());
+    }
+  }, [state, reset]);
+
+  const exchangeCode = async ({ code, expiresIn }) => {
+    const response = await fetch('https://your-backend.example.com/api/hawcx/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim(), code, expires_in: expiresIn }),
+    });
+    if (!response.ok) {
+      throw new Error('Backend verification failed');
+    }
+    const { access_token, refresh_token } = await response.json();
+    await storeBackendOAuthTokens(email.trim(), access_token, refresh_token);
+  };
+
+  return (
+    <>
+      {/* Collect identifier */}
+      <Button title="Continue" onPress={() => authenticate(email.trim())} />
+
+      {state.status === 'otp' && (
+        <>
+          <TextInput value={otp} onChangeText={setOtp} keyboardType="number-pad" />
+          <Button title="Verify OTP" onPress={() => submitOtp(otp)} />
+        </>
+      )}
+
+      {state.status === 'authorization_code' && <Text>Sending authorization code…</Text>}
+      {state.status === 'additional_verification_required' && (
+        <Text>Additional verification required: {state.payload.detail ?? state.payload.sessionId}</Text>
+      )}
+      {state.status === 'error' && <Text>{state.error.message}</Text>}
+    </>
+  );
+}
+```
+
+### Backend exchange
+
+Redeem the authorization code on your server using the hawcx/oauth-client package or your preferred language SDK. Never ship `clientId`, token endpoint, private keys, or Hawcx public keys inside your mobile app.
+
+```ts
+import express from 'express';
+import { exchangeCodeForTokenAndClaims } from '@hawcx/oauth-client';
+
+const app = express();
+app.use(express.json());
+
+app.post('/api/hawcx/login', async (req, res) => {
+  const { email, code, expires_in } = req.body ?? {};
+  if (!email || !code) {
+    return res.status(400).json({ success: false, error: 'Missing email or code' });
+  }
+
+  try {
+    const [claims, idToken] = await exchangeCodeForTokenAndClaims({
+      code,
+      oauthTokenUrl: process.env.HAWCX_OAUTH_TOKEN_ENDPOINT!,
+      clientId: process.env.HAWCX_OAUTH_CLIENT_ID!,
+      publicKey: process.env.HAWCX_OAUTH_PUBLIC_KEY_PEM!,
+      audience: process.env.HAWCX_OAUTH_CLIENT_ID,
+      issuer: process.env.HAWCX_OAUTH_ISSUER,
+    });
+
+    return res.json({
+      success: true,
+      message: `Verified ${claims.email}`,
+      access_token: idToken,
+      refresh_token: idToken,
+    });
+  } catch (error) {
+    return res.status(401).json({ success: false, error: error.message });
+  }
+});
+```
+
+Once the backend responds, call `storeBackendOAuthTokens(userId, tokens)` so the Hawcx SDK saves them securely and can continue handling push registration and device sessions.
+
+## Hooks & Helpers
+
+* `useHawcxAuth()` – React hook that exposes the current auth state and helpers (`authenticate`, `submitOtp`, `reset`).
+* `useHawcxWebLogin()` – Drive QR/PIN based approvals.
+* `addAuthListener` / `addSessionListener` / `addPushListener` – Lower-level event APIs if you prefer an imperative approach.
+* `setPushDeviceToken` / `notifyUserAuthenticated` – Wire push login approvals.
+
+Refer to the updated [React Quickstart documentation](https://docs.hawcx.com/react/quickstart) for details on each API, push approvals, and device session management.
+
+## Example App
+
+`/example` contains a full React Native app wired to the SDK with logging, OTP UI, push harness, and a backend toggle. To run it:
+
+```bash
+cd example
+npm install
+npm run ios   # or npm run android
+```
+
+Add your Project API key in `example/src/hawcx.config.ts` or paste it into the in-app form. The **Authorization Code & Backend Exchange** card runs in demo mode by default (codes complete locally). Set `BACKEND_FLOW_ENABLED = true` in `example/src/App.tsx` when you have a tunnel or backend ready to receive `{ code, email, expires_in }`.
+
+## Support
+
+* Documentation: [React Quickstart](https://docs.hawcx.com/react/quickstart)
+* Questions? Reach out to your Hawcx solutions engineer or info@hawcx.com.

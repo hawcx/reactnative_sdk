@@ -19,6 +19,7 @@ import {
   addPushListener,
   setPushDeviceToken,
   notifyUserAuthenticated,
+  storeBackendOAuthTokens,
   handlePushNotification as forwardPushPayload,
   approvePushRequest,
   declinePushRequest,
@@ -26,6 +27,8 @@ import {
   type PushEvent,
   type AuthEvent,
   type SessionEvent,
+  type AuthorizationCodePayload,
+  type AdditionalVerificationPayload,
 } from '@hawcx/react-native-sdk';
 import { DEFAULT_HAWCX_CONFIG } from './hawcx.config';
 
@@ -39,14 +42,23 @@ const COLORS = {
   success: '#4ade80',
 };
 
+const DEFAULT_BACKEND_URL = 'http://localhost:3000/api/login';
+const BACKEND_FLOW_ENABLED = false;
+
+type BackendExchangeResponse = {
+  success: boolean;
+  message?: string;
+  error?: string;
+  access_token?: string;
+  refresh_token?: string;
+};
+
 const App = () => {
-  const activeConfig: HawcxInitializeConfig | null = DEFAULT_HAWCX_CONFIG;
-  const [initStatus, setInitStatus] = useState<'idle' | 'initializing' | 'ready' | 'error'>(
-    DEFAULT_HAWCX_CONFIG ? 'initializing' : 'error',
+  const [activeConfig, setActiveConfig] = useState<HawcxInitializeConfig | null>(
+    DEFAULT_HAWCX_CONFIG,
   );
-  const [initError, setInitError] = useState<string | null>(
-    DEFAULT_HAWCX_CONFIG ? null : 'Set credentials in example/src/hawcx.config.ts to continue.',
-  );
+  const [initStatus, setInitStatus] = useState<'idle' | 'initializing' | 'ready' | 'error'>('idle');
+  const [initError, setInitError] = useState<string | null>(null);
   const [email, setEmail] = useState('user@example.com');
   const [otp, setOtp] = useState('');
   const [pin, setPin] = useState('');
@@ -59,6 +71,12 @@ const App = () => {
   const [pushError, setPushError] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [loggingEnabled, setLoggingEnabled] = useState(false);
+  const [backendUrl, setBackendUrl] = useState(DEFAULT_BACKEND_URL);
+  const [lastAuthCode, setLastAuthCode] = useState<AuthorizationCodePayload | null>(null);
+  const [additionalVerification, setAdditionalVerification] =
+    useState<AdditionalVerificationPayload | null>(null);
+  const [backendStatus, setBackendStatus] = useState<string | null>(null);
+  const [backendError, setBackendError] = useState<string | null>(null);
 
   const { state: authState, authenticate, submitOtp } = useHawcxAuth();
   const web = useHawcxWebLogin();
@@ -74,8 +92,87 @@ const App = () => {
     [loggingEnabled],
   );
 
+  const exchangeWithBackend = useCallback(
+    async (payload: AuthorizationCodePayload) => {
+      setLastAuthCode(payload);
+      setAdditionalVerification(null);
+      setBackendError(null);
+      if (!BACKEND_FLOW_ENABLED) {
+        setBackendStatus(
+          `Demo mode: treated authorization code ${payload.code.slice(0, 6)}… as a successful login.`,
+        );
+        appendLog(`demo login completed with authorization code ${payload.code}`);
+        return;
+      }
+
+      const trimmedUrl = backendUrl.trim();
+      if (!trimmedUrl) {
+        setBackendError('Enter a backend URL to send the authorization code.');
+        return;
+      }
+      const trimmedEmail = email.trim();
+      if (!trimmedEmail) {
+        setBackendError('Enter an email before exchanging the authorization code.');
+        return;
+      }
+
+      setBackendStatus('Forwarding authorization code to backend…');
+      appendLog('forwarding authorization code to backend');
+
+      try {
+        const response = await fetch(trimmedUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: payload.code,
+            email: trimmedEmail,
+            expires_in: payload.expiresIn,
+          }),
+        });
+        const text = await response.text();
+        let parsed: BackendExchangeResponse = { success: response.ok };
+        if (text) {
+          try {
+            parsed = JSON.parse(text);
+          } catch {
+            // Non-JSON response – fallback to HTTP status.
+          }
+        }
+        if (!response.ok || parsed.success === false) {
+          throw new Error(parsed.error ?? parsed.message ?? `Backend responded with ${response.status}`);
+        }
+
+        if (parsed.access_token) {
+          await storeBackendOAuthTokens(
+            trimmedEmail,
+            parsed.access_token,
+            parsed.refresh_token ?? undefined,
+          );
+          await notifyUserAuthenticated();
+          setBackendStatus('Backend tokens stored with Hawcx SDK. Login complete.');
+          appendLog('stored backend-issued tokens via Hawcx SDK');
+        } else {
+          setBackendStatus(
+            parsed.message ?? 'Backend accepted the code but did not return access tokens.',
+          );
+        }
+      } catch (error) {
+        const message =
+          (error as Error)?.message ?? 'Failed to reach backend. Check ngrok/local server.';
+        setBackendError(message);
+        setBackendStatus(null);
+        appendLog(`backend exchange failed: ${message}`);
+      }
+    },
+    [appendLog, backendUrl, email],
+  );
+
   useEffect(() => {
     if (!activeConfig) {
+      setInitStatus('error');
+      setInitError(
+        'Add your project API key in example/src/hawcx.config.ts or via the in-app form to initialize the SDK.',
+      );
       return;
     }
     setInitStatus('initializing');
@@ -118,6 +215,50 @@ const App = () => {
     };
   }, [appendLog]);
 
+  useEffect(() => {
+    switch (authState.status) {
+      case 'authorization_code':
+        appendLog(
+          `authorization_code event received (backend=${BACKEND_FLOW_ENABLED ? 'on' : 'off'})`,
+        );
+        void exchangeWithBackend(authState.payload);
+        break;
+      case 'additional_verification_required':
+        appendLog(
+          `additional_verification_required: ${authState.payload.sessionId} ${
+            authState.payload.detail ?? ''
+          }`.trim(),
+        );
+        setAdditionalVerification(authState.payload);
+        break;
+      case 'success':
+        appendLog('auth_success event received from native SDK');
+        setBackendStatus('Hawcx SDK stored tokens automatically.');
+        setBackendError(null);
+        break;
+      case 'error':
+        appendLog(`auth_error: ${authState.error.code} ${authState.error.message}`);
+        if (!backendError) {
+          setBackendError(authState.error.message);
+        }
+        break;
+      case 'pending':
+        setBackendError(null);
+        setBackendStatus(null);
+        setAdditionalVerification(null);
+        setLastAuthCode(null);
+        break;
+      default:
+        break;
+    }
+  }, [appendLog, authState, backendError, exchangeWithBackend]);
+
+  const summarizeCode = useCallback((code: string) => {
+    if (code.length <= 10) {
+      return code;
+    }
+    return `${code.slice(0, 6)}…${code.slice(-4)}`;
+  }, []);
   const isReady = initStatus === 'ready';
   const maskedKey = useMemo(() => {
     if (!activeConfig?.projectApiKey) {
@@ -126,7 +267,6 @@ const App = () => {
     const suffix = activeConfig.projectApiKey.slice(-4);
     return `Active key ••••${suffix}`;
   }, [activeConfig?.projectApiKey]);
-  const oauthStatus = activeConfig?.oauthConfig ? 'Configured' : 'Not provided';
 
   const requireReady = () => {
     if (!isReady) {
@@ -241,7 +381,6 @@ const App = () => {
         <Text style={styles.cardTitle}>SDK Status</Text>
         <Text style={styles.status}>State: {initStatus === 'ready' ? 'Ready' : initStatus}</Text>
         {!!maskedKey && <Text style={styles.status}>{maskedKey}</Text>}
-        <Text style={styles.status}>OAuth: {oauthStatus}</Text>
         {!!initError && <Text style={[styles.status, styles.errorText]}>{initError}</Text>}
       </View>
 
@@ -287,6 +426,56 @@ const App = () => {
         )}
         {authState.status === 'success' && (
           <Text style={[styles.status, styles.successText]}>Tokens received from Hawcx</Text>
+        )}
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Authorization Code & Backend Exchange</Text>
+        {!BACKEND_FLOW_ENABLED ? (
+          <Text style={styles.status}>
+            Demo mode: codes are treated as success locally. Set `BACKEND_FLOW_ENABLED = true` in
+            `App.tsx` to forward codes to your backend.
+          </Text>
+        ) : (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="https://example-ngrok-url.ngrok-free.dev/api/login"
+              placeholderTextColor={COLORS.muted}
+              autoCapitalize="none"
+              value={backendUrl}
+              onChangeText={setBackendUrl}
+            />
+            <TouchableOpacity
+              style={[styles.button, styles.secondaryButton]}
+              onPress={() => setBackendUrl(DEFAULT_BACKEND_URL)}>
+              <Text style={styles.buttonText}>Use localhost:3000</Text>
+            </TouchableOpacity>
+          </>
+        )}
+        {lastAuthCode && (
+          <View style={styles.codeBox}>
+            <Text style={styles.status}>Latest code: </Text>
+            <Text style={styles.monoText}>{summarizeCode(lastAuthCode.code)}</Text>
+            <Text style={styles.status}>
+              Expires in approximately {lastAuthCode.expiresIn ?? 60} seconds
+            </Text>
+          </View>
+        )}
+        {BACKEND_FLOW_ENABLED && lastAuthCode && (
+          <TouchableOpacity
+            style={[styles.button, styles.rowButton]}
+            onPress={() => exchangeWithBackend(lastAuthCode)}>
+            <Text style={styles.buttonText}>Retry Backend Exchange</Text>
+          </TouchableOpacity>
+        )}
+        {backendStatus && <Text style={[styles.status, styles.successText]}>{backendStatus}</Text>}
+        {backendError && <Text style={[styles.status, styles.errorText]}>{backendError}</Text>}
+        {additionalVerification && (
+          <Text style={[styles.status, styles.errorText]}>
+            Additional verification required ({additionalVerification.sessionId}).{' '}
+            {additionalVerification.detail ?? 'Complete verification inside Hawcx Admin.'}
+          </Text>
         )}
       </View>
 
@@ -488,6 +677,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   rowButton: {
     flex: 1,
   },
@@ -509,6 +703,9 @@ const styles = StyleSheet.create({
   },
   errorButton: {
     backgroundColor: COLORS.error,
+  },
+  secondaryButton: {
+    backgroundColor: '#475569',
   },
   otpRow: {
     flexDirection: 'row',
@@ -546,6 +743,12 @@ const styles = StyleSheet.create({
   },
   logLine: {
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  codeBox: {
+    backgroundColor: '#0b1527',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
   },
 });
 

@@ -2,6 +2,7 @@ import {
   initialize,
   authenticate,
   submitOtp,
+  storeBackendOAuthTokens,
   webLogin,
   webApprove,
   approvePushRequest,
@@ -11,7 +12,7 @@ import {
   HawcxAuthError,
   __INTERNAL_EVENTS__,
 } from '../index';
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
 const ORIGINAL_PLATFORM = Platform.OS;
 
@@ -114,6 +115,22 @@ describe('HawcxClient helpers', () => {
     });
   });
 
+  it('invokes authorization code callback', async () => {
+    const onAuthorizationCode = jest.fn();
+    client.authenticate('user@example.com', { onAuthorizationCode });
+    const payload = { code: 'abc', expiresIn: 30 };
+    emitAuth({ type: 'authorization_code', payload });
+    expect(onAuthorizationCode).toHaveBeenCalledWith(payload);
+  });
+
+  it('invokes additional verification callback', async () => {
+    const onAdditionalVerificationRequired = jest.fn();
+    client.authenticate('user@example.com', { onAdditionalVerificationRequired });
+    const payload = { sessionId: 'sid', detail: 'extra' };
+    emitAuth({ type: 'additional_verification_required', payload });
+    expect(onAdditionalVerificationRequired).toHaveBeenCalledWith(payload);
+  });
+
   it('invokes push event handlers', async () => {
     const handler = jest.fn();
     const subscription = client.addPushListener(handler);
@@ -159,5 +176,27 @@ describe('push token helpers', () => {
     await expect(setPushDeviceToken([1, 2, 3])).rejects.toThrow(
       'FCM token must be a string on Android',
     );
+  });
+});
+
+describe('storeBackendOAuthTokens helper', () => {
+  const bridge = NativeModules.HawcxReactNative.storeBackendOAuthTokens as jest.Mock;
+
+  beforeEach(() => {
+    bridge.mockResolvedValue(true);
+  });
+
+  it('calls native bridge with trimmed values', async () => {
+    await storeBackendOAuthTokens(' user@example.com ', ' token ', ' refresh ');
+    expect(bridge).toHaveBeenCalledWith('user@example.com', 'token', 'refresh');
+  });
+
+  it('passes null refresh token when omitted', async () => {
+    await storeBackendOAuthTokens('user@example.com', 'token');
+    expect(bridge).toHaveBeenCalledWith('user@example.com', 'token', null);
+  });
+
+  it('rejects when userId empty', async () => {
+    await expect(storeBackendOAuthTokens('   ', 'token')).rejects.toThrow('userId is required');
   });
 });

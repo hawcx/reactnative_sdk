@@ -247,6 +247,12 @@ public protocol AuthV5Callback : AnyObject {
   func onAuthSuccess(accessToken: Swift.String?, refreshToken: Swift.String?, isLoginFlow: Swift.Bool)
   #endif
   func onError(errorCode: HawcxFramework.AuthV5ErrorCode, errorMessage: Swift.String)
+  #if compiler(>=5.3) && $NonescapableTypes
+  func onAuthorizationCode(code: Swift.String, expiresIn: Swift.Int?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  func onAdditionalVerificationRequired(sessionId: Swift.String, detail: Swift.String?)
+  #endif
 }
 public protocol HawcxPushAuthDelegate : AnyObject {
   func hawcx(didReceiveLoginRequest requestId: Swift.String, details: HawcxFramework.PushLoginRequestDetails)
@@ -274,6 +280,10 @@ public class HawcxSDK {
   public func declineLoginRequest(requestId: Swift.String, completion: @escaping ((any Swift.Error)?) -> Swift.Void)
   #endif
   public func getLastLoggedInUser() -> Swift.String
+  #if compiler(>=5.3) && $NonescapableTypes
+  @discardableResult
+  public func storeBackendOAuthTokens(accessToken: Swift.String, refreshToken: Swift.String?, forUser userId: Swift.String) -> Swift.Bool
+  #endif
   public func clearSessionTokens(forUser userid: Swift.String)
   public func clearUserKeychainData(forUser userid: Swift.String)
   public func clearLastLoggedInUser()

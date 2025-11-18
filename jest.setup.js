@@ -4,6 +4,7 @@ NativeModules.HawcxReactNative = NativeModules.HawcxReactNative || {
   initialize: jest.fn(() => Promise.resolve()),
   authenticate: jest.fn(() => Promise.resolve()),
   submitOtp: jest.fn(() => Promise.resolve()),
+  storeBackendOAuthTokens: jest.fn(() => Promise.resolve(true)),
   getDeviceDetails: jest.fn(() => Promise.resolve()),
   webLogin: jest.fn(() => Promise.resolve()),
   webApprove: jest.fn(() => Promise.resolve()),

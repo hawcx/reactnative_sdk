@@ -9,7 +9,6 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
-import com.hawcx.internal.HawcxOAuthConfig
 import com.hawcx.internal.HawcxSDK
 import com.hawcx.utils.AuthV5Callback
 
@@ -26,6 +25,7 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
         private const val CODE_CONFIG = "hawcx.config"
         private const val CODE_SDK = "hawcx.sdk"
         private const val CODE_INPUT = "hawcx.input"
+        private const val CODE_STORAGE = "hawcx.storage"
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -57,34 +57,18 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
             return
         }
 
-        val oauthConfig = if (configMap.hasKey("oauthConfig") && !configMap.isNull("oauthConfig")) {
-            val oauth = configMap.getMap("oauthConfig") ?: run {
-                promise.reject(CODE_CONFIG, "oauthConfig must be an object")
-                return
-            }
-            val endpoint = oauth.getString("tokenEndpoint")?.trim().orEmpty()
-            val clientId = oauth.getString("clientId")?.trim().orEmpty()
-            val publicKeyPem = oauth.getString("publicKeyPem")?.trim().orEmpty()
-
-            if (endpoint.isEmpty() || clientId.isEmpty() || publicKeyPem.isEmpty()) {
-                promise.reject(CODE_CONFIG, "oauthConfig must include tokenEndpoint, clientId, and publicKeyPem")
-                return
-            }
-            HawcxOAuthConfig(
-                tokenEndpoint = endpoint,
-                clientId = clientId,
-                publicKeyPem = publicKeyPem
+        if (configMap.hasKey("oauthConfig") && !configMap.isNull("oauthConfig")) {
+            HawcxReactNativeLogger.w(
+                "oauthConfig was provided but the Android SDK no longer accepts client credentials on-device. " +
+                    "Remove this field from initialize()."
             )
-        } else {
-            null
         }
 
         runOnUiThread {
             try {
                 val sdk = HawcxSDK(
                     context = applicationContext,
-                    projectApiKey = projectApiKey,
-                    oauthConfig = oauthConfig
+                    projectApiKey = projectApiKey
                 )
                 hawcxSDK = sdk
                 val authProxy = AuthCallbackProxy(eventDispatcher)
@@ -199,6 +183,43 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
         runOnUiThread {
             sdk.webApprove(sanitizedToken, callback)
             promise.resolve(null)
+        }
+    }
+
+    @ReactMethod
+    fun storeBackendOAuthTokens(userId: String?, accessToken: String?, refreshToken: String?, promise: Promise) {
+        val sdk = hawcxSDK ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before storeBackendOAuthTokens")
+            return
+        }
+        val trimmedUser = userId?.trim().orEmpty()
+        if (trimmedUser.isEmpty()) {
+            promise.reject(CODE_INPUT, "userId cannot be empty")
+            return
+        }
+
+        val trimmedAccess = accessToken?.trim().orEmpty()
+        if (trimmedAccess.isEmpty()) {
+            promise.reject(CODE_INPUT, "accessToken cannot be empty")
+            return
+        }
+
+        val refresh = refreshToken?.trim().orEmpty().ifBlank { null }
+
+        runCatching {
+            sdk.storeBackendOAuthTokens(
+                accessToken = trimmedAccess,
+                refreshToken = refresh,
+                userId = trimmedUser
+            )
+        }.onSuccess { stored ->
+            if (stored) {
+                promise.resolve(true)
+            } else {
+                promise.reject(CODE_STORAGE, "Failed to persist backend-issued tokens")
+            }
+        }.onFailure { error ->
+            promise.reject(CODE_STORAGE, error.message, error)
         }
     }
 

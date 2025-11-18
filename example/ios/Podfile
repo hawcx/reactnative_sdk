@@ -4,9 +4,33 @@ require Pod::Executable.execute_command('node', ['-p',
     "react-native/scripts/react_native_pods.rb",
     {paths: [process.argv[1]]},
   )', __dir__]).strip
+require 'fileutils'
+require 'pathname'
+require 'tmpdir'
 
 platform :ios, '17.5'
 prepare_react_native_project!
+
+pre_install do |_installer|
+  local_xcframework = File.expand_path('../../ios/Frameworks/HawcxFramework.xcframework', __dir__)
+  pod_xcframework   = File.expand_path('../node_modules/@hawcx/react-native-sdk/ios/Frameworks/HawcxFramework.xcframework', __dir__)
+
+  unless File.exist?(local_xcframework)
+    Pod::UI.warn "Local HawcxFramework not found at #{local_xcframework}; using packaged release."
+    next
+  end
+
+  Pod::UI.puts "🔄 Syncing local HawcxFramework.xcframework into node_modules copy"
+  temp_dir = Dir.mktmpdir('hawcx-framework-copy')
+  temp_framework = File.join(temp_dir, 'HawcxFramework.xcframework')
+
+  FileUtils.cp_r(Pathname.new(local_xcframework).realpath.to_s, temp_framework)
+  FileUtils.rm_rf(pod_xcframework)
+  FileUtils.mkdir_p(File.dirname(pod_xcframework))
+  FileUtils.cp_r(temp_framework, pod_xcframework)
+ensure
+  FileUtils.rm_rf(temp_dir) if defined?(temp_dir) && temp_dir && Dir.exist?(temp_dir)
+end
 
 # If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
 # because `react-native-flipper` depends on (FlipperKit,...) that will be excluded

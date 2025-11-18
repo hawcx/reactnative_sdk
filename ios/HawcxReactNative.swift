@@ -162,6 +162,48 @@ class HawcxReactNative: RCTEventEmitter {
         }
     }
 
+    @objc
+    func storeBackendOAuthTokens(_ userId: NSString,
+                                 accessToken: NSString,
+                                 refreshToken: Any?,
+                                 resolver resolve: @escaping RCTPromiseResolveBlock,
+                                 rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let sdk = hawcxSDK else {
+            reject("hawcx.sdk", "initialize must be called before storeBackendOAuthTokens", nil)
+            return
+        }
+
+        let trimmedUser = userId.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedAccess = accessToken.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedUser.isEmpty else {
+            reject("hawcx.input", "userId cannot be empty", nil)
+            return
+        }
+
+        guard !trimmedAccess.isEmpty else {
+            reject("hawcx.input", "accessToken cannot be empty", nil)
+            return
+        }
+
+        var refreshValue: String?
+        if let refreshString = refreshToken as? NSString {
+            let trimmed = refreshString.trimmingCharacters(in: .whitespacesAndNewlines)
+            refreshValue = trimmed.isEmpty ? nil : trimmed
+        }
+
+        DispatchQueue.main.async {
+            let stored = sdk.storeBackendOAuthTokens(accessToken: trimmedAccess,
+                                                     refreshToken: refreshValue,
+                                                     forUser: trimmedUser)
+            if stored {
+                resolve(true)
+            } else {
+                reject("hawcx.storage", "Failed to persist backend-issued tokens", nil)
+            }
+        }
+    }
+
     fileprivate func emitAuthEvent(_ body: [String: Any]) {
         sendEvent(withName: authEventName, body: body)
     }
@@ -232,6 +274,28 @@ private final class AuthCallbackProxy: NSObject, AuthV5Callback {
             "message": errorMessage
         ]
         emitter?.emitAuthEvent(["type": "auth_error", "payload": payload])
+    }
+
+    func onAuthorizationCode(code: String, expiresIn: Int?) {
+        var payload: [String: Any] = [
+            "code": code
+        ]
+
+        if let expiresIn {
+            payload["expiresIn"] = expiresIn
+        }
+
+        emitter?.emitAuthEvent(["type": "authorization_code", "payload": payload])
+    }
+
+    func onAdditionalVerificationRequired(sessionId: String, detail: String?) {
+        var payload: [String: Any] = [
+            "sessionId": sessionId
+        ]
+        if let detail {
+            payload["detail"] = detail
+        }
+        emitter?.emitAuthEvent(["type": "additional_verification_required", "payload": payload])
     }
 }
 
