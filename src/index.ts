@@ -33,6 +33,21 @@ export type AuthSuccessPayload = {
   isLoginFlow: boolean;
 };
 
+export type AuthorizationCodePayload = {
+  code: string;
+  expiresIn?: number;
+};
+
+export type AdditionalVerificationPayload = {
+  sessionId: string;
+  detail?: string;
+};
+
+export type BackendOAuthTokens = {
+  accessToken: string;
+  refreshToken?: string;
+};
+
 export type AuthErrorPayload = {
   code: string;
   message: string;
@@ -41,6 +56,8 @@ export type AuthErrorPayload = {
 export type AuthEvent =
   | { type: 'otp_required' }
   | { type: 'auth_success'; payload: AuthSuccessPayload }
+  | { type: 'authorization_code'; payload: AuthorizationCodePayload }
+  | { type: 'additional_verification_required'; payload: AdditionalVerificationPayload }
   | { type: 'auth_error'; payload: AuthErrorPayload };
 
 export type SessionEvent =
@@ -63,6 +80,7 @@ type NativeBridge = {
   initialize(config: HawcxInitializeConfig): Promise<void>;
   authenticate(userId: string): Promise<void>;
   submitOtp(otp: string): Promise<void>;
+  storeBackendOAuthTokens(userId: string, accessToken: string, refreshToken?: string | null): Promise<boolean>;
   getDeviceDetails(): Promise<void>;
   webLogin(pin: string): Promise<void>;
   webApprove(token: string): Promise<void>;
@@ -122,6 +140,25 @@ export function authenticate(userId: string): Promise<void> {
 export function submitOtp(otp: string): Promise<void> {
   try {
     return HawcxReactNative.submitOtp(ensureNonEmpty(otp, 'otp'));
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+export function storeBackendOAuthTokens(
+  userId: string,
+  accessToken: string,
+  refreshToken?: string,
+): Promise<void> {
+  try {
+    const trimmedUser = ensureNonEmpty(userId, 'userId');
+    const trimmedAccess = ensureNonEmpty(accessToken, 'accessToken');
+    const trimmedRefresh = refreshToken?.trim();
+    return HawcxReactNative.storeBackendOAuthTokens(
+      trimmedUser,
+      trimmedAccess,
+      trimmedRefresh && trimmedRefresh.length > 0 ? trimmedRefresh : null,
+    ).then(() => undefined);
   } catch (error) {
     return Promise.reject(error);
   }
@@ -244,6 +281,8 @@ export class HawcxAuthError extends Error {
 
 export type HawcxAuthOptions = {
   onOtpRequired?: () => void;
+  onAuthorizationCode?: (payload: AuthorizationCodePayload) => void;
+  onAdditionalVerificationRequired?: (payload: AdditionalVerificationPayload) => void;
   onEvent?: (event: AuthEvent) => void;
 };
 
@@ -279,6 +318,12 @@ export class HawcxClient {
         switch (event.type) {
           case 'otp_required':
             options?.onOtpRequired?.();
+            break;
+          case 'authorization_code':
+            options?.onAuthorizationCode?.(event.payload);
+            break;
+          case 'additional_verification_required':
+            options?.onAdditionalVerificationRequired?.(event.payload);
             break;
           case 'auth_success':
             cleanup();
@@ -387,6 +432,10 @@ export class HawcxClient {
   addPushListener(handler: (event: PushEvent) => void): EmitterSubscription {
     return addPushListener(handler);
   }
+
+  storeBackendOAuthTokens(userId: string, tokens: BackendOAuthTokens): Promise<void> {
+    return storeBackendOAuthTokens(userId, tokens.accessToken, tokens.refreshToken);
+  }
 }
 
 export const hawcxClient = new HawcxClient();
@@ -395,6 +444,8 @@ export type HawcxAuthHookState =
   | { status: 'idle' }
   | { status: 'pending' }
   | { status: 'otp'; attempts: number }
+  | { status: 'authorization_code'; payload: AuthorizationCodePayload }
+  | { status: 'additional_verification_required'; payload: AdditionalVerificationPayload }
   | { status: 'success'; result: AuthSuccessPayload }
   | { status: 'error'; error: AuthErrorPayload };
 
@@ -414,6 +465,17 @@ export function useHawcxAuth(client: HawcxClient = hawcxClient) {
         case 'otp_required':
           otpAttempts.current += 1;
           setState({ status: 'otp', attempts: otpAttempts.current });
+          break;
+        case 'authorization_code':
+          otpAttempts.current = 0;
+          setState({ status: 'authorization_code', payload: event.payload });
+          break;
+        case 'additional_verification_required':
+          otpAttempts.current = 0;
+          setState({
+            status: 'additional_verification_required',
+            payload: event.payload,
+          });
           break;
         case 'auth_success':
           otpAttempts.current = 0;

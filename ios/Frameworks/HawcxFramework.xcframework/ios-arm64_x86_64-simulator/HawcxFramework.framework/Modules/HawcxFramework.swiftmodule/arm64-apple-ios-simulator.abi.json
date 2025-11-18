@@ -7370,6 +7370,88 @@
             "protocolReq": true,
             "reqNewWitnessTableEntry": true,
             "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "onAuthorizationCode",
+            "printedName": "onAuthorizationCode(code:expiresIn:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Int?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:14HawcxFramework14AuthV5CallbackP19onAuthorizationCode4code9expiresInySS_SiSgtF",
+            "mangledName": "$s14HawcxFramework14AuthV5CallbackP19onAuthorizationCode4code9expiresInySS_SiSgtF",
+            "moduleName": "HawcxFramework",
+            "genericSig": "<τ_0_0 where τ_0_0 : HawcxFramework.AuthV5Callback>",
+            "sugared_genericSig": "<Self where Self : HawcxFramework.AuthV5Callback>",
+            "protocolReq": true,
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "onAdditionalVerificationRequired",
+            "printedName": "onAdditionalVerificationRequired(sessionId:detail:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:14HawcxFramework14AuthV5CallbackP32onAdditionalVerificationRequired9sessionId6detailySS_SSSgtF",
+            "mangledName": "$s14HawcxFramework14AuthV5CallbackP32onAdditionalVerificationRequired9sessionId6detailySS_SSSgtF",
+            "moduleName": "HawcxFramework",
+            "genericSig": "<τ_0_0 where τ_0_0 : HawcxFramework.AuthV5Callback>",
+            "sugared_genericSig": "<Self where Self : HawcxFramework.AuthV5Callback>",
+            "protocolReq": true,
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
           }
         ],
         "declKind": "Protocol",
@@ -8118,6 +8200,55 @@
           },
           {
             "kind": "Function",
+            "name": "storeBackendOAuthTokens",
+            "printedName": "storeBackendOAuthTokens(accessToken:refreshToken:forUser:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:14HawcxFramework0A3SDKC23storeBackendOAuthTokens11accessToken07refreshI07forUserSbSS_SSSgSStF",
+            "mangledName": "$s14HawcxFramework0A3SDKC23storeBackendOAuthTokens11accessToken07refreshI07forUserSbSS_SSSgSStF",
+            "moduleName": "HawcxFramework",
+            "declAttributes": [
+              "AccessControl",
+              "DiscardableResult",
+              "RawDocComment"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
             "name": "clearSessionTokens",
             "printedName": "clearSessionTokens(forUser:)",
             "children": [
@@ -8764,280 +8895,280 @@
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 4748,
+      "offset": 4776,
       "length": 12,
       "value": "\"request_id\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 4807,
+      "offset": 4835,
       "length": 12,
       "value": "\"ip_address\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 4846,
+      "offset": 4874,
       "length": 9,
       "value": "\"browser\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 5448,
+      "offset": 5476,
       "length": 14,
       "value": "\"access_token\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 5491,
+      "offset": 5519,
       "length": 15,
       "value": "\"refresh_token\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 7888,
+      "offset": 7916,
       "length": 12,
       "value": "\"api_status\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 8221,
+      "offset": 8249,
       "length": 11,
       "value": "\"expire_at\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 8258,
+      "offset": 8286,
       "length": 12,
       "value": "\"created_at\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 8315,
+      "offset": 8343,
       "length": 11,
       "value": "\"web_token\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 8357,
+      "offset": 8385,
       "length": 17,
       "value": "\"session_details\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 8397,
+      "offset": 8425,
       "length": 9,
       "value": "\"web_pin\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 8597,
+      "offset": 8625,
       "length": 12,
       "value": "\"api_status\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 8846,
+      "offset": 8874,
       "length": 12,
       "value": "\"api_status\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 9493,
+      "offset": 9521,
       "length": 18,
       "value": "\"platform_version\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 9807,
+      "offset": 9835,
       "length": 11,
       "value": "\"cpu_cores\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 9869,
+      "offset": 9897,
       "length": 17,
       "value": "\"graphics_vendor\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 9915,
+      "offset": 9943,
       "length": 15,
       "value": "\"touch_support\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 10551,
+      "offset": 10579,
       "length": 12,
       "value": "\"user_agent\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 10591,
+      "offset": 10619,
       "length": 14,
       "value": "\"browser_name\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 10636,
+      "offset": 10664,
       "length": 17,
       "value": "\"browser_version\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 10689,
+      "offset": 10717,
       "length": 23,
       "value": "\"browser_major_version\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 10788,
+      "offset": 10816,
       "length": 12,
       "value": "\"mime_types\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 10834,
+      "offset": 10862,
       "length": 20,
       "value": "\"canvas_fingerprint\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 10887,
+      "offset": 10915,
       "length": 19,
       "value": "\"webgl_fingerprint\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 10934,
+      "offset": 10962,
       "length": 14,
       "value": "\"webgl_vendor\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 10978,
+      "offset": 11006,
       "length": 16,
       "value": "\"webgl_renderer\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 11315,
+      "offset": 11343,
       "length": 12,
       "value": "\"fp_version\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 11356,
+      "offset": 11384,
       "length": 15,
       "value": "\"hardware_info\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 11402,
+      "offset": 11430,
       "length": 17,
       "value": "\"browser_signals\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 11451,
+      "offset": 11479,
       "length": 18,
       "value": "\"platform_details\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 11864,
+      "offset": 11892,
       "length": 11,
       "value": "\"device_id\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 11902,
+      "offset": 11930,
       "length": 13,
       "value": "\"device_info\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 11941,
+      "offset": 11969,
       "length": 12,
       "value": "\"ip_details\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 14893,
+      "offset": 14921,
       "length": 4,
       "value": "\"id\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 14923,
+      "offset": 14951,
       "length": 14,
       "value": "\"browser_name\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 14958,
+      "offset": 14986,
       "length": 12,
       "value": "\"os_version\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 14984,
+      "offset": 15012,
       "length": 12,
       "value": "\"login_time\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 16463,
+      "offset": 16491,
       "length": 12,
       "value": "\"ip_details\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 16501,
+      "offset": 16529,
       "length": 20,
       "value": "\"session_login_time\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
-      "offset": 16535,
+      "offset": 16563,
       "length": 12,
       "value": "\"os_details\""
     },
@@ -9065,7 +9196,7 @@
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/auth\/HawcxAuthV5.swift",
       "kind": "BooleanLiteral",
-      "offset": 1204,
+      "offset": 1502,
       "length": 5,
       "value": "false"
     },
@@ -9073,8 +9204,8 @@
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/utils\/SDKLogger.swift",
       "kind": "BooleanLiteral",
       "offset": 323,
-      "length": 4,
-      "value": "true"
+      "length": 5,
+      "value": "false"
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/utils\/AuthErrorHandler.swift",
@@ -9555,238 +9686,238 @@
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 721,
+      "offset": 725,
       "length": 41,
       "value": "\"https:\/\/parenthive-api.hawcx.com\/hc_reg\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 803,
+      "offset": 807,
       "length": 43,
       "value": "\"https:\/\/parenthive-api.hawcx.com\/hc_login\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 882,
+      "offset": 886,
       "length": 45,
       "value": "\"https:\/\/parenthive-api.hawcx.com\/ha_session\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 995,
+      "offset": 999,
       "length": 43,
       "value": "\"https:\/\/parenthive-api.hawcx.com\/ha_login\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1116,
+      "offset": 1120,
       "length": 34,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1136,
+      "offset": 1140,
       "length": 1,
       "value": "\"\/v4\/auth-init\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1182,
+      "offset": 1186,
       "length": 35,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1202,
+      "offset": 1206,
       "length": 1,
       "value": "\"\/v4\/verify-otp\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1252,
+      "offset": 1256,
       "length": 38,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1272,
+      "offset": 1276,
       "length": 1,
       "value": "\"\/v4\/verify-device\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1325,
+      "offset": 1329,
       "length": 38,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1345,
+      "offset": 1349,
       "length": 1,
       "value": "\"\/v4\/verify-cipher\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1423,
+      "offset": 1427,
       "length": 34,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1443,
+      "offset": 1447,
       "length": 1,
       "value": "\"\/v5\/auth-init\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1489,
+      "offset": 1493,
       "length": 35,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1509,
+      "offset": 1513,
       "length": 1,
       "value": "\"\/v5\/verify-otp\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1559,
+      "offset": 1563,
       "length": 38,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1579,
+      "offset": 1583,
       "length": 1,
       "value": "\"\/v5\/verify-device\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1632,
+      "offset": 1636,
       "length": 38,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1652,
+      "offset": 1656,
       "length": 1,
       "value": "\"\/v5\/verify-cipher\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1771,
+      "offset": 1775,
       "length": 44,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1791,
+      "offset": 1795,
       "length": 1,
       "value": "\"\/v4\/push\/register-token\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1849,
+      "offset": 1853,
       "length": 51,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1869,
+      "offset": 1873,
       "length": 1,
       "value": "\"\/v4\/push\/login-request-details\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1934,
+      "offset": 1938,
       "length": 51,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 1954,
+      "offset": 1958,
       "length": 1,
       "value": "\"\/v4\/push\/approve-login-request\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 2019,
+      "offset": 2023,
       "length": 51,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 2039,
+      "offset": 2043,
       "length": 1,
       "value": "\"\/v4\/push\/decline-login-request\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 2179,
+      "offset": 2183,
       "length": 43,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 2199,
+      "offset": 2203,
       "length": 1,
       "value": "\"\/v4\/websession-details\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 2252,
+      "offset": 2256,
       "length": 43,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 2272,
+      "offset": 2276,
       "length": 1,
       "value": "\"\/v4\/websession-approve\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 2325,
+      "offset": 2329,
       "length": 41,
       "value": "\"\""
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
       "kind": "StringLiteral",
-      "offset": 2350,
+      "offset": 2354,
       "length": 1,
       "value": "\"\/device\/details\""
     }
