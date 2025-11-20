@@ -43,8 +43,13 @@ class HawcxReactNative: RCTEventEmitter {
             }
         }
 
+        guard let baseUrl = HawcxReactNative.resolveBaseUrl(config: config) else {
+            reject("hawcx.config", "baseUrl is required", nil)
+            return
+        }
+
         DispatchQueue.main.async {
-            self.hawcxSDK = HawcxSDK(projectApiKey: projectApiKey, oauthConfig: oauthConfig)
+            self.hawcxSDK = HawcxSDK(projectApiKey: projectApiKey, baseURL: baseUrl, oauthConfig: oauthConfig)
             self.authCallbackProxy = AuthCallbackProxy(emitter: self)
             self.sessionCallbackProxy = SessionCallbackProxy(emitter: self)
             let pushDelegate = PushDelegateProxy(emitter: self)
@@ -52,6 +57,23 @@ class HawcxReactNative: RCTEventEmitter {
             self.hawcxSDK?.pushAuthDelegate = pushDelegate
             resolve(nil)
         }
+    }
+
+    private static func resolveBaseUrl(config: NSDictionary) -> String? {
+        if let directBase = config["baseUrl"] as? String {
+            let trimmed = directBase.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                return trimmed
+            }
+        }
+        if let endpoints = config["endpoints"] as? [String: Any],
+           let authBase = endpoints["authBaseUrl"] as? String {
+            let trimmed = authBase.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                return trimmed
+            }
+        }
+        return nil
     }
 
     @objc

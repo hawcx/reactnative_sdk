@@ -7730,13 +7730,19 @@
           {
             "kind": "Constructor",
             "name": "init",
-            "printedName": "init(projectApiKey:oauthConfig:)",
+            "printedName": "init(projectApiKey:baseURL:oauthConfig:)",
             "children": [
               {
                 "kind": "TypeNominal",
                 "name": "HawcxSDK",
                 "printedName": "HawcxFramework.HawcxSDK",
                 "usr": "s:14HawcxFramework0A3SDKC"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
               },
               {
                 "kind": "TypeNominal",
@@ -7761,8 +7767,8 @@
               }
             ],
             "declKind": "Constructor",
-            "usr": "s:14HawcxFramework0A3SDKC13projectApiKey11oauthConfigACSS_AA0a5OAuthH0VSgtcfc",
-            "mangledName": "$s14HawcxFramework0A3SDKC13projectApiKey11oauthConfigACSS_AA0a5OAuthH0VSgtcfc",
+            "usr": "s:14HawcxFramework0A3SDKC13projectApiKey7baseURL11oauthConfigACSS_SSAA0a5OAuthJ0VSgtcfc",
+            "mangledName": "$s14HawcxFramework0A3SDKC13projectApiKey7baseURL11oauthConfigACSS_SSAA0a5OAuthJ0VSgtcfc",
             "moduleName": "HawcxFramework",
             "declAttributes": [
               "AccessControl"
@@ -9189,14 +9195,14 @@
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/auth\/HawcxAuthV4.swift",
       "kind": "BooleanLiteral",
-      "offset": 1807,
+      "offset": 1901,
       "length": 5,
       "value": "false"
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/auth\/HawcxAuthV5.swift",
       "kind": "BooleanLiteral",
-      "offset": 1502,
+      "offset": 1539,
       "length": 5,
       "value": "false"
     },
@@ -9504,7 +9510,7 @@
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/internal\/HawcxSDK.swift",
       "kind": "StringLiteral",
-      "offset": 1826,
+      "offset": 1863,
       "length": 39,
       "value": "\"hawcx_sdk_last_registered_apns_token_\""
     },
@@ -9668,258 +9674,6 @@
       "offset": 609,
       "length": 11,
       "value": "\"web_token\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 445,
-      "length": 42,
-      "value": "\"https:\/\/parenthive-api.hawcx.com\/hc_auth\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 541,
-      "length": 42,
-      "value": "\"https:\/\/parenthive-api.hawcx.com\/hc_auth\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 725,
-      "length": 41,
-      "value": "\"https:\/\/parenthive-api.hawcx.com\/hc_reg\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 807,
-      "length": 43,
-      "value": "\"https:\/\/parenthive-api.hawcx.com\/hc_login\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 886,
-      "length": 45,
-      "value": "\"https:\/\/parenthive-api.hawcx.com\/ha_session\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 999,
-      "length": 43,
-      "value": "\"https:\/\/parenthive-api.hawcx.com\/ha_login\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1120,
-      "length": 34,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1140,
-      "length": 1,
-      "value": "\"\/v4\/auth-init\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1186,
-      "length": 35,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1206,
-      "length": 1,
-      "value": "\"\/v4\/verify-otp\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1256,
-      "length": 38,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1276,
-      "length": 1,
-      "value": "\"\/v4\/verify-device\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1329,
-      "length": 38,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1349,
-      "length": 1,
-      "value": "\"\/v4\/verify-cipher\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1427,
-      "length": 34,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1447,
-      "length": 1,
-      "value": "\"\/v5\/auth-init\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1493,
-      "length": 35,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1513,
-      "length": 1,
-      "value": "\"\/v5\/verify-otp\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1563,
-      "length": 38,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1583,
-      "length": 1,
-      "value": "\"\/v5\/verify-device\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1636,
-      "length": 38,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1656,
-      "length": 1,
-      "value": "\"\/v5\/verify-cipher\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1775,
-      "length": 44,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1795,
-      "length": 1,
-      "value": "\"\/v4\/push\/register-token\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1853,
-      "length": 51,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1873,
-      "length": 1,
-      "value": "\"\/v4\/push\/login-request-details\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1938,
-      "length": 51,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 1958,
-      "length": 1,
-      "value": "\"\/v4\/push\/approve-login-request\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 2023,
-      "length": 51,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 2043,
-      "length": 1,
-      "value": "\"\/v4\/push\/decline-login-request\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 2183,
-      "length": 43,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 2203,
-      "length": 1,
-      "value": "\"\/v4\/websession-details\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 2256,
-      "length": 43,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 2276,
-      "length": 1,
-      "value": "\"\/v4\/websession-approve\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 2329,
-      "length": 41,
-      "value": "\"\""
-    },
-    {
-      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/network\/EndPoints.swift",
-      "kind": "StringLiteral",
-      "offset": 2354,
-      "length": 1,
-      "value": "\"\/device\/details\""
     }
   ]
 }

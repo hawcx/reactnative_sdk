@@ -17,11 +17,19 @@ const PUSH_EVENT = 'hawcx.push.event';
 
 export type HawcxInitializeConfig = {
   projectApiKey: string;
+  /**
+   * Tenant-specific Hawcx host (for example: https://hawcx-api.hawcx.com).
+   * The native SDK appends /hc_auth internally—do not add extra paths.
+   */
+  baseUrl?: string;
   oauthConfig?: {
     clientId: string;
     publicKeyPem: string;
     tokenEndpoint: string;
   };
+  /**
+   * @deprecated Use root-level `baseUrl` instead. Kept for backward compatibility during migration.
+   */
   endpoints?: {
     authBaseUrl?: string;
   };
@@ -121,12 +129,19 @@ const ensureNonEmpty = (value: string, field: string): string => {
   return trimmed;
 };
 
+const resolveBaseUrl = (config: HawcxInitializeConfig): string => {
+  const candidate = config.baseUrl ?? config.endpoints?.authBaseUrl ?? '';
+  return ensureNonEmpty(candidate, 'baseUrl');
+};
+
 export function initialize(config: HawcxInitializeConfig): Promise<void> {
   try {
     const apiKey = ensureNonEmpty(config.projectApiKey, 'projectApiKey');
+    const baseUrl = resolveBaseUrl(config);
     return HawcxReactNative.initialize({
       ...config,
       projectApiKey: apiKey,
+      baseUrl,
     });
   } catch (error) {
     return Promise.reject(error);

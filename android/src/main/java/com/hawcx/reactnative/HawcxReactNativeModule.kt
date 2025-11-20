@@ -57,6 +57,20 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
             return
         }
 
+        val baseUrl = when {
+            configMap.hasKey("baseUrl") && !configMap.isNull("baseUrl") ->
+                configMap.getString("baseUrl")?.trim().orEmpty()
+            configMap.hasKey("endpoints") && !configMap.isNull("endpoints") -> {
+                configMap.getMap("endpoints")?.getString("authBaseUrl")?.trim().orEmpty()
+            }
+            else -> ""
+        }
+
+        if (baseUrl.isEmpty()) {
+            promise.reject(CODE_CONFIG, "baseUrl is required")
+            return
+        }
+
         if (configMap.hasKey("oauthConfig") && !configMap.isNull("oauthConfig")) {
             HawcxReactNativeLogger.w(
                 "oauthConfig was provided but the Android SDK no longer accepts client credentials on-device. " +
@@ -68,7 +82,8 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
             try {
                 val sdk = HawcxSDK(
                     context = applicationContext,
-                    projectApiKey = projectApiKey
+                    projectApiKey = projectApiKey,
+                    baseUrl = baseUrl
                 )
                 hawcxSDK = sdk
                 val authProxy = AuthCallbackProxy(eventDispatcher)

@@ -28,6 +28,10 @@ describe('Hawcx React Native SDK', () => {
     await expect(initialize({ projectApiKey: '' })).rejects.toThrow('projectApiKey is required');
   });
 
+  it('rejects initialize call without base url', async () => {
+    await expect(initialize({ projectApiKey: 'key' })).rejects.toThrow('baseUrl is required');
+  });
+
   it('rejects authenticate call without userId', async () => {
     await expect(authenticate('   ')).rejects.toThrow('userId is required');
   });
