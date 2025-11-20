@@ -9,7 +9,7 @@ This example demonstrates the cross-platform APIs exported by `@hawcx/react-nati
    cd example
    npm install
    ```
-2. Configure credentials in `src/hawcx.config.ts`. The file ships with dev defaults—replace the API key and OAuth values with your own.
+2. Configure credentials in `src/hawcx.config.ts`. The file ships with dev defaults—replace the API key **and** `HAWCX_BASE_URL` host with your tenant’s values.
 3. **iOS only:** install pods:
    ```bash
    cd ios && pod install && cd ..
