@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.3] - YYYY-MM-DD
+- TODO: add release notes
+
 ## [1.0.2] - YYYY-MM-DD
 - OAuth flow update
 - Android release prep
