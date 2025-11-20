@@ -1,3 +1,37 @@
+import org.gradle.api.initialization.resolve.RepositoriesMode
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://www.jitpack.io") }
+        maven {
+            url = uri("https://raw.githubusercontent.com/hawcx/hawcx_android_sdk/main/maven")
+            content {
+                includeGroup("api.hawcx")
+            }
+            metadataSources {
+                mavenPom()
+                artifact()
+            }
+        }
+        def localHawcxRepo = new File(rootDir, "../../../prod_android/hawcx_android_sdk/maven")
+        if (localHawcxRepo.exists()) {
+            maven {
+                url = localHawcxRepo.toURI()
+                content {
+                    includeGroup("api.hawcx")
+                }
+                metadataSources {
+                    mavenPom()
+                    artifact()
+                }
+            }
+        }
+    }
+}
+
 rootProject.name = 'com.hawcx.example'
 apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':app'
