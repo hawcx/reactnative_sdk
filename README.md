@@ -36,7 +36,10 @@ import { useEffect } from 'react';
 import { initialize, addAuthListener } from '@hawcx/react-native-sdk';
 
 export function bootstrapHawcx() {
-  return initialize({ projectApiKey: 'YOUR_PROJECT_API_KEY' }).then(() => {
+  return initialize({
+    projectApiKey: 'YOUR_PROJECT_API_KEY',
+    baseUrl: 'https://your-hawcx-host.example.com',
+  }).then(() => {
     const subscription = addAuthListener(event => {
       if (event.type === 'auth_error') {
         console.warn('Hawcx error', event.payload);
@@ -48,6 +51,8 @@ export function bootstrapHawcx() {
 ```
 
 Call `bootstrapHawcx()` once when your app starts (e.g., inside your root component or Redux saga). After that you can use hooks or imperative helpers to drive Smart‑Connect.
+
+> **Note:** `baseUrl` must be the tenant-specific Hawcx host (e.g., `https://hawcx-api.hawcx.com`). The native SDK appends `/hc_auth` internally and routes all APIs through that cluster.
 
 ### Authentication flow (OTP + authorization code)
 

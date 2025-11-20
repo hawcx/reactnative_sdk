@@ -261,7 +261,7 @@ public protocol HawcxPushAuthDelegate : AnyObject {
 public class HawcxSDK {
   weak public var pushAuthDelegate: (any HawcxFramework.HawcxPushAuthDelegate)?
   #if compiler(>=5.3) && $NonescapableTypes
-  public init(projectApiKey: Swift.String, oauthConfig: HawcxFramework.HawcxOAuthConfig? = nil)
+  public init(projectApiKey: Swift.String, baseURL: Swift.String, oauthConfig: HawcxFramework.HawcxOAuthConfig? = nil)
   #endif
   public func authenticateV4(userid: Swift.String, callback: any HawcxFramework.AuthV4Callback)
   public func submitOtpV4(otp: Swift.String)

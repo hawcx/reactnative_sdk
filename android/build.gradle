@@ -124,7 +124,7 @@ afterEvaluate {
 }
 
 dependencies {
-    api("api.hawcx:hawcx:5.1.0")
+    api("api.hawcx:hawcx:5.1.1")
     def reactNativeVersion = safeExtGet('reactNativeAndroidVersion', '0.73.9')
     implementation "com.facebook.react:react-android:$reactNativeVersion"
     implementation 'androidx.annotation:annotation:1.8.1'
