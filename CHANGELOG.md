@@ -1,9 +1,12 @@
 # Changelog
 
-## [1.0.3] - YYYY-MM-DD
+## [1.0.4] - 2025-11-28
+- Include Android sources in npm package and clarify linking error message.
+
+## [1.0.3] - 2025-11-19
 - TODO: add release notes
 
-## [1.0.2] - YYYY-MM-DD
+## [1.0.2] - 2025-11-18
 - OAuth flow update
 - Android release prep
 

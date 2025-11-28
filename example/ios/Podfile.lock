@@ -11,7 +11,7 @@ PODS:
     - ReactCommon/turbomodule/core (= 0.73.9)
   - fmt (6.2.1)
   - glog (0.3.5)
-  - HawcxReactNative (1.0.3):
+  - HawcxReactNative (1.0.4):
     - React-Core
   - hermes-engine (0.73.9):
     - hermes-engine/Pre-built (= 0.73.9)
@@ -1236,7 +1236,7 @@ SPEC CHECKSUMS:
   FBReactNativeSpec: 4fe1d8c2fadc7949344b197d933f76b40401aac5
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
-  HawcxReactNative: e4e76d64721d7f806116d3899ec122766d5c2b65
+  HawcxReactNative: 089e5e5b790f77ab853f4ff96723c8dd7ad1a02c
   hermes-engine: ed62e0dcd013bf4a3b487f164feec1c4e705b5b5
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   RCT-Folly: cd21f1661364f975ae76b3308167ad66b09f53f5

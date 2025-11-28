@@ -9,7 +9,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 const LINKING_ERROR =
   "The package '@hawcx/react-native-sdk' doesn't seem to be linked.\n" +
-  "Please ensure you have run 'pod install' in the ios directory and rebuilt the app.";
+  "iOS: run 'pod install' in the ios directory and rebuild.\n" +
+  "Android: clean/rebuild the app so Gradle picks up the native module.";
 
 const AUTH_EVENT = 'hawcx.auth.event';
 const SESSION_EVENT = 'hawcx.session.event';
