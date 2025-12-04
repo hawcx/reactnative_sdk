@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.5] - YYYY-MM-DD
+- TODO: add release notes
+
 ## [1.0.4] - 2025-11-28
 - Include Android sources in npm package and clarify linking error message.
 

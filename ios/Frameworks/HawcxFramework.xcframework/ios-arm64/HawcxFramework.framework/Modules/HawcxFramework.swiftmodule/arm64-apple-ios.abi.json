@@ -8484,6 +8484,16 @@
       },
       {
         "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "HawcxFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
         "name": "CommonCrypto",
         "printedName": "CommonCrypto",
         "declKind": "Import",
@@ -9202,7 +9212,14 @@
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/auth\/HawcxAuthV5.swift",
       "kind": "BooleanLiteral",
-      "offset": 1539,
+      "offset": 1596,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/auth\/HawcxAuthV5.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1639,
       "length": 5,
       "value": "false"
     },
