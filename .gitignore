@@ -30,3 +30,4 @@ example/android/app/debug.keystore
 docs/RELEASE.md
 example/android/local.properties
 local-release/
+scripts/

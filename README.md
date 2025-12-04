@@ -11,7 +11,7 @@ Official React Native bindings for the Hawcx V5 mobile authentication platform. 
 ## Installation
 
 ```bash
-npm install @hawcx/react-native-sdk
+npm install @hawcx/react-native-sdk@1.0.4
 # or yarn add @hawcx/react-native-sdk
 ```
 
@@ -27,7 +27,7 @@ Open the workspace (`ios/*.xcworkspace`) in Xcode when you need to run on a devi
 
 ### Android
 
-No manual steps are required—Gradle picks up the bundled `hawcx-*.aar`. Make sure the Android SDK is installed and `ANDROID_HOME`/`adb` are on your path, then run `npm run android`.
+No manual steps are required—Gradle picks up the bundled `hawcx-*.aar`. Make sure the Android SDK is installed and `ANDROID_HOME`/`adb` are on your path, then run `npm run android`. If you upgrade from an older package version, run `cd android && ./gradlew clean` once before rebuilding so React Native re-links the native module.
 
 ## Quick Start
 
