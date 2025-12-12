@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.0.7] - YYYY-MM-DD
+- TODO: add release notes
+
 ## [1.0.6] - YYYY-MM-DD
 - TODO: add release notes
 
