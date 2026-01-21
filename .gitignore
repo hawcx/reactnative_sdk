@@ -16,6 +16,9 @@ ios/build/
 DerivedData/
 *.xcworkspace
 
+# Android / IDE
+android/.settings/
+
 # macOS
 .DS_Store
 
