@@ -11,7 +11,7 @@ Official React Native bindings for the Hawcx V5 mobile authentication platform. 
 ## Installation
 
 ```bash
-npm install @hawcx/react-native-sdk@1.0.7
+npm install @hawcx/react-native-sdk@1.0.8
 # or yarn add @hawcx/react-native-sdk
 ```
 
