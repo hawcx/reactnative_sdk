@@ -1,13 +1,7 @@
 # Changelog
 
-## [1.0.7] - YYYY-MM-DD
-- TODO: add release notes
-
-## [1.0.6] - YYYY-MM-DD
-- TODO: add release notes
-
-## [1.0.5] - YYYY-MM-DD
-- TODO: add release notes
+## [1.0.8] - 2026-01-21
+- Android biometrics restriction issue fixed
 
 ## [1.0.4] - 2025-11-28
 - Include Android sources in npm package and clarify linking error message.
