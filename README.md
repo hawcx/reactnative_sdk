@@ -1,6 +1,6 @@
 # Hawcx React Native SDK
 
-Official React Native bindings for the Hawcx V5 mobile authentication platform. The package wraps the production Hawcx iOS and Android SDKs so you can deliver Smart‑Connect (OTP + device trust + push approvals) inside a single cross‑platform API.
+Official React Native bindings for the Hawcx mobile authentication platform. The package wraps the production Hawcx iOS and Android SDKs so you can deliver V5 and V6 flows inside a single cross-platform API while keeping the native security and crypto boundaries intact.
 
 ## Requirements
 
@@ -160,7 +160,7 @@ Refer to the updated [React Quickstart documentation](https://docs.hawcx.com/rea
 
 ## Example App
 
-`/example` contains a full React Native app wired to the SDK with logging, OTP UI, push harness, and a backend toggle. To run it:
+`/example` contains the in-repo React Native reference app used during SDK development. It should consume the local package workspace rather than a published npm version. To run it:
 
 ```bash
 cd example
@@ -169,6 +169,8 @@ npm run ios   # or npm run android
 ```
 
 Add your Project API key in `example/src/hawcx.config.ts` or paste it into the in-app form. The **Authorization Code & Backend Exchange** card runs in demo mode by default (codes complete locally). Set `BACKEND_FLOW_ENABLED = true` in `example/src/App.tsx` when you have a tunnel or backend ready to receive `{ code, email, expires_in }`.
+
+For release-signoff and published-package validation, use the separate smoke app at `/Users/agambhullar/hawcx_smoke_tests/react_native_smoke_app`. That app remains the authoritative consumer harness for final QA.
 
 ## Support
 

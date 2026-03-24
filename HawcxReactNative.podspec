@@ -4,10 +4,10 @@ package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 Pod::Spec.new do |s|
   s.name         = 'HawcxReactNative'
   s.version      = package['version']
-  s.summary      = 'React Native bindings for the Hawcx V5 mobile authentication framework.'
+  s.summary      = 'React Native bindings for the Hawcx mobile authentication SDKs (V5 + V6).'
   s.description  = <<-DESC
     Production-grade React Native bridge that wraps HawcxFramework (iOS) to expose
-    V5 authentication, OTP, push, and web session flows to JavaScript callers.
+    Hawcx V5 and V6 authentication, device trust, push, and web session flows to JavaScript callers.
   DESC
   s.homepage     = 'https://github.com/hawcx/reactnative_sdk'
   s.license      = { :type => 'MIT', :file => 'LICENSE' }

@@ -1,6 +1,6 @@
 # Hawcx React Native SDK Example
 
-This example demonstrates the cross-platform APIs exported by `@hawcx/react-native-sdk`. It mirrors the flows in the native reference apps (email/OTP login, web PIN validation, and manual push approvals) so you can validate your Hawcx project keys on both iOS and Android.
+This example demonstrates the cross-platform APIs exported by `@hawcx/react-native-sdk`. It is the in-repo maintainer/reference app used while developing the SDK, not the final published-package signoff app.
 
 ## Getting Started
 
@@ -9,6 +9,7 @@ This example demonstrates the cross-platform APIs exported by `@hawcx/react-nati
    cd example
    npm install
    ```
+   This app consumes the local SDK workspace via `file:..`, so reinstall after SDK-side dependency or bridge changes.
 2. Configure credentials in `src/hawcx.config.ts`. The file ships with dev defaults—replace the API key **and** `HAWCX_BASE_URL` host with your tenant’s values.
 3. **iOS only:** install pods:
    ```bash
@@ -57,3 +58,5 @@ maestro test --device emulator-5554 e2e/hawcx-login.yaml
 ```
 
 Customize the selectors, credentials, and OTP handling to match your environment. This same flow can be extended to cover push approvals, PIN validation, and regression checks on error states.
+
+For release-signoff of the published package, use `/Users/agambhullar/hawcx_smoke_tests/react_native_smoke_app` instead of this in-repo example.
