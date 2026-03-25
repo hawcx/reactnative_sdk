@@ -1,62 +1,99 @@
 # Hawcx React Native SDK Example
 
-This example demonstrates the cross-platform APIs exported by `@hawcx/react-native-sdk`. It is the in-repo maintainer/reference app used while developing the SDK, not the final published-package signoff app.
+This app is the in-repo maintainer reference app for `@hawcx/react-native-sdk`. It consumes the local workspace package via `file:..` and is meant for day-to-day implementation checks, not public release signoff.
 
-## Getting Started
+For final published-package validation, use `/Users/agambhullar/hawcx_smoke_tests/react_native_smoke_app`.
+
+## What This Example Covers
+
+- V6 prompt-driven authentication with:
+  - primary, MFA, and device-trust stage indicators
+  - resend countdowns
+  - change-identifier and reset flow controls
+  - redirect handling through app deep links
+  - await-approval and TOTP setup screens
+  - demo-mode vs backend exchange mode
+- Mixed-mode web login utilities:
+  - protocol QR approval
+  - legacy 7-digit PIN fallback routing
+- Saved-user and device lifecycle actions:
+  - sign out while keeping the trusted device
+  - forget this device and clear saved local trust
+- Legacy V5 push approval harness:
+  - token registration
+  - manual payload forwarding
+  - approve / decline request controls
+
+## Setup
 
 1. Install dependencies:
    ```bash
    cd example
    npm install
    ```
-   This app consumes the local SDK workspace via `file:..`, so reinstall after SDK-side dependency or bridge changes.
-2. Configure credentials in `src/hawcx.config.ts`. The file ships with dev defaults—replace the API key **and** `HAWCX_BASE_URL` host with your tenant’s values.
-3. **iOS only:** install pods:
+2. Set credentials in [hawcx.config.ts](/Users/agambhullar/dev_react/example/src/hawcx.config.ts).
+3. Install iOS pods:
    ```bash
-   cd ios && pod install && cd ..
+   cd ios
+   pod install
+   cd ..
    ```
-4. **Android (optional push support):**
-   - Create a Firebase project and enable Cloud Messaging.
-   - Download `google-services.json` and drop it into `android/app/`. The Gradle script automatically applies the Google Services plugin when this file exists.
-   - If you want to drive push approvals end-to-end, wire your push provider to send Hawcx payloads (see the push harness card in the app for the expected fields).
-5. Launch the app:
+4. Optional Android push setup:
+   - Add `google-services.json` to `android/app/`
+   - Configure Firebase Cloud Messaging if you want end-to-end push approval testing
+5. Run the app:
    ```bash
    npm run ios
    # or
    npm run android
    ```
 
-## What It Demonstrates
-- `initialize()` via `hawcx.config.ts` so you can flip credentials without editing the UI.
-- `useHawcxAuth` hook for login + OTP entry.
-- `useHawcxWebLogin` to validate QR/PIN flows.
-- Manual push harness that lets you:
-  - Register APNs bytes (iOS) or an FCM token (Android) via `setPushDeviceToken`.
-  - Forward arbitrary push payload JSON to the native SDK and see emitted `hawcx.push.event` logs.
-  - Approve or decline login requests by submitting the `request_id`.
-- Logging card with an on/off switch so you can inspect auth/session/push events directly in the UI.
+## Redirect Handling
 
-## Push Harness Tips
-- On Android, paste the FCM token string and tap **Register Token** followed by **Notify Authenticated** once the user completes login. This calls `setFcmToken` + `userDidAuthenticate` so Hawcx can register for approvals.
-- On iOS, enter the APNs device token as a comma-separated list of byte values (e.g., `42, 13, 255, ...`). The helper converts it into the byte array expected by `setApnsDeviceToken`.
-- Use the payload editor to paste the JSON delivered by Hawcx push notifications—at minimum it must include `request_id`, `ip_address`, `deviceInfo`, and `timestamp`.
+The example app registers these callback schemes:
 
-## E2E Harness (Maestro)
-`e2e/hawcx-login.yaml` is a starting point for automated smoke tests:
-1. Launches the sample app (`appId: com.hawcx.example`)
-2. Types an email address
-3. Taps **Authenticate**
-4. Waits for the OTP prompt to appear
+- `hawcxexampleapp`
+- `com.hawcx.example`
 
-Run it on either platform:
+When the V6 flow enters a redirect step, the example can resume in either of two ways:
+
+- automatically through an incoming deep link
+- manually by pasting the callback URL into the auth card
+
+## Manual QA Matrix
+
+Use this checklist before treating the in-repo example as healthy:
+
+1. Start a V6 sign-in flow and confirm the stage indicator moves from `Primary` into the next prompt.
+2. Trigger an email or SMS code step and confirm the resend countdown and resend button behavior.
+3. Trigger MFA and confirm the identifier is hidden behind the `Change Identifier` action.
+4. Trigger `setup_totp` and confirm the secret, `otpauth://` link, and code submission path render correctly.
+5. Trigger a redirect step and confirm the app resumes through either a real callback or the manual redirect input.
+6. Trigger an await-approval step and confirm polling works.
+7. Paste a protocol QR payload into the mixed-mode card and confirm approval succeeds with the current or saved user.
+8. Paste a legacy PIN URL or bare 7-digit PIN and confirm the fallback routes through the legacy web login helper.
+9. Use `Sign Out (Keep Trusted Device)` and confirm the trusted user remains discoverable.
+10. Use `Forget This Device` and confirm the saved user is cleared.
+11. Run the push harness with a real or synthetic payload and confirm events still arrive on the legacy surface.
+
+## Build Checks
+
+These are the maintainer-grade checks we use for this app:
+
 ```bash
-# iOS Simulator example
-maestro test e2e/hawcx-login.yaml
+cd /Users/agambhullar/dev_react/example
+npm run lint
+npx tsc -p tsconfig.json --noEmit
 
-# Android emulator example
-maestro test --device emulator-5554 e2e/hawcx-login.yaml
+cd /Users/agambhullar/dev_react/example/android
+./gradlew assembleDebug
+
+cd /Users/agambhullar/dev_react/example/ios
+pod install
+xcodebuild -workspace HawcxExampleApp.xcworkspace -scheme HawcxExampleApp -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES ARCHS=arm64 COMPILER_INDEX_STORE_ENABLE=NO build
 ```
 
-Customize the selectors, credentials, and OTP handling to match your environment. This same flow can be extended to cover push approvals, PIN validation, and regression checks on error states.
+## Notes
 
-For release-signoff of the published package, use `/Users/agambhullar/hawcx_smoke_tests/react_native_smoke_app` instead of this in-repo example.
+- This app intentionally keeps the push harness on the legacy V5 surface because that is still the correct implementation today.
+- The example prefers maintainability over polish. It should make debugging easy, not hide behavior.

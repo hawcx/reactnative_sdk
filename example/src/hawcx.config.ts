@@ -6,6 +6,9 @@ import type { HawcxInitializeConfig } from '@hawcx/react-native-sdk';
  */
 export const HAWCX_PROJECT_API_KEY = 'ceasar2';
 export const HAWCX_BASE_URL = 'https://ceasar-api.hawcx.com';
+export const EXAMPLE_DEFAULT_IDENTIFIER = 'user@example.com';
+export const EXAMPLE_DEFAULT_BACKEND_URL = 'http://localhost:3000/api/login';
+export const EXAMPLE_REDIRECT_SCHEMES = ['hawcxexampleapp', 'com.hawcx.example'] as const;
 
 const buildDefaultConfig = (): HawcxInitializeConfig | null => {
   const trimmedKey = HAWCX_PROJECT_API_KEY.trim();

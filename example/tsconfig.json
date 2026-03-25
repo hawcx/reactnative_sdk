@@ -1,8 +1,11 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
     "jsx": "react-native",
     "outDir": "build"
   },
-  "include": ["src", "index.js"]
+  "include": ["src/**/*", "index.js", "babel.config.js", "metro.config.js"],
+  "exclude": ["node_modules", "build"]
 }
