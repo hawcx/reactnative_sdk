@@ -48,8 +48,28 @@ RCT_EXTERN_METHOD(v6Cancel:(RCTPromiseResolveBlock)resolve
 RCT_EXTERN_METHOD(v6Reset:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(v6ApproveQr:(NSString *)rawPayload
+                  identifier:(NSString *)identifier
+                  rememberDevice:(nonnull NSNumber *)rememberDevice
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
 RCT_EXTERN_METHOD(v6HandleRedirectUrl:(NSString *)url
                   resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(getLastLoggedInUser:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(clearSessionTokens:(NSString *)userId
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(clearUserKeychainData:(NSString *)userId
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(clearLastLoggedInUser:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(getDeviceDetails:(RCTPromiseResolveBlock)resolve

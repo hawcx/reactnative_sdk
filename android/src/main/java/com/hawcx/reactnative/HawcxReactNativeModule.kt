@@ -354,6 +354,45 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun v6ApproveQr(rawPayload: String?, identifier: String?, rememberDevice: Boolean, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        val sanitizedPayload = rawPayload?.trim().orEmpty()
+        if (sanitizedPayload.isEmpty()) {
+            promise.reject(CODE_INPUT, "rawPayload is required")
+            return
+        }
+
+        val sanitizedIdentifier = identifier?.trim().orEmpty()
+        if (sanitizedIdentifier.isEmpty()) {
+            promise.reject(CODE_INPUT, "identifier is required")
+            return
+        }
+
+        runOnUiThread {
+            bridge.approveQr(
+                rawPayload = sanitizedPayload,
+                identifier = sanitizedIdentifier,
+                rememberDevice = rememberDevice
+            ) { result ->
+                result.onSuccess { outcome ->
+                    promise.resolve(
+                        Arguments.createMap().apply {
+                            putString("outcome", outcome.outcome)
+                            putString("payloadType", outcome.payloadType)
+                            outcome.userId?.takeIf { it.isNotBlank() }?.let { putString("userId", it) }
+                        }
+                    )
+                }.onFailure { error ->
+                    promise.reject(CODE_SDK, error.message, error)
+                }
+            }
+        }
+    }
+
+    @ReactMethod
     fun v6HandleRedirectUrl(url: String?, promise: Promise) {
         val bridge = hawcxV6Bridge ?: run {
             promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
@@ -496,6 +535,7 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         runOnUiThread {
+            resetV6FlowIfAvailable()
             sdk.clearSessionTokens(sanitizedUserId)
             promise.resolve(null)
         }
@@ -514,7 +554,21 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         runOnUiThread {
+            resetV6FlowIfAvailable()
             sdk.clearUserKeychainData(sanitizedUserId)
+            promise.resolve(null)
+        }
+    }
+
+    @ReactMethod
+    fun clearLastLoggedInUser(promise: Promise) {
+        val sdk = hawcxSDK ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before clearLastLoggedInUser")
+            return
+        }
+
+        runOnUiThread {
+            sdk.clearLastLoggedInUser()
             promise.resolve(null)
         }
     }
@@ -618,6 +672,15 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
             block()
         } else {
             mainHandler.post(block)
+        }
+    }
+
+    private fun resetV6FlowIfAvailable() {
+        hawcxV6Bridge?.let { bridge ->
+            runCatching { bridge.reset() }
+                .onFailure { error ->
+                    HawcxReactNativeLogger.w("Failed to reset V6 flow while clearing local state.", error)
+                }
         }
     }
 

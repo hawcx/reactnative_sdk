@@ -108,6 +108,18 @@ class HawcxReactNative: RCTEventEmitter {
         reject(code, error.localizedDescription, error)
     }
 
+    private func qrApprovalNSError(_ error: HawcxV1QrApprovalError) -> NSError {
+        var userInfo: [String: Any] = [
+            NSLocalizedDescriptionKey: error.message,
+            "retryable": error.retryable,
+            "shouldClearRecord": error.shouldClearRecord
+        ]
+        if let retryAfterSeconds = error.retryAfterSeconds {
+            userInfo["retryAfterSeconds"] = retryAfterSeconds
+        }
+        return NSError(domain: "com.hawcx.reactnative.qr", code: 0, userInfo: userInfo)
+    }
+
     @objc
     func authenticate(_ userId: NSString,
                       resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -348,6 +360,62 @@ class HawcxReactNative: RCTEventEmitter {
     }
 
     @objc
+    func v6ApproveQr(_ rawPayload: NSString,
+                     identifier: NSString,
+                     rememberDevice: NSNumber,
+                     resolver resolve: @escaping RCTPromiseResolveBlock,
+                     rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let trimmedPayload = rawPayload.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedPayload.isEmpty else {
+            reject("hawcx.input", "rawPayload is required", nil)
+            return
+        }
+
+        let trimmedIdentifier = identifier.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedIdentifier.isEmpty else {
+            reject("hawcx.input", "identifier is required", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+
+                try bridge.approveQr(
+                    rawPayload: trimmedPayload,
+                    identifier: trimmedIdentifier,
+                    rememberDevice: rememberDevice.boolValue
+                ) { result in
+                    DispatchQueue.main.async {
+                        switch result {
+                        case .success(.approved(let payloadType)):
+                            resolve([
+                                "outcome": "approved",
+                                "payloadType": payloadType
+                            ])
+                        case .success(.bound(let payloadType, let userId)):
+                            var payload: [String: Any] = [
+                                "outcome": "bound",
+                                "payloadType": payloadType
+                            ]
+                            if let userId, !userId.isEmpty {
+                                payload["userId"] = userId
+                            }
+                            resolve(payload)
+                        case .failure(let error):
+                            reject(error.code, error.message, self.qrApprovalNSError(error))
+                        }
+                    }
+                }
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
     func getDeviceDetails(_ resolve: @escaping RCTPromiseResolveBlock,
                           rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let sdk = hawcxSDK else {
@@ -449,6 +517,77 @@ class HawcxReactNative: RCTEventEmitter {
             } else {
                 reject("hawcx.storage", "Failed to persist backend-issued tokens", nil)
             }
+        }
+    }
+
+    @objc
+    func getLastLoggedInUser(_ resolve: @escaping RCTPromiseResolveBlock,
+                             rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let sdk = hawcxSDK else {
+            reject("hawcx.sdk", "initialize must be called before getLastLoggedInUser", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            resolve(sdk.getLastLoggedInUser())
+        }
+    }
+
+    @objc
+    func clearSessionTokens(_ userId: NSString,
+                            resolver resolve: @escaping RCTPromiseResolveBlock,
+                            rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let sdk = hawcxSDK else {
+            reject("hawcx.sdk", "initialize must be called before clearSessionTokens", nil)
+            return
+        }
+
+        let trimmedUser = userId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedUser.isEmpty else {
+            reject("hawcx.input", "userId cannot be empty", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            self.hawcxV6Bridge?.sdk?.reset()
+            sdk.clearSessionTokens(forUser: trimmedUser)
+            resolve(nil)
+        }
+    }
+
+    @objc
+    func clearUserKeychainData(_ userId: NSString,
+                               resolver resolve: @escaping RCTPromiseResolveBlock,
+                               rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let sdk = hawcxSDK else {
+            reject("hawcx.sdk", "initialize must be called before clearUserKeychainData", nil)
+            return
+        }
+
+        let trimmedUser = userId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedUser.isEmpty else {
+            reject("hawcx.input", "userId cannot be empty", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            self.hawcxV6Bridge?.sdk?.reset()
+            sdk.clearUserKeychainData(forUser: trimmedUser)
+            resolve(nil)
+        }
+    }
+
+    @objc
+    func clearLastLoggedInUser(_ resolve: @escaping RCTPromiseResolveBlock,
+                               rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let sdk = hawcxSDK else {
+            reject("hawcx.sdk", "initialize must be called before clearLastLoggedInUser", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            sdk.clearLastLoggedInUser()
+            resolve(nil)
         }
     }
 

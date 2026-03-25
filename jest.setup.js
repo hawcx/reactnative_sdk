@@ -13,8 +13,18 @@ NativeModules.HawcxReactNative = NativeModules.HawcxReactNative || {
   v6Poll: jest.fn(() => Promise.resolve()),
   v6Cancel: jest.fn(() => Promise.resolve()),
   v6Reset: jest.fn(() => Promise.resolve()),
+  v6ApproveQr: jest.fn(() =>
+    Promise.resolve({
+      outcome: 'approved',
+      payloadType: 'qr_auth',
+    }),
+  ),
   v6HandleRedirectUrl: jest.fn(() => Promise.resolve()),
   storeBackendOAuthTokens: jest.fn(() => Promise.resolve(true)),
+  getLastLoggedInUser: jest.fn(() => Promise.resolve('')),
+  clearSessionTokens: jest.fn(() => Promise.resolve()),
+  clearUserKeychainData: jest.fn(() => Promise.resolve()),
+  clearLastLoggedInUser: jest.fn(() => Promise.resolve()),
   getDeviceDetails: jest.fn(() => Promise.resolve()),
   webLogin: jest.fn(() => Promise.resolve()),
   webApprove: jest.fn(() => Promise.resolve()),

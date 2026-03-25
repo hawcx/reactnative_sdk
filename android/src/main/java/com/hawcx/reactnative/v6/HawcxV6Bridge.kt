@@ -12,6 +12,8 @@ import com.hawcx.protocol.v1.HawcxV1FlowType
 import com.hawcx.protocol.v1.HawcxV1Method
 import com.hawcx.protocol.v1.HawcxV1OAuthCallbackParser
 import com.hawcx.protocol.v1.HawcxV1PromptContext
+import com.hawcx.protocol.v1.HawcxV1QrApprovalOutcome
+import com.hawcx.protocol.v1.HawcxV1QrPayloadParser
 import com.hawcx.protocol.v1.HawcxV1RiskInfo
 import com.hawcx.protocol.v1.HawcxV1RiskLocation
 import com.hawcx.protocol.v1.HawcxV1SDK
@@ -149,6 +151,53 @@ internal class HawcxV6Bridge(
         sdk.reset()
     }
 
+    fun approveQr(
+        rawPayload: String,
+        identifier: String,
+        rememberDevice: Boolean,
+        completion: (Result<HawcxV6QrApprovalResult>) -> Unit
+    ) {
+        val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
+        val payload = HawcxV1QrPayloadParser.parse(rawPayload.trim())
+        if (payload == null) {
+            completion(Result.failure(IllegalArgumentException("rawPayload must be a valid Hawcx QR payload")))
+            return
+        }
+
+        val trimmedIdentifier = identifier.trim()
+        if (trimmedIdentifier.isEmpty()) {
+            completion(Result.failure(IllegalArgumentException("identifier is required")))
+            return
+        }
+
+        val service = sdk.createQrApprovalService()
+        if (service == null) {
+            completion(Result.failure(IllegalStateException("QR approval is unavailable for the current V6 bridge configuration")))
+            return
+        }
+
+        service.approve(
+            payload = payload,
+            identifier = trimmedIdentifier,
+            rememberDevice = rememberDevice
+        ) { result ->
+            completion(result.mapCatching { outcome ->
+                when (outcome) {
+                    HawcxV1QrApprovalOutcome.Approved -> HawcxV6QrApprovalResult(
+                        outcome = "approved",
+                        payloadType = payload.type.wireValue
+                    )
+
+                    is HawcxV1QrApprovalOutcome.Bound -> HawcxV6QrApprovalResult(
+                        outcome = "bound",
+                        payloadType = payload.type.wireValue,
+                        userId = outcome.userid
+                    )
+                }
+            })
+        }
+    }
+
     fun handleRedirectUrl(url: String) {
         val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
         val callback = HawcxV1OAuthCallbackParser.parse(url)
@@ -167,7 +216,14 @@ internal class HawcxV6Bridge(
         }
         sdk = null
     }
+
 }
+
+internal data class HawcxV6QrApprovalResult(
+    val outcome: String,
+    val payloadType: String,
+    val userId: String? = null
+)
 
 private data class HawcxV6EventEnvelope(
     val type: String,

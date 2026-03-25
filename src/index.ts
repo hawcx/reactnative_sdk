@@ -22,6 +22,7 @@ import type {
   HawcxV6FlowType,
   HawcxV6StartOptions,
 } from './v6Types';
+import { routeWebLoginScan, type HawcxV6QrApprovalResult } from './v6WebLogin';
 
 export type {
   HawcxV6AwaitApprovalPrompt,
@@ -48,6 +49,12 @@ export type {
   HawcxV6StartOptions,
   HawcxV6StepInfo,
 } from './v6Types';
+export type {
+  HawcxV6QrApprovalResult,
+  HawcxV6QrPayload,
+  HawcxV6QrPayloadType,
+  HawcxWebLoginScanRoute,
+} from './v6WebLogin';
 
 const LINKING_ERROR = [
   "The package '@hawcx/react-native-sdk' doesn't seem to be linked.",
@@ -131,6 +138,10 @@ export type PushEvent =
   | { type: 'push_login_request'; payload: PushLoginPayload }
   | { type: 'push_error'; payload: AuthErrorPayload };
 
+export type HawcxV6QrApprovalOptions = {
+  rememberDevice?: boolean;
+};
+
 export type HawcxV6AuthHookResult = {
   state: HawcxV6AuthState;
   start: (options: HawcxV6StartOptions) => Promise<void>;
@@ -162,12 +173,21 @@ type NativeBridge = {
   v6Poll(): Promise<void>;
   v6Cancel(): Promise<void>;
   v6Reset(): Promise<void>;
+  v6ApproveQr(
+    rawPayload: string,
+    identifier: string,
+    rememberDevice: boolean,
+  ): Promise<Record<string, unknown>>;
   v6HandleRedirectUrl(url: string): Promise<void>;
   storeBackendOAuthTokens(
     userId: string,
     accessToken: string,
     refreshToken?: string | null,
   ): Promise<boolean>;
+  getLastLoggedInUser(): Promise<string>;
+  clearSessionTokens(userId: string): Promise<void>;
+  clearUserKeychainData(userId: string): Promise<void>;
+  clearLastLoggedInUser(): Promise<void>;
   getDeviceDetails(): Promise<void>;
   webLogin(pin: string): Promise<void>;
   webApprove(token: string): Promise<void>;
@@ -304,6 +324,47 @@ export function v6Reset(): Promise<void> {
   return HawcxReactNative.v6Reset();
 }
 
+const normalizeV6QrApprovalResult = (value: unknown): HawcxV6QrApprovalResult => {
+  const record =
+    typeof value === 'object' && value !== null && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : null;
+  const outcome = record?.outcome;
+  const payloadType = record?.payloadType;
+
+  if (outcome === 'approved' && (payloadType === 'qr_auth' || payloadType === 'qr_login')) {
+    return {
+      outcome,
+      payloadType,
+    };
+  }
+
+  if (outcome === 'bound' && (payloadType === 'qr_auth' || payloadType === 'qr_login')) {
+    return {
+      outcome,
+      payloadType,
+      userId: typeof record?.userId === 'string' ? record.userId : undefined,
+    };
+  }
+
+  throw new Error('Invalid V6 QR approval response from native bridge');
+};
+
+export async function approveV6Qr(
+  rawPayload: string,
+  identifier: string,
+  options: HawcxV6QrApprovalOptions = {},
+): Promise<HawcxV6QrApprovalResult> {
+  const trimmedPayload = ensureNonEmpty(rawPayload, 'rawPayload');
+  const trimmedIdentifier = ensureNonEmpty(identifier, 'identifier');
+  const result = await HawcxReactNative.v6ApproveQr(
+    trimmedPayload,
+    trimmedIdentifier,
+    options.rememberDevice ?? false,
+  );
+  return normalizeV6QrApprovalResult(result);
+}
+
 export function v6HandleRedirectUrl(url: string): Promise<void> {
   try {
     return HawcxReactNative.v6HandleRedirectUrl(ensureNonEmpty(url, 'url'));
@@ -431,6 +492,32 @@ export const addHawcxV6FlowListener = addV6FlowListener;
 export const startHawcxV6Flow = startV6Flow;
 export const handleHawcxV6RedirectUrl = v6HandleRedirectUrl;
 export { canHawcxV6Resend, getHawcxV6ResendAvailability };
+export { routeWebLoginScan };
+
+export async function getLastLoggedInUser(): Promise<string> {
+  const userId = await HawcxReactNative.getLastLoggedInUser();
+  return typeof userId === 'string' ? userId : '';
+}
+
+export function logoutSession(userId: string): Promise<void> {
+  try {
+    return HawcxReactNative.clearSessionTokens(ensureNonEmpty(userId, 'userId'));
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+export function forgetTrustedDevice(userId: string): Promise<void> {
+  try {
+    return HawcxReactNative.clearUserKeychainData(ensureNonEmpty(userId, 'userId'));
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+export function clearLastLoggedInUser(): Promise<void> {
+  return HawcxReactNative.clearLastLoggedInUser();
+}
 
 export function removeAllListeners(): void {
   authEventEmitter.removeAllListeners(AUTH_EVENT);
@@ -618,6 +705,22 @@ export class HawcxClient {
   storeBackendOAuthTokens(userId: string, tokens: BackendOAuthTokens): Promise<void> {
     return storeBackendOAuthTokens(userId, tokens.accessToken, tokens.refreshToken);
   }
+
+  getLastLoggedInUser(): Promise<string> {
+    return getLastLoggedInUser();
+  }
+
+  logoutSession(userId: string): Promise<void> {
+    return logoutSession(userId);
+  }
+
+  forgetTrustedDevice(userId: string): Promise<void> {
+    return forgetTrustedDevice(userId);
+  }
+
+  clearLastLoggedInUser(): Promise<void> {
+    return clearLastLoggedInUser();
+  }
 }
 
 export const hawcxClient = new HawcxClient();
@@ -669,6 +772,14 @@ export class HawcxV6Client {
     return v6Reset();
   }
 
+  approveQr(
+    rawPayload: string,
+    identifier: string,
+    options?: HawcxV6QrApprovalOptions,
+  ): Promise<HawcxV6QrApprovalResult> {
+    return approveV6Qr(rawPayload, identifier, options);
+  }
+
   changeIdentifier(): Promise<void> {
     return v6Reset();
   }
@@ -687,6 +798,22 @@ export class HawcxV6Client {
 
   notifyUserAuthenticated(): Promise<void> {
     return notifyUserAuthenticated();
+  }
+
+  getLastLoggedInUser(): Promise<string> {
+    return getLastLoggedInUser();
+  }
+
+  logoutSession(userId: string): Promise<void> {
+    return logoutSession(userId);
+  }
+
+  forgetTrustedDevice(userId: string): Promise<void> {
+    return forgetTrustedDevice(userId);
+  }
+
+  clearLastLoggedInUser(): Promise<void> {
+    return clearLastLoggedInUser();
   }
 }
 
