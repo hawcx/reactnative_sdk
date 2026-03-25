@@ -7,7 +7,17 @@ import {
 } from 'react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { normalizeV6FlowEvent } from './v6Normalization';
+import {
+  canHawcxV6Resend,
+  createIdentifierHawcxV6AuthState,
+  createInitialHawcxV6AuthState,
+  getHawcxV6ResendAvailability,
+  normalizeHawcxV6FlowType,
+  refreshHawcxV6AuthState,
+  reduceHawcxV6FlowEvent,
+} from './v6State';
 import type {
+  HawcxV6AuthState,
   HawcxV6FlowEvent,
   HawcxV6FlowType,
   HawcxV6StartOptions,
@@ -15,6 +25,8 @@ import type {
 
 export type {
   HawcxV6AwaitApprovalPrompt,
+  HawcxV6AuthState,
+  HawcxV6AuthStatus,
   HawcxV6CompletedPayload,
   HawcxV6EnterCodePrompt,
   HawcxV6EnterTotpPrompt,
@@ -27,6 +39,7 @@ export type {
   HawcxV6Method,
   HawcxV6PromptPayload,
   HawcxV6RedirectPrompt,
+  HawcxV6ResendAvailability,
   HawcxV6RiskInfo,
   HawcxV6RiskLocation,
   HawcxV6SelectMethodPrompt,
@@ -117,6 +130,24 @@ export type PushLoginPayload = {
 export type PushEvent =
   | { type: 'push_login_request'; payload: PushLoginPayload }
   | { type: 'push_error'; payload: AuthErrorPayload };
+
+export type HawcxV6AuthHookResult = {
+  state: HawcxV6AuthState;
+  start: (options: HawcxV6StartOptions) => Promise<void>;
+  selectMethod: (methodId: string) => Promise<void>;
+  submitCode: (code: string) => Promise<void>;
+  submitTotp: (code: string) => Promise<void>;
+  submitPhone: (phone: string) => Promise<void>;
+  resend: () => Promise<boolean>;
+  poll: () => Promise<void>;
+  cancel: () => Promise<void>;
+  changeIdentifier: () => Promise<void>;
+  reset: () => Promise<void>;
+  handleRedirectUrl: (url: string) => Promise<void>;
+  canResend: boolean;
+  resendAvailability: HawcxV6AuthState['resend'];
+  secondsUntilResend?: number;
+};
 
 type NativeBridge = {
   initialize(config: HawcxInitializeConfig): Promise<void>;
@@ -209,26 +240,13 @@ export function submitOtp(otp: string): Promise<void> {
   }
 }
 
-const normalizeV6FlowType = (value?: HawcxV6FlowType): HawcxV6FlowType => {
-  switch (value) {
-    case 'signup':
-    case 'account_manage':
-      return value;
-    case 'signin':
-    case undefined:
-      return 'signin';
-    default:
-      return 'signin';
-  }
-};
-
 export function startV6Flow(options: HawcxV6StartOptions): Promise<void> {
   try {
     const identifier = ensureNonEmpty(options.identifier, 'identifier');
     return HawcxReactNative.v6Start({
       ...options,
       identifier,
-      flowType: normalizeV6FlowType(options.flowType),
+      flowType: normalizeHawcxV6FlowType(options.flowType),
       startToken: options.startToken?.trim() || undefined,
       inviteCode: options.inviteCode?.trim() || undefined,
       codeChallenge: options.codeChallenge?.trim() || undefined,
@@ -408,6 +426,11 @@ export function addV6FlowListener(handler: (event: HawcxV6FlowEvent) => void): E
     }
   });
 }
+
+export const addHawcxV6FlowListener = addV6FlowListener;
+export const startHawcxV6Flow = startV6Flow;
+export const handleHawcxV6RedirectUrl = v6HandleRedirectUrl;
+export { canHawcxV6Resend, getHawcxV6ResendAvailability };
 
 export function removeAllListeners(): void {
   authEventEmitter.removeAllListeners(AUTH_EVENT);
@@ -599,6 +622,76 @@ export class HawcxClient {
 
 export const hawcxClient = new HawcxClient();
 
+export type HawcxV6HookOptions = {
+  flowType?: HawcxV6FlowType;
+  now?: () => number;
+  resendTickMs?: number;
+};
+
+export class HawcxV6Client {
+  initialize(config: HawcxInitializeConfig): Promise<void> {
+    return initialize(config);
+  }
+
+  start(options: HawcxV6StartOptions): Promise<void> {
+    return startV6Flow(options);
+  }
+
+  selectMethod(methodId: string): Promise<void> {
+    return v6SelectMethod(methodId);
+  }
+
+  submitCode(code: string): Promise<void> {
+    return v6SubmitCode(code);
+  }
+
+  submitTotp(code: string): Promise<void> {
+    return v6SubmitTotp(code);
+  }
+
+  submitPhone(phone: string): Promise<void> {
+    return v6SubmitPhone(phone);
+  }
+
+  resend(): Promise<boolean> {
+    return v6Resend();
+  }
+
+  poll(): Promise<void> {
+    return v6Poll();
+  }
+
+  cancel(): Promise<void> {
+    return v6Cancel();
+  }
+
+  reset(): Promise<void> {
+    return v6Reset();
+  }
+
+  changeIdentifier(): Promise<void> {
+    return v6Reset();
+  }
+
+  handleRedirectUrl(url: string): Promise<void> {
+    return v6HandleRedirectUrl(url);
+  }
+
+  addFlowListener(handler: (event: HawcxV6FlowEvent) => void): EmitterSubscription {
+    return addV6FlowListener(handler);
+  }
+
+  storeBackendOAuthTokens(userId: string, tokens: BackendOAuthTokens): Promise<void> {
+    return storeBackendOAuthTokens(userId, tokens.accessToken, tokens.refreshToken);
+  }
+
+  notifyUserAuthenticated(): Promise<void> {
+    return notifyUserAuthenticated();
+  }
+}
+
+export const hawcxV6Client = new HawcxV6Client();
+
 export type HawcxAuthHookState =
   | { status: 'idle' }
   | { status: 'pending' }
@@ -613,6 +706,123 @@ export type HawcxWebSessionState =
   | { status: 'loading' }
   | { status: 'success' }
   | { status: 'error'; error: AuthErrorPayload };
+
+export function useHawcxV6Auth(
+  client: HawcxV6Client = hawcxV6Client,
+  options: HawcxV6HookOptions = {},
+): HawcxV6AuthHookResult {
+  const now = options.now ?? Date.now;
+  const resendTickMs = Math.max(250, options.resendTickMs ?? 1000);
+  const [state, setState] = useState<HawcxV6AuthState>(() =>
+    createInitialHawcxV6AuthState(options.flowType),
+  );
+
+  useEffect(() => {
+    const subscription = client.addFlowListener((event) => {
+      setState((previous) => reduceHawcxV6FlowEvent(event, previous, now()));
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [client, now]);
+
+  useEffect(() => {
+    if (!state.resend.resendAt || state.resend.canResend) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      setState((previous) => refreshHawcxV6AuthState(previous, now()));
+    }, resendTickMs);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [now, resendTickMs, state.resend.canResend, state.resend.resendAt]);
+
+  const start = useCallback(
+    (startOptions: HawcxV6StartOptions) => {
+      const identifier = ensureNonEmpty(startOptions.identifier, 'identifier');
+      const flowType = normalizeHawcxV6FlowType(startOptions.flowType ?? options.flowType);
+
+      setState((previous) =>
+        createIdentifierHawcxV6AuthState({
+          previous,
+          identifier,
+          flowType,
+        }),
+      );
+
+      return client.start({
+        ...startOptions,
+        identifier,
+        flowType,
+      });
+    },
+    [client, options.flowType],
+  );
+
+  const selectMethod = useCallback((methodId: string) => client.selectMethod(methodId), [client]);
+
+  const submitCode = useCallback((code: string) => client.submitCode(code), [client]);
+
+  const submitTotp = useCallback((code: string) => client.submitTotp(code), [client]);
+
+  const submitPhone = useCallback((phone: string) => client.submitPhone(phone), [client]);
+
+  const resend = useCallback(() => client.resend(), [client]);
+  const poll = useCallback(() => client.poll(), [client]);
+
+  const cancel = useCallback(async () => {
+    await client.cancel();
+    setState((previous) =>
+      createIdentifierHawcxV6AuthState({
+        previous,
+        identifier: previous.identifier,
+      }),
+    );
+  }, [client]);
+
+  const reset = useCallback(async () => {
+    await client.reset();
+    setState((previous) =>
+      createIdentifierHawcxV6AuthState({
+        previous,
+        identifier: previous.identifier,
+      }),
+    );
+  }, [client]);
+
+  const changeIdentifier = useCallback(async () => {
+    await client.changeIdentifier();
+    setState((previous) =>
+      createIdentifierHawcxV6AuthState({
+        previous,
+      }),
+    );
+  }, [client]);
+
+  const handleRedirectUrl = useCallback((url: string) => client.handleRedirectUrl(url), [client]);
+
+  return {
+    state,
+    start,
+    selectMethod,
+    submitCode,
+    submitTotp,
+    submitPhone,
+    resend,
+    poll,
+    cancel,
+    changeIdentifier,
+    reset,
+    handleRedirectUrl,
+    canResend: state.resend.canResend,
+    resendAvailability: state.resend,
+    secondsUntilResend: state.resend.secondsUntilResend,
+  };
+}
 
 export function useHawcxAuth(client: HawcxClient = hawcxClient) {
   const [state, setState] = useState<HawcxAuthHookState>({ status: 'idle' });

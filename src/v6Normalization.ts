@@ -137,7 +137,8 @@ const normalizePromptBase = (value: Record<string, unknown>): HawcxV6PromptBase 
     return null;
   }
 
-  const step = normalizeStep(value.step) ??
+  const step =
+    normalizeStep(value.step) ??
     normalizeStep({
       id: value.stepId,
       label: value.stepLabel,
@@ -251,7 +252,9 @@ const normalizePromptPayload = (value: unknown): HawcxV6PromptPayload | null => 
       return payload;
     }
     case 'await_approval': {
-      const promptExpiresAt = asString(rawPrompt?.expiresAt ?? value.promptExpiresAt ?? value.awaitExpiresAt);
+      const promptExpiresAt = asString(
+        rawPrompt?.expiresAt ?? value.promptExpiresAt ?? value.awaitExpiresAt,
+      );
       const pollInterval = asNumber(rawPrompt?.pollInterval ?? value.pollInterval);
       if (!promptExpiresAt || pollInterval === undefined) {
         return null;

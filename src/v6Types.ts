@@ -1,5 +1,18 @@
 export type HawcxV6FlowType = 'signin' | 'signup' | 'account_manage';
 
+export type HawcxV6AuthStatus =
+  | 'identifier'
+  | 'loading'
+  | 'select_method'
+  | 'enter_code'
+  | 'setup_sms'
+  | 'setup_totp'
+  | 'enter_totp'
+  | 'redirect'
+  | 'await_approval'
+  | 'completed'
+  | 'error';
+
 export type HawcxV6Method = {
   id: string;
   label: string;
@@ -146,6 +159,31 @@ export type HawcxV6FlowEvent =
   | { type: 'prompt'; payload: HawcxV6PromptPayload }
   | { type: 'completed'; payload: HawcxV6CompletedPayload }
   | { type: 'error'; payload: HawcxV6ErrorPayload };
+
+export type HawcxV6ResendAvailability = {
+  canResend: boolean;
+  resendAt?: string;
+  secondsUntilResend?: number;
+};
+
+export type HawcxV6AuthState = {
+  status: HawcxV6AuthStatus;
+  flowType: HawcxV6FlowType;
+  identifier?: string;
+  session?: string;
+  traceId?: string;
+  expiresAt?: string;
+  step?: HawcxV6StepInfo;
+  risk?: HawcxV6RiskInfo;
+  codeChannel?: string;
+  prompt?: HawcxV6PromptPayload;
+  completed?: HawcxV6CompletedPayload;
+  error?: HawcxV6ErrorPayload;
+  resend: HawcxV6ResendAvailability;
+  isLoading: boolean;
+  requiresRedirect: boolean;
+  awaitingApproval: boolean;
+};
 
 export type HawcxV6StartOptions = {
   identifier: string;

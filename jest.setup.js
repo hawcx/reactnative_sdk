@@ -18,6 +18,12 @@ NativeModules.HawcxReactNative = NativeModules.HawcxReactNative || {
   getDeviceDetails: jest.fn(() => Promise.resolve()),
   webLogin: jest.fn(() => Promise.resolve()),
   webApprove: jest.fn(() => Promise.resolve()),
+  setApnsDeviceToken: jest.fn(() => Promise.resolve()),
+  setFcmToken: jest.fn(() => Promise.resolve()),
+  userDidAuthenticate: jest.fn(() => Promise.resolve()),
+  handlePushNotification: jest.fn(() => Promise.resolve(true)),
+  approvePushRequest: jest.fn(() => Promise.resolve()),
+  declinePushRequest: jest.fn(() => Promise.resolve()),
   addListener: jest.fn(),
   removeListeners: jest.fn(),
 };
