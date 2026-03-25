@@ -2,7 +2,11 @@ import {
   initialize,
   authenticate,
   submitOtp,
+  startV6Flow,
   storeBackendOAuthTokens,
+  addV6FlowListener,
+  v6HandleRedirectUrl,
+  v6Resend,
   webLogin,
   webApprove,
   approvePushRequest,
@@ -57,6 +61,42 @@ describe('Hawcx React Native SDK', () => {
     await expect(submitOtp('')).rejects.toThrow('otp is required');
   });
 
+  it('passes normalized V6 start options through to native', async () => {
+    await startV6Flow({
+      identifier: ' user@example.com ',
+      flowType: 'signup',
+      startToken: ' start-token ',
+      inviteCode: ' invite-code ',
+      codeChallenge: ' challenge ',
+    });
+
+    expect(NativeModules.HawcxReactNative.v6Start).toHaveBeenCalledWith({
+      identifier: 'user@example.com',
+      flowType: 'signup',
+      startToken: 'start-token',
+      inviteCode: 'invite-code',
+      codeChallenge: 'challenge',
+    });
+  });
+
+  it('defaults V6 flow type to signin', async () => {
+    await startV6Flow({
+      identifier: 'user@example.com',
+    });
+
+    expect(NativeModules.HawcxReactNative.v6Start).toHaveBeenCalledWith({
+      identifier: 'user@example.com',
+      flowType: 'signin',
+      startToken: undefined,
+      inviteCode: undefined,
+      codeChallenge: undefined,
+    });
+  });
+
+  it('rejects V6 redirect handler without url', async () => {
+    await expect(v6HandleRedirectUrl('   ')).rejects.toThrow('url is required');
+  });
+
   it('rejects webLogin call without pin', async () => {
     await expect(webLogin('')).rejects.toThrow('pin is required');
   });
@@ -89,6 +129,7 @@ describe('HawcxClient helpers', () => {
   afterEach(() => {
     __INTERNAL_EVENTS__.authEmitter.removeAllListeners(__INTERNAL_EVENTS__.authEventName);
     __INTERNAL_EVENTS__.sessionEmitter.removeAllListeners(__INTERNAL_EVENTS__.sessionEventName);
+    __INTERNAL_EVENTS__.v6FlowEmitter.removeAllListeners(__INTERNAL_EVENTS__.v6FlowEventName);
   });
 
   it('resolves authenticate promise on success event', async () => {
@@ -205,6 +246,174 @@ describe('HawcxClient helpers', () => {
 
     expect(handler).not.toHaveBeenCalled();
     subscription.remove();
+  });
+});
+
+describe('V6 flow bridge helpers', () => {
+  const emitV6 = (event: unknown) => {
+    __INTERNAL_EVENTS__.v6FlowEmitter.emit(__INTERNAL_EVENTS__.v6FlowEventName, event as never);
+  };
+
+  afterEach(() => {
+    __INTERNAL_EVENTS__.v6FlowEmitter.removeAllListeners(__INTERNAL_EVENTS__.v6FlowEventName);
+  });
+
+  it('normalizes select method prompt events', async () => {
+    const handler = jest.fn();
+    const subscription = addV6FlowListener(handler);
+
+    emitV6({
+      type: 'prompt',
+      payload: {
+        session: 'auth_123',
+        traceId: 'trace_123',
+        expiresAt: '2026-03-24T10:00:00Z',
+        step: {
+          id: 'primary',
+          label: 'Verify Identity',
+        },
+        risk: {
+          detected: true,
+          reasons: ['new_location'],
+          message: 'Risk detected',
+          location: {
+            city: 'Los Angeles',
+            country: 'US',
+          },
+          riskScore: 0.42,
+        },
+        codeChannel: 'email',
+        prompt: {
+          type: 'select_method',
+          phase: 'primary',
+          methods: [
+            { id: 'email_otp', label: 'Email OTP', icon: 'mail' },
+            { id: 'totp', label: 'Authenticator App' },
+          ],
+        },
+      },
+    });
+
+    expect(handler).toHaveBeenCalledWith({
+      type: 'prompt',
+      payload: {
+        session: 'auth_123',
+        traceId: 'trace_123',
+        expiresAt: '2026-03-24T10:00:00Z',
+        step: {
+          id: 'primary',
+          label: 'Verify Identity',
+        },
+        risk: {
+          detected: true,
+          reasons: ['new_location'],
+          message: 'Risk detected',
+          location: {
+            city: 'Los Angeles',
+            country: 'US',
+          },
+          riskScore: 0.42,
+        },
+        codeChannel: 'email',
+        prompt: {
+          type: 'select_method',
+          phase: 'primary',
+          methods: [
+            { id: 'email_otp', label: 'Email OTP', icon: 'mail' },
+            { id: 'totp', label: 'Authenticator App', icon: undefined },
+          ],
+        },
+      },
+    });
+
+    subscription.remove();
+  });
+
+  it('normalizes completed events', async () => {
+    const handler = jest.fn();
+    const subscription = addV6FlowListener(handler);
+
+    emitV6({
+      type: 'completed',
+      payload: {
+        session: 'auth_123',
+        authCode: 'code_123',
+        expiresAt: '2026-03-24T10:00:00Z',
+        codeVerifier: 'verifier_123',
+        traceId: 'trace_123',
+      },
+    });
+
+    expect(handler).toHaveBeenCalledWith({
+      type: 'completed',
+      payload: {
+        session: 'auth_123',
+        authCode: 'code_123',
+        expiresAt: '2026-03-24T10:00:00Z',
+        codeVerifier: 'verifier_123',
+        traceId: 'trace_123',
+      },
+    });
+
+    subscription.remove();
+  });
+
+  it('normalizes error events with field details', async () => {
+    const handler = jest.fn();
+    const subscription = addV6FlowListener(handler);
+
+    emitV6({
+      type: 'error',
+      payload: {
+        session: 'auth_123',
+        code: 'validation_error',
+        action: 'retry_input',
+        message: 'Request validation failed',
+        retryable: true,
+        traceId: 'trace_123',
+        details: {
+          retryAfterSeconds: 30,
+          retryAt: '2026-03-24T10:01:00Z',
+          attemptsRemaining: 2,
+          errors: [
+            {
+              field: 'identifier',
+              message: 'Identifier is invalid',
+            },
+          ],
+        },
+      },
+    });
+
+    expect(handler).toHaveBeenCalledWith({
+      type: 'error',
+      payload: {
+        session: 'auth_123',
+        code: 'validation_error',
+        action: 'retry_input',
+        message: 'Request validation failed',
+        retryable: true,
+        traceId: 'trace_123',
+        details: {
+          retryAfterSeconds: 30,
+          retryAt: '2026-03-24T10:01:00Z',
+          attemptsRemaining: 2,
+          errors: [
+            {
+              field: 'identifier',
+              message: 'Identifier is invalid',
+            },
+          ],
+        },
+      },
+    });
+
+    subscription.remove();
+  });
+
+  it('returns the native resend result', async () => {
+    (NativeModules.HawcxReactNative.v6Resend as jest.Mock).mockResolvedValueOnce(false);
+    await expect(v6Resend()).resolves.toBe(false);
   });
 });
 

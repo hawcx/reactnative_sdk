@@ -98,6 +98,16 @@ class HawcxReactNative: RCTEventEmitter {
         return nil
     }
 
+    private func rejectV6Error(_ error: Error, reject: @escaping RCTPromiseRejectBlock) {
+        let code: String
+        if case HawcxV6BridgeError.notInitialized = error {
+            code = "hawcx.sdk"
+        } else {
+            code = "hawcx.input"
+        }
+        reject(code, error.localizedDescription, error)
+    }
+
     @objc
     func authenticate(_ userId: NSString,
                       resolver resolve: @escaping RCTPromiseResolveBlock,
@@ -140,6 +150,200 @@ class HawcxReactNative: RCTEventEmitter {
         DispatchQueue.main.async {
             sdk.submitOtpV5(otp: trimmed)
             resolve(nil)
+        }
+    }
+
+    @objc
+    func v6Start(_ options: NSDictionary,
+                 resolver resolve: @escaping RCTPromiseResolveBlock,
+                 rejecter reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                let v6Options = try HawcxV6StartOptions.from(options: options)
+                try bridge.start(options: v6Options)
+                resolve(nil)
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
+    func v6SelectMethod(_ methodId: NSString,
+                        resolver resolve: @escaping RCTPromiseResolveBlock,
+                        rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let trimmed = methodId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            reject("hawcx.input", "methodId is required", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                try bridge.selectMethod(trimmed)
+                resolve(nil)
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
+    func v6SubmitCode(_ code: NSString,
+                      resolver resolve: @escaping RCTPromiseResolveBlock,
+                      rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            reject("hawcx.input", "code is required", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                try bridge.submitCode(trimmed)
+                resolve(nil)
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
+    func v6SubmitTotp(_ code: NSString,
+                      resolver resolve: @escaping RCTPromiseResolveBlock,
+                      rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            reject("hawcx.input", "code is required", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                try bridge.submitTotp(trimmed)
+                resolve(nil)
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
+    func v6SubmitPhone(_ phone: NSString,
+                       resolver resolve: @escaping RCTPromiseResolveBlock,
+                       rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let trimmed = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            reject("hawcx.input", "phone is required", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                try bridge.submitPhone(trimmed)
+                resolve(nil)
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
+    func v6Resend(_ resolve: @escaping RCTPromiseResolveBlock,
+                  rejecter reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                let dispatched = try bridge.resend()
+                resolve(dispatched)
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
+    func v6Poll(_ resolve: @escaping RCTPromiseResolveBlock,
+                rejecter reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                try bridge.poll()
+                resolve(nil)
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
+    func v6Cancel(_ resolve: @escaping RCTPromiseResolveBlock,
+                  rejecter reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                try bridge.cancel()
+                resolve(nil)
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
+    func v6Reset(_ resolve: @escaping RCTPromiseResolveBlock,
+                 rejecter reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.main.async {
+            guard let bridge = self.hawcxV6Bridge else {
+                self.rejectV6Error(HawcxV6BridgeError.notInitialized, reject: reject)
+                return
+            }
+            bridge.sdk?.reset()
+            resolve(nil)
+        }
+    }
+
+    @objc
+    func v6HandleRedirectUrl(_ url: NSString,
+                             resolver resolve: @escaping RCTPromiseResolveBlock,
+                             rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let trimmed = url.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            reject("hawcx.input", "url is required", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                try bridge.handleRedirect(urlString: trimmed)
+                resolve(nil)
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
         }
     }
 

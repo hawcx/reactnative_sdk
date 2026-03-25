@@ -6,6 +6,35 @@ import {
   NativeModule,
 } from 'react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { normalizeV6FlowEvent } from './v6Normalization';
+import type {
+  HawcxV6FlowEvent,
+  HawcxV6FlowType,
+  HawcxV6StartOptions,
+} from './v6Types';
+
+export type {
+  HawcxV6AwaitApprovalPrompt,
+  HawcxV6CompletedPayload,
+  HawcxV6EnterCodePrompt,
+  HawcxV6EnterTotpPrompt,
+  HawcxV6ErrorAction,
+  HawcxV6ErrorDetails,
+  HawcxV6ErrorPayload,
+  HawcxV6FieldError,
+  HawcxV6FlowEvent,
+  HawcxV6FlowType,
+  HawcxV6Method,
+  HawcxV6PromptPayload,
+  HawcxV6RedirectPrompt,
+  HawcxV6RiskInfo,
+  HawcxV6RiskLocation,
+  HawcxV6SelectMethodPrompt,
+  HawcxV6SetupSmsPrompt,
+  HawcxV6SetupTotpPrompt,
+  HawcxV6StartOptions,
+  HawcxV6StepInfo,
+} from './v6Types';
 
 const LINKING_ERROR = [
   "The package '@hawcx/react-native-sdk' doesn't seem to be linked.",
@@ -93,6 +122,16 @@ type NativeBridge = {
   initialize(config: HawcxInitializeConfig): Promise<void>;
   authenticate(userId: string): Promise<void>;
   submitOtp(otp: string): Promise<void>;
+  v6Start(options: HawcxV6StartOptions): Promise<void>;
+  v6SelectMethod(methodId: string): Promise<void>;
+  v6SubmitCode(code: string): Promise<void>;
+  v6SubmitTotp(code: string): Promise<void>;
+  v6SubmitPhone(phone: string): Promise<void>;
+  v6Resend(): Promise<boolean>;
+  v6Poll(): Promise<void>;
+  v6Cancel(): Promise<void>;
+  v6Reset(): Promise<void>;
+  v6HandleRedirectUrl(url: string): Promise<void>;
   storeBackendOAuthTokens(
     userId: string,
     accessToken: string,
@@ -165,6 +204,91 @@ export function authenticate(userId: string): Promise<void> {
 export function submitOtp(otp: string): Promise<void> {
   try {
     return HawcxReactNative.submitOtp(ensureNonEmpty(otp, 'otp'));
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+const normalizeV6FlowType = (value?: HawcxV6FlowType): HawcxV6FlowType => {
+  switch (value) {
+    case 'signup':
+    case 'account_manage':
+      return value;
+    case 'signin':
+    case undefined:
+      return 'signin';
+    default:
+      return 'signin';
+  }
+};
+
+export function startV6Flow(options: HawcxV6StartOptions): Promise<void> {
+  try {
+    const identifier = ensureNonEmpty(options.identifier, 'identifier');
+    return HawcxReactNative.v6Start({
+      ...options,
+      identifier,
+      flowType: normalizeV6FlowType(options.flowType),
+      startToken: options.startToken?.trim() || undefined,
+      inviteCode: options.inviteCode?.trim() || undefined,
+      codeChallenge: options.codeChallenge?.trim() || undefined,
+    });
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+export function v6SelectMethod(methodId: string): Promise<void> {
+  try {
+    return HawcxReactNative.v6SelectMethod(ensureNonEmpty(methodId, 'methodId'));
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+export function v6SubmitCode(code: string): Promise<void> {
+  try {
+    return HawcxReactNative.v6SubmitCode(ensureNonEmpty(code, 'code'));
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+export function v6SubmitTotp(code: string): Promise<void> {
+  try {
+    return HawcxReactNative.v6SubmitTotp(ensureNonEmpty(code, 'code'));
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+export function v6SubmitPhone(phone: string): Promise<void> {
+  try {
+    return HawcxReactNative.v6SubmitPhone(ensureNonEmpty(phone, 'phone'));
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+export function v6Resend(): Promise<boolean> {
+  return HawcxReactNative.v6Resend();
+}
+
+export function v6Poll(): Promise<void> {
+  return HawcxReactNative.v6Poll();
+}
+
+export function v6Cancel(): Promise<void> {
+  return HawcxReactNative.v6Cancel();
+}
+
+export function v6Reset(): Promise<void> {
+  return HawcxReactNative.v6Reset();
+}
+
+export function v6HandleRedirectUrl(url: string): Promise<void> {
+  try {
+    return HawcxReactNative.v6HandleRedirectUrl(ensureNonEmpty(url, 'url'));
   } catch (error) {
     return Promise.reject(error);
   }
@@ -274,6 +398,15 @@ export function declinePushRequest(requestId: string): Promise<void> {
 
 export function addAuthListener(handler: (event: AuthEvent) => void): EmitterSubscription {
   return authEventEmitter.addListener(AUTH_EVENT, handler);
+}
+
+export function addV6FlowListener(handler: (event: HawcxV6FlowEvent) => void): EmitterSubscription {
+  return v6FlowEventEmitter.addListener(V6_FLOW_EVENT, (rawEvent: unknown) => {
+    const normalized = normalizeV6FlowEvent(rawEvent);
+    if (normalized) {
+      handler(normalized);
+    }
+  });
 }
 
 export function removeAllListeners(): void {

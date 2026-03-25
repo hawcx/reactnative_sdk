@@ -13,6 +13,7 @@ import com.facebook.react.module.annotations.ReactModule
 import com.hawcx.internal.HawcxSDK
 import com.hawcx.reactnative.v6.HawcxV6Bridge
 import com.hawcx.reactnative.v6.HawcxV6InitializeOptions
+import com.hawcx.reactnative.v6.HawcxV6StartOptions
 import com.hawcx.utils.AuthV5Callback
 
 internal const val AUTH_EVENT_NAME = "hawcx.auth.event"
@@ -157,6 +158,221 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
         runOnUiThread {
             sdk.submitOtpV5(sanitizedOtp)
             promise.resolve(null)
+        }
+    }
+
+    @ReactMethod
+    fun v6Start(options: ReadableMap?, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        val config = options ?: run {
+            promise.reject(CODE_INPUT, "options are required")
+            return
+        }
+
+        val startOptions = runCatching { HawcxV6StartOptions.from(config) }
+            .getOrElse { error ->
+                promise.reject(CODE_INPUT, error.message, error)
+                return
+            }
+
+        runOnUiThread {
+            runCatching {
+                bridge.start(startOptions)
+            }.onSuccess {
+                promise.resolve(null)
+            }.onFailure { error ->
+                promise.reject(CODE_SDK, error.message, error)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6SelectMethod(methodId: String?, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        val sanitizedMethodId = methodId?.trim().orEmpty()
+        if (sanitizedMethodId.isEmpty()) {
+            promise.reject(CODE_INPUT, "methodId is required")
+            return
+        }
+
+        runOnUiThread {
+            runCatching {
+                bridge.selectMethod(sanitizedMethodId)
+            }.onSuccess {
+                promise.resolve(null)
+            }.onFailure { error ->
+                promise.reject(CODE_SDK, error.message, error)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6SubmitCode(code: String?, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        val sanitizedCode = code?.trim().orEmpty()
+        if (sanitizedCode.isEmpty()) {
+            promise.reject(CODE_INPUT, "code is required")
+            return
+        }
+
+        runOnUiThread {
+            runCatching {
+                bridge.submitCode(sanitizedCode)
+            }.onSuccess {
+                promise.resolve(null)
+            }.onFailure { error ->
+                promise.reject(CODE_SDK, error.message, error)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6SubmitTotp(code: String?, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        val sanitizedCode = code?.trim().orEmpty()
+        if (sanitizedCode.isEmpty()) {
+            promise.reject(CODE_INPUT, "code is required")
+            return
+        }
+
+        runOnUiThread {
+            runCatching {
+                bridge.submitTotp(sanitizedCode)
+            }.onSuccess {
+                promise.resolve(null)
+            }.onFailure { error ->
+                promise.reject(CODE_SDK, error.message, error)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6SubmitPhone(phone: String?, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        val sanitizedPhone = phone?.trim().orEmpty()
+        if (sanitizedPhone.isEmpty()) {
+            promise.reject(CODE_INPUT, "phone is required")
+            return
+        }
+
+        runOnUiThread {
+            runCatching {
+                bridge.submitPhone(sanitizedPhone)
+            }.onSuccess {
+                promise.resolve(null)
+            }.onFailure { error ->
+                promise.reject(CODE_SDK, error.message, error)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6Resend(promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+
+        runOnUiThread {
+            runCatching {
+                bridge.resend()
+            }.onSuccess { dispatched ->
+                promise.resolve(dispatched)
+            }.onFailure { error ->
+                promise.reject(CODE_SDK, error.message, error)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6Poll(promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+
+        runOnUiThread {
+            runCatching {
+                bridge.poll()
+            }.onSuccess {
+                promise.resolve(null)
+            }.onFailure { error ->
+                promise.reject(CODE_SDK, error.message, error)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6Cancel(promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+
+        runOnUiThread {
+            runCatching {
+                bridge.cancel()
+            }.onSuccess {
+                promise.resolve(null)
+            }.onFailure { error ->
+                promise.reject(CODE_SDK, error.message, error)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6Reset(promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+
+        runOnUiThread {
+            runCatching {
+                bridge.reset()
+            }.onSuccess {
+                promise.resolve(null)
+            }.onFailure { error ->
+                promise.reject(CODE_SDK, error.message, error)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6HandleRedirectUrl(url: String?, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        val sanitizedUrl = url?.trim().orEmpty()
+        if (sanitizedUrl.isEmpty()) {
+            promise.reject(CODE_INPUT, "url is required")
+            return
+        }
+
+        runOnUiThread {
+            runCatching {
+                bridge.handleRedirectUrl(sanitizedUrl)
+            }.onSuccess {
+                promise.resolve(null)
+            }.onFailure { error ->
+                promise.reject(CODE_INPUT, error.message, error)
+            }
         }
     }
 
