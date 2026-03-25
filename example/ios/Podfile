@@ -11,6 +11,63 @@ require 'tmpdir'
 platform :ios, '17.5'
 prepare_react_native_project!
 
+def append_build_setting_path!(build_settings, key, path)
+  current_value = build_settings[key]
+  inherited = '$(inherited)'
+
+  case current_value
+  when Array
+    current_value.unshift(inherited) unless current_value.include?(inherited)
+    current_value << path unless current_value.include?(path)
+  when String
+    updated_value = current_value.include?(inherited) ? current_value : "#{inherited} #{current_value}"
+    build_settings[key] = updated_value.include?(path) ? updated_value : "#{updated_value} #{path}"
+  when nil
+    build_settings[key] = "#{inherited} #{path}"
+  else
+    stringified = current_value.to_s
+    updated_value = stringified.include?(inherited) ? stringified : "#{inherited} #{stringified}"
+    build_settings[key] = updated_value.include?(path) ? updated_value : "#{updated_value} #{path}"
+  end
+end
+
+def patch_hermes_framework_headers!(pods_root)
+  hermes_include_dir = File.join(pods_root, 'hermes-engine', 'destroot', 'include', 'hermes')
+  return unless Dir.exist?(hermes_include_dir)
+
+  framework_glob = File.join(
+    pods_root,
+    'hermes-engine',
+    'destroot',
+    'Library',
+    'Frameworks',
+    '{universal/hermes.xcframework/*,macosx}',
+    'hermes.framework'
+  )
+
+  Dir.glob(framework_glob).each do |framework_dir|
+    headers_dir = File.join(framework_dir, 'Headers')
+    destination = File.join(headers_dir, 'hermes')
+
+    FileUtils.mkdir_p(headers_dir)
+    FileUtils.rm_rf(destination)
+    FileUtils.cp_r(hermes_include_dir, destination)
+  end
+end
+
+def patch_react_native_hermes_build_settings!(installer)
+  hermes_include_path = '$(PODS_ROOT)/hermes-engine/destroot/include'
+  hermes_consumer_targets = %w[React-Core React-RCTAppDelegate]
+
+  installer.pods_project.targets.each do |target|
+    next unless hermes_consumer_targets.include?(target.name)
+
+    target.build_configurations.each do |config|
+      append_build_setting_path!(config.build_settings, 'HEADER_SEARCH_PATHS', hermes_include_path)
+    end
+  end
+end
+
 pre_install do |_installer|
   local_xcframework = File.expand_path('../../ios/Frameworks/HawcxFramework.xcframework', __dir__)
   pod_xcframework   = File.expand_path('../node_modules/@hawcx/react-native-sdk/ios/Frameworks/HawcxFramework.xcframework', __dir__)
@@ -75,5 +132,8 @@ target 'HawcxExampleApp' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
+
+    patch_hermes_framework_headers!(installer.sandbox.root.to_s)
+    patch_react_native_hermes_build_settings!(installer)
   end
 end
