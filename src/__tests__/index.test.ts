@@ -10,6 +10,7 @@ import {
   setPushDeviceToken,
   HawcxClient,
   HawcxAuthError,
+  addSessionListener,
   __INTERNAL_EVENTS__,
 } from '../index';
 import { NativeModules, Platform } from 'react-native';
@@ -30,6 +31,22 @@ describe('Hawcx React Native SDK', () => {
 
   it('rejects initialize call without base url', async () => {
     await expect(initialize({ projectApiKey: 'key' })).rejects.toThrow('baseUrl is required');
+  });
+
+  it('passes additive V6 initialize options through to native', async () => {
+    await initialize({
+      projectApiKey: 'key',
+      baseUrl: 'https://stage-api.hawcx.com',
+      relyingParty: 'web-demo',
+      autoPollApprovals: false,
+    });
+
+    expect(NativeModules.HawcxReactNative.initialize).toHaveBeenCalledWith({
+      projectApiKey: 'key',
+      baseUrl: 'https://stage-api.hawcx.com',
+      relyingParty: 'web-demo',
+      autoPollApprovals: false,
+    });
   });
 
   it('rejects authenticate call without userId', async () => {
@@ -64,6 +81,9 @@ describe('HawcxClient helpers', () => {
   };
   const emitSession = (event: unknown) => {
     __INTERNAL_EVENTS__.sessionEmitter.emit(__INTERNAL_EVENTS__.sessionEventName, event as never);
+  };
+  const emitV6 = (event: unknown) => {
+    __INTERNAL_EVENTS__.v6FlowEmitter.emit(__INTERNAL_EVENTS__.v6FlowEventName, event as never);
   };
 
   afterEach(() => {
@@ -158,6 +178,32 @@ describe('HawcxClient helpers', () => {
         timestamp: '2025-01-01T00:00:00Z',
       },
     });
+    subscription.remove();
+  });
+
+  it('does not deliver V6 flow events to V5 auth listeners', async () => {
+    const handler = jest.fn();
+    const subscription = client.addListener(handler);
+
+    emitV6({
+      type: 'prompt',
+      payload: { session: 'sid', promptType: 'enter_code' },
+    });
+
+    expect(handler).not.toHaveBeenCalled();
+    subscription.remove();
+  });
+
+  it('does not deliver V6 flow events to V5 session listeners', async () => {
+    const handler = jest.fn();
+    const subscription = addSessionListener(handler);
+
+    emitV6({
+      type: 'loading',
+      payload: { session: 'sid' },
+    });
+
+    expect(handler).not.toHaveBeenCalled();
     subscription.remove();
   });
 });

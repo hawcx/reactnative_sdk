@@ -21,6 +21,10 @@ internal class HawcxEventDispatcher(
         emitEvent(PUSH_EVENT_NAME, type, payload)
     }
 
+    fun emitV6FlowEvent(type: String, payload: WritableMap? = null) {
+        emitEvent(V6_FLOW_EVENT_NAME, type, payload)
+    }
+
     private fun emitEvent(eventName: String, type: String, payload: WritableMap?) {
         val map = Arguments.createMap().apply {
             putString("type", type)

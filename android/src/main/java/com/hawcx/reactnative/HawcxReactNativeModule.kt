@@ -6,19 +6,24 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.hawcx.internal.HawcxSDK
+import com.hawcx.reactnative.v6.HawcxV6Bridge
+import com.hawcx.reactnative.v6.HawcxV6InitializeOptions
 import com.hawcx.utils.AuthV5Callback
 
 internal const val AUTH_EVENT_NAME = "hawcx.auth.event"
 internal const val SESSION_EVENT_NAME = "hawcx.session.event"
 internal const val PUSH_EVENT_NAME = "hawcx.push.event"
+internal const val V6_FLOW_EVENT_NAME = "hawcx.v6.flow.event"
 
 @ReactModule(name = HawcxReactNativeModule.NAME)
 class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
-    ReactContextBaseJavaModule(reactContext) {
+    ReactContextBaseJavaModule(reactContext),
+    LifecycleEventListener {
 
     companion object {
         const val NAME = "HawcxReactNative"
@@ -41,6 +46,12 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
     private var sessionCallbackProxy: SessionCallbackProxy? = null
     @Volatile
     private var pushDelegateProxy: PushDelegateProxy? = null
+    @Volatile
+    private var hawcxV6Bridge: HawcxV6Bridge? = null
+
+    init {
+        reactContext.addLifecycleEventListener(this)
+    }
 
     override fun getName(): String = NAME
 
@@ -80,6 +91,7 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
 
         runOnUiThread {
             try {
+                resetNativeLanes(resetV6Flow = true)
                 val sdk = HawcxSDK(
                     context = applicationContext,
                     projectApiKey = projectApiKey,
@@ -93,8 +105,16 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
                 sessionCallbackProxy = sessionProxy
                 pushDelegateProxy = pushProxy
                 sdk.pushAuthDelegate = pushProxy
+                val v6Bridge = HawcxV6Bridge(eventDispatcher)
+                v6Bridge.configure(
+                    legacySdk = sdk,
+                    configId = projectApiKey,
+                    options = HawcxV6InitializeOptions.from(configMap)
+                )
+                hawcxV6Bridge = v6Bridge
                 promise.resolve(null)
             } catch (error: Exception) {
+                resetNativeLanes(resetV6Flow = true)
                 promise.reject(CODE_SDK, error.message, error)
             }
         }
@@ -383,5 +403,29 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
         } else {
             mainHandler.post(block)
         }
+    }
+
+    override fun onHostResume() = Unit
+
+    override fun onHostPause() = Unit
+
+    override fun onHostDestroy() {
+        resetNativeLanes(resetV6Flow = true)
+    }
+
+    override fun invalidate() {
+        reactApplicationContext.removeLifecycleEventListener(this)
+        resetNativeLanes(resetV6Flow = true)
+        super.invalidate()
+    }
+
+    private fun resetNativeLanes(resetV6Flow: Boolean) {
+        hawcxV6Bridge?.dispose(resetFlow = resetV6Flow)
+        hawcxV6Bridge = null
+        hawcxSDK?.pushAuthDelegate = null
+        pushDelegateProxy = null
+        sessionCallbackProxy = null
+        authCallbackProxy = null
+        hawcxSDK = null
     }
 }

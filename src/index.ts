@@ -16,6 +16,7 @@ const LINKING_ERROR = [
 const AUTH_EVENT = 'hawcx.auth.event';
 const SESSION_EVENT = 'hawcx.session.event';
 const PUSH_EVENT = 'hawcx.push.event';
+const V6_FLOW_EVENT = 'hawcx.v6.flow.event';
 
 export type HawcxInitializeConfig = {
   projectApiKey: string;
@@ -29,6 +30,8 @@ export type HawcxInitializeConfig = {
     publicKeyPem: string;
     tokenEndpoint: string;
   };
+  relyingParty?: string;
+  autoPollApprovals?: boolean;
   /**
    * @deprecated Use root-level `baseUrl` instead. Kept for backward compatibility during migration.
    */
@@ -119,6 +122,7 @@ const HawcxReactNative = HawcxReactNativeModule;
 const authEventEmitter = new NativeEventEmitter(HawcxReactNativeModule);
 const sessionEventEmitter = new NativeEventEmitter(HawcxReactNativeModule);
 const pushEventEmitter = new NativeEventEmitter(HawcxReactNativeModule);
+const v6FlowEventEmitter = new NativeEventEmitter(HawcxReactNativeModule);
 
 const isIOS = () => Platform.OS === 'ios';
 const isAndroid = () => Platform.OS === 'android';
@@ -276,6 +280,7 @@ export function removeAllListeners(): void {
   authEventEmitter.removeAllListeners(AUTH_EVENT);
   sessionEventEmitter.removeAllListeners(SESSION_EVENT);
   pushEventEmitter.removeAllListeners(PUSH_EVENT);
+  v6FlowEventEmitter.removeAllListeners(V6_FLOW_EVENT);
 }
 
 export function addSessionListener(handler: (event: SessionEvent) => void): EmitterSubscription {
@@ -547,9 +552,11 @@ export const __INTERNAL_EVENTS__ = {
   authEmitter: authEventEmitter,
   sessionEmitter: sessionEventEmitter,
   pushEmitter: pushEventEmitter,
+  v6FlowEmitter: v6FlowEventEmitter,
   authEventName: AUTH_EVENT,
   sessionEventName: SESSION_EVENT,
   pushEventName: PUSH_EVENT,
+  v6FlowEventName: V6_FLOW_EVENT,
 };
 
 export function useHawcxWebLogin(client: HawcxClient = hawcxClient) {

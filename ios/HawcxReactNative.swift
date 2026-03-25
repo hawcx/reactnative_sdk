@@ -9,7 +9,9 @@ class HawcxReactNative: RCTEventEmitter {
     private let authEventName = "hawcx.auth.event"
     private let sessionEventName = "hawcx.session.event"
     private let pushEventName = "hawcx.push.event"
+    private let v6FlowEventName = HAWCX_V6_FLOW_EVENT_NAME
     private var hawcxSDK: HawcxSDK?
+    private var hawcxV6Bridge: HawcxV6Bridge?
     private var authCallbackProxy: AuthCallbackProxy?
     private var sessionCallbackProxy: SessionCallbackProxy?
     private var pushDelegateProxy: PushDelegateProxy?
@@ -21,7 +23,12 @@ class HawcxReactNative: RCTEventEmitter {
     }
 
     override func supportedEvents() -> [String]! {
-        [authEventName, sessionEventName, pushEventName]
+        [authEventName, sessionEventName, pushEventName, v6FlowEventName]
+    }
+
+    override func invalidate() {
+        tearDownNativeLanes(resetV6Flow: true)
+        super.invalidate()
     }
 
     @objc
@@ -49,12 +56,27 @@ class HawcxReactNative: RCTEventEmitter {
         }
 
         DispatchQueue.main.async {
+            self.tearDownNativeLanes(resetV6Flow: true)
             self.hawcxSDK = HawcxSDK(projectApiKey: projectApiKey, baseURL: baseUrl, oauthConfig: oauthConfig)
             self.authCallbackProxy = AuthCallbackProxy(emitter: self)
             self.sessionCallbackProxy = SessionCallbackProxy(emitter: self)
             let pushDelegate = PushDelegateProxy(emitter: self)
             self.pushDelegateProxy = pushDelegate
             self.hawcxSDK?.pushAuthDelegate = pushDelegate
+
+            guard let v6BaseURL = URL(string: baseUrl) else {
+                self.tearDownNativeLanes(resetV6Flow: true)
+                reject("hawcx.config", "baseUrl must be a valid URL", nil)
+                return
+            }
+
+            let v6Bridge = HawcxV6Bridge(emitter: self)
+            v6Bridge.configure(
+                configId: projectApiKey,
+                baseURL: v6BaseURL,
+                options: HawcxV6InitializeOptions.from(config: config)
+            )
+            self.hawcxV6Bridge = v6Bridge
             resolve(nil)
         }
     }
@@ -236,6 +258,20 @@ class HawcxReactNative: RCTEventEmitter {
 
     fileprivate func emitPushEvent(_ body: [String: Any]) {
         sendEvent(withName: pushEventName, body: body)
+    }
+
+    func emitV6FlowEvent(_ body: [String: Any]) {
+        sendEvent(withName: v6FlowEventName, body: body)
+    }
+
+    private func tearDownNativeLanes(resetV6Flow: Bool) {
+        hawcxSDK?.pushAuthDelegate = nil
+        pushDelegateProxy = nil
+        sessionCallbackProxy = nil
+        authCallbackProxy = nil
+        hawcxV6Bridge?.dispose(resetFlow: resetV6Flow)
+        hawcxV6Bridge = nil
+        hawcxSDK = nil
     }
 
     private func makeOAuthConfig(from dict: [String: Any]) throws -> HawcxOAuthConfig {
