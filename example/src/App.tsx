@@ -1,5 +1,5 @@
 /* eslint-disable no-void */
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
@@ -7,36 +7,29 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  type StyleProp,
   Switch,
   Text,
+  type TextStyle,
   TextInput,
   TouchableOpacity,
   View,
+  type ViewStyle,
 } from 'react-native';
 import {
   approveV6Qr,
-  addPushListener,
-  approvePushRequest,
-  clearLastLoggedInUser,
-  declinePushRequest,
-  forgetTrustedDevice,
   getLastLoggedInUser,
-  handlePushNotification as forwardPushPayload,
   initialize,
-  logoutSession,
   notifyUserAuthenticated,
   routeWebLoginScan,
-  setPushDeviceToken,
   storeBackendOAuthTokens,
   useHawcxV6Auth,
   useHawcxWebLogin,
   type HawcxInitializeConfig,
   type HawcxV6AuthState,
   type HawcxV6CompletedPayload,
-  type HawcxV6FlowType,
   type HawcxV6Method,
   type HawcxV6PromptPayload,
-  type PushEvent,
 } from '@hawcx/react-native-sdk';
 import {
   DEFAULT_HAWCX_CONFIG,
@@ -58,12 +51,6 @@ const COLORS = {
   warning: '#fbbf24',
   error: '#f87171',
 };
-
-const FLOW_OPTIONS: Array<{ value: HawcxV6FlowType; label: string }> = [
-  { value: 'signin', label: 'Sign In' },
-  { value: 'signup', label: 'Sign Up' },
-  { value: 'account_manage', label: 'Manage Account' },
-];
 
 type ExampleStage = 'primary' | 'mfa' | 'device_trust';
 
@@ -95,6 +82,77 @@ const STATUS_COPY: Record<string, string> = {
   await_approval: 'Waiting for approval',
   completed: 'Authorization code received',
   error: 'Resolve the error and continue',
+};
+
+type PendingAction =
+  | 'start'
+  | 'submit_prompt'
+  | 'resend_code'
+  | 'change_identifier'
+  | 'reset_flow'
+  | 'process_scan';
+
+type ActionButtonVariant = 'primary' | 'secondary' | 'secondaryTiny' | 'destructive';
+
+type ActionButtonProps = {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+  loadingLabel?: string;
+  testID?: string;
+  variant?: ActionButtonVariant;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
+};
+
+const ActionButton = ({
+  label,
+  onPress,
+  disabled = false,
+  loading = false,
+  loadingLabel,
+  testID,
+  variant = 'primary',
+  style,
+  textStyle,
+}: ActionButtonProps) => {
+  const baseButtonStyle =
+    variant === 'primary'
+      ? styles.primaryButton
+      : variant === 'secondary'
+        ? styles.secondaryButton
+        : variant === 'secondaryTiny'
+          ? styles.secondaryTinyButton
+          : styles.destructiveButton;
+  const baseTextStyle =
+    variant === 'primary'
+      ? styles.primaryButtonText
+      : variant === 'secondary'
+        ? styles.secondaryButtonText
+        : variant === 'secondaryTiny'
+          ? styles.secondaryTinyButtonText
+          : styles.primaryButtonText;
+  const spinnerColor = variant === 'primary' ? '#111827' : COLORS.text;
+
+  return (
+    <TouchableOpacity
+      testID={testID}
+      style={[
+        baseButtonStyle,
+        style,
+        disabled && !loading && styles.buttonDisabled,
+        loading && styles.buttonLoading,
+      ]}
+      disabled={disabled || loading}
+      onPress={onPress}
+    >
+      <View style={styles.buttonContent}>
+        {loading ? <ActivityIndicator color={spinnerColor} size="small" /> : null}
+        <Text style={[baseTextStyle, textStyle]}>{loading ? (loadingLabel ?? label) : label}</Text>
+      </View>
+    </TouchableOpacity>
+  );
 };
 
 const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -226,24 +284,13 @@ const promptSubtitle = (prompt?: HawcxV6PromptPayload) => {
     case 'await_approval':
       return 'Approve the request on the linked device or web flow.';
     default:
-      return 'Kick off a V6 protocol flow with the current SDK workspace build.';
+      return 'Start a V6 sign-in flow with the current SDK workspace build.';
   }
 };
 
-const actionLabelForPrompt = (
-  prompt?: HawcxV6PromptPayload,
-  flowType: HawcxV6FlowType = 'signin',
-) => {
+const actionLabelForPrompt = (prompt?: HawcxV6PromptPayload) => {
   if (!prompt) {
-    switch (flowType) {
-      case 'signup':
-        return 'Start V6 Sign Up';
-      case 'account_manage':
-        return 'Start Account Manage';
-      case 'signin':
-      default:
-        return 'Start V6 Sign In';
-    }
+    return 'Start V6 Sign In';
   }
 
   switch (prompt.prompt.type) {
@@ -268,7 +315,6 @@ const App = () => {
   const [initStatus, setInitStatus] = useState<'idle' | 'initializing' | 'ready' | 'error'>('idle');
   const [initError, setInitError] = useState<string | null>(null);
   const [identifier, setIdentifier] = useState(EXAMPLE_DEFAULT_IDENTIFIER);
-  const [selectedFlowType, setSelectedFlowType] = useState<HawcxV6FlowType>('signin');
   const [codeInput, setCodeInput] = useState('');
   const [phoneInput, setPhoneInput] = useState('');
   const [scanInput, setScanInput] = useState('');
@@ -276,26 +322,17 @@ const App = () => {
   const [backendFlowEnabled, setBackendFlowEnabled] = useState(false);
   const [backendUrl, setBackendUrl] = useState(EXAMPLE_DEFAULT_BACKEND_URL);
   const [savedUserId, setSavedUserId] = useState<string | null>(null);
-  const [deviceStatus, setDeviceStatus] = useState<string | null>(null);
-  const [deviceError, setDeviceError] = useState<string | null>(null);
   const [webStatus, setWebStatus] = useState<string | null>(null);
   const [webError, setWebError] = useState<string | null>(null);
-  const [pushTokenInput, setPushTokenInput] = useState('');
-  const [pushPayloadInput, setPushPayloadInput] = useState(
-    '{"request_id":"","ip_address":"","deviceInfo":"","timestamp":""}',
-  );
-  const [pushRequestId, setPushRequestId] = useState('');
-  const [pushEvents, setPushEvents] = useState<PushEvent[]>([]);
-  const [pushStatus, setPushStatus] = useState<string | null>(null);
-  const [pushError, setPushError] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [loggingEnabled, setLoggingEnabled] = useState(false);
   const [backendStatus, setBackendStatus] = useState<string | null>(null);
   const [backendError, setBackendError] = useState<string | null>(null);
   const [currentStage, setCurrentStage] = useState<ExampleStage>('primary');
   const [pendingRedirectUrl, setPendingRedirectUrl] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
 
-  const v6 = useHawcxV6Auth(undefined, { flowType: selectedFlowType });
+  const v6 = useHawcxV6Auth(undefined, { flowType: 'signin' });
   const web = useHawcxWebLogin();
   const handledCompletionRef = useRef<string | null>(null);
   const loggedStateRef = useRef<string>('');
@@ -316,12 +353,6 @@ const App = () => {
   const currentPrompt = v6.state.prompt;
   const currentIdentifier = v6.state.identifier ?? identifier.trim();
   const preferredUserId = savedUserId ?? currentIdentifier ?? null;
-  const maskedKey = useMemo(() => {
-    if (!activeConfig?.projectApiKey) {
-      return null;
-    }
-    return `Active key ••••${activeConfig.projectApiKey.slice(-4)}`;
-  }, [activeConfig?.projectApiKey]);
   const redirectPrompt = currentPrompt?.prompt.type === 'redirect' ? currentPrompt.prompt : null;
   const redirectWarning =
     redirectPrompt?.returnScheme &&
@@ -342,6 +373,18 @@ const App = () => {
     setInitError('Initialize the SDK in hawcx.config.ts before running example actions.');
     return false;
   }, [isReady]);
+
+  const runPendingAction = useCallback(
+    async (action: PendingAction, work: () => Promise<unknown>) => {
+      setPendingAction(action);
+      try {
+        return await work();
+      } finally {
+        setPendingAction((current) => (current === action ? null : current));
+      }
+    },
+    [],
+  );
 
   const hydrateSavedUser = useCallback(async () => {
     try {
@@ -472,15 +515,6 @@ const App = () => {
   }, [activeConfig, appendLog, hydrateSavedUser]);
 
   useEffect(() => {
-    const subscription = addPushListener((event) => {
-      setPushEvents((previous) => [event, ...previous].slice(0, 6));
-      setPushStatus(`Received push event: ${event.type}`);
-      appendLog(`push event: ${event.type}`);
-    });
-    return () => subscription.remove();
-  }, [appendLog]);
-
-  useEffect(() => {
     setCurrentStage((previous) => resolveStage(v6.state, previous));
   }, [v6.state]);
 
@@ -591,26 +625,28 @@ const App = () => {
   }, [appendLog, isReady, pendingRedirectUrl, v6]);
 
   const startFlow = useCallback(async () => {
-    if (!requireReady()) {
-      return;
-    }
-    const trimmedIdentifier = identifier.trim();
-    if (!isValidIdentifier(trimmedIdentifier)) {
-      setBackendError('Enter a valid email address or phone number to start the V6 flow.');
-      return;
-    }
+    await runPendingAction('start', async () => {
+      if (!requireReady()) {
+        return;
+      }
+      const trimmedIdentifier = identifier.trim();
+      if (!isValidIdentifier(trimmedIdentifier)) {
+        setBackendError('Enter a valid email address or phone number to start the V6 flow.');
+        return;
+      }
 
-    setBackendStatus(null);
-    setBackendError(null);
-    setWebStatus(null);
-    setWebError(null);
-    handledCompletionRef.current = null;
-    appendLog(`starting ${selectedFlowType} flow for ${trimmedIdentifier}`);
-    await v6.start({
-      identifier: trimmedIdentifier,
-      flowType: selectedFlowType,
+      setBackendStatus(null);
+      setBackendError(null);
+      setWebStatus(null);
+      setWebError(null);
+      handledCompletionRef.current = null;
+      appendLog(`starting signin flow for ${trimmedIdentifier}`);
+      await v6.start({
+        identifier: trimmedIdentifier,
+        flowType: 'signin',
+      });
     });
-  }, [appendLog, identifier, requireReady, selectedFlowType, v6]);
+  }, [appendLog, identifier, requireReady, runPendingAction, v6]);
 
   const openExternalUrl = useCallback(
     (url: string) => {
@@ -626,97 +662,116 @@ const App = () => {
   );
 
   const submitCurrentPrompt = useCallback(async () => {
-    if (!requireReady() || !currentPrompt) {
-      return;
-    }
+    await runPendingAction('submit_prompt', async () => {
+      if (!requireReady() || !currentPrompt) {
+        return;
+      }
 
-    switch (currentPrompt.prompt.type) {
-      case 'enter_code':
-        await v6.submitCode(codeInput.trim());
-        break;
-      case 'setup_sms':
-        await v6.submitPhone(phoneInput.trim());
-        break;
-      case 'setup_totp':
-      case 'enter_totp':
-        await v6.submitTotp(codeInput.trim());
-        break;
-      case 'redirect':
-        openExternalUrl(currentPrompt.prompt.url);
-        break;
-      case 'await_approval':
-        await v6.poll();
-        appendLog('polled await-approval state');
-        break;
-      default:
-        break;
-    }
-  }, [appendLog, codeInput, currentPrompt, openExternalUrl, phoneInput, requireReady, v6]);
+      switch (currentPrompt.prompt.type) {
+        case 'enter_code':
+          await v6.submitCode(codeInput.trim());
+          break;
+        case 'setup_sms':
+          await v6.submitPhone(phoneInput.trim());
+          break;
+        case 'setup_totp':
+        case 'enter_totp':
+          await v6.submitTotp(codeInput.trim());
+          break;
+        case 'redirect':
+          openExternalUrl(currentPrompt.prompt.url);
+          break;
+        case 'await_approval':
+          await v6.poll();
+          appendLog('polled await-approval state');
+          break;
+        default:
+          break;
+      }
+    });
+  }, [
+    appendLog,
+    codeInput,
+    currentPrompt,
+    openExternalUrl,
+    phoneInput,
+    requireReady,
+    runPendingAction,
+    v6,
+  ]);
 
   const changeIdentifier = useCallback(async () => {
-    await v6.changeIdentifier();
-    setCodeInput('');
-    setPhoneInput('');
-    setBackendStatus(null);
-    setBackendError(null);
-    appendLog('reset flow to change identifier');
-  }, [appendLog, v6]);
+    await runPendingAction('change_identifier', async () => {
+      await v6.changeIdentifier();
+      setCodeInput('');
+      setPhoneInput('');
+      setBackendStatus(null);
+      setBackendError(null);
+      appendLog('reset flow to change identifier');
+    });
+  }, [appendLog, runPendingAction, v6]);
 
   const resetFlow = useCallback(async () => {
-    await v6.reset();
-    setBackendStatus(null);
-    setBackendError(null);
-    appendLog('fully reset V6 flow');
-  }, [appendLog, v6]);
+    await runPendingAction('reset_flow', async () => {
+      await v6.reset();
+      setBackendStatus(null);
+      setBackendError(null);
+      appendLog('fully reset V6 flow');
+    });
+  }, [appendLog, runPendingAction, v6]);
 
   const resendCode = useCallback(async () => {
-    const result = await v6.resend();
-    appendLog(result ? 'requested resend' : 'resend unavailable');
-  }, [appendLog, v6]);
+    await runPendingAction('resend_code', async () => {
+      const result = await v6.resend();
+      appendLog(result ? 'requested resend' : 'resend unavailable');
+    });
+  }, [appendLog, runPendingAction, v6]);
 
   const runMixedModeScan = useCallback(async () => {
-    if (!requireReady()) {
-      return;
-    }
-    const route = routeWebLoginScan(scanInput);
-    setWebError(null);
-    setWebStatus(null);
+    await runPendingAction('process_scan', async () => {
+      if (!requireReady()) {
+        return;
+      }
+      const route = routeWebLoginScan(scanInput);
+      setWebError(null);
+      setWebStatus(null);
 
-    if (route.kind === 'invalid') {
-      setWebError(
-        'Unsupported scan payload. Provide a protocol QR JSON payload or a legacy 7-digit PIN URL.',
+      if (route.kind === 'invalid') {
+        setWebError(
+          'Unsupported scan payload. Provide a protocol QR JSON payload or a legacy 7-digit PIN URL.',
+        );
+        return;
+      }
+
+      if (route.kind === 'legacy_pin') {
+        await web.webLogin(route.pin);
+        setWebStatus(`Submitted legacy PIN ${route.pin}.`);
+        appendLog(`submitted legacy PIN ${route.pin}`);
+        return;
+      }
+
+      const approvalIdentifier = (preferredUserId ?? identifier.trim()).trim();
+      if (!approvalIdentifier) {
+        setWebError(
+          'Provide an identifier or load a saved trusted user before approving protocol QR payloads.',
+        );
+        return;
+      }
+
+      const approval = await approveV6Qr(route.payload.raw, approvalIdentifier, {
+        rememberDevice: true,
+      });
+      const approvedUserId = 'userId' in approval ? approval.userId : undefined;
+
+      setWebStatus(
+        approval.outcome === 'bound'
+          ? `Protocol QR approved and bound for ${approvedUserId ?? approvalIdentifier}.`
+          : `Protocol QR approved for ${approvalIdentifier}.`,
       );
-      return;
-    }
-
-    if (route.kind === 'legacy_pin') {
-      await web.webLogin(route.pin);
-      setWebStatus(`Submitted legacy PIN ${route.pin}.`);
-      appendLog(`submitted legacy PIN ${route.pin}`);
-      return;
-    }
-
-    const approvalIdentifier = (preferredUserId ?? identifier.trim()).trim();
-    if (!approvalIdentifier) {
-      setWebError(
-        'Provide an identifier or load a saved trusted user before approving protocol QR payloads.',
-      );
-      return;
-    }
-
-    const approval = await approveV6Qr(route.payload.raw, approvalIdentifier, {
-      rememberDevice: true,
+      setSavedUserId(approvedUserId ?? approvalIdentifier);
+      appendLog(`approved protocol QR payload (${route.payload.type})`);
     });
-    const approvedUserId = 'userId' in approval ? approval.userId : undefined;
-
-    setWebStatus(
-      approval.outcome === 'bound'
-        ? `Protocol QR approved and bound for ${approvedUserId ?? approvalIdentifier}.`
-        : `Protocol QR approved for ${approvalIdentifier}.`,
-    );
-    setSavedUserId(approvedUserId ?? approvalIdentifier);
-    appendLog(`approved protocol QR payload (${route.payload.type})`);
-  }, [appendLog, identifier, preferredUserId, requireReady, scanInput, web]);
+  }, [appendLog, identifier, preferredUserId, requireReady, runPendingAction, scanInput, web]);
 
   const handleManualRedirect = useCallback(async () => {
     if (!requireReady()) {
@@ -730,115 +785,13 @@ const App = () => {
     setPendingRedirectUrl(trimmedUrl);
   }, [manualRedirectUrl, requireReady]);
 
-  const registerPushToken = useCallback(async () => {
-    if (!requireReady()) {
-      return;
-    }
-
-    const trimmed = pushTokenInput.trim();
-    if (!trimmed) {
-      setPushError('Enter a token first (FCM token on Android or APNs bytes on iOS).');
-      return;
-    }
-
-    setPushError(null);
-    try {
-      if (Platform.OS === 'ios') {
-        const bytes = trimmed
-          .split(',')
-          .map((segment) => parseInt(segment.trim(), 10))
-          .filter((value) => !Number.isNaN(value));
-        if (!bytes.length) {
-          throw new Error('Provide a comma-separated APNs byte list for iOS.');
-        }
-        await setPushDeviceToken(bytes);
-      } else {
-        await setPushDeviceToken(trimmed);
-      }
-      setPushStatus('Push token submitted to the Hawcx SDK.');
-      appendLog('registered push token with native SDK');
-    } catch (error) {
-      const message = (error as Error)?.message ?? 'Failed to register push token.';
-      setPushError(message);
-    }
-  }, [appendLog, pushTokenInput, requireReady]);
-
-  const forwardPush = useCallback(async () => {
-    if (!requireReady()) {
-      return;
-    }
-    setPushError(null);
-    try {
-      const parsed = JSON.parse(pushPayloadInput);
-      await forwardPushPayload(parsed);
-      setPushStatus('Forwarded payload to the Hawcx SDK.');
-      appendLog('forwarded push payload to native SDK');
-    } catch (error) {
-      setPushError((error as Error)?.message ?? 'Invalid JSON payload.');
-    }
-  }, [appendLog, pushPayloadInput, requireReady]);
-
-  const onApprovePush = useCallback(async () => {
-    try {
-      await approvePushRequest(pushRequestId.trim());
-      setPushStatus('Approved push request.');
-      appendLog(`approved push request ${pushRequestId.trim()}`);
-    } catch (error) {
-      setPushError((error as Error)?.message ?? 'Failed to approve push request.');
-    }
-  }, [appendLog, pushRequestId]);
-
-  const onDeclinePush = useCallback(async () => {
-    try {
-      await declinePushRequest(pushRequestId.trim());
-      setPushStatus('Declined push request.');
-      appendLog(`declined push request ${pushRequestId.trim()}`);
-    } catch (error) {
-      setPushError((error as Error)?.message ?? 'Failed to decline push request.');
-    }
-  }, [appendLog, pushRequestId]);
-
-  const markUserAuthenticated = useCallback(async () => {
-    try {
-      await notifyUserAuthenticated();
-      setPushStatus('Notified the Hawcx SDK that the user authenticated.');
-      appendLog('called notifyUserAuthenticated');
-    } catch (error) {
-      setPushError((error as Error)?.message ?? 'Failed to notify the Hawcx SDK.');
-    }
-  }, [appendLog]);
-
-  const signOut = useCallback(async () => {
-    const target = preferredUserId?.trim();
-    if (!target) {
-      setDeviceError('No saved user is available for session logout.');
-      return;
-    }
-    setDeviceError(null);
-    await logoutSession(target);
-    setDeviceStatus(`Cleared session tokens for ${target}. Trusted device record was retained.`);
-    appendLog(`cleared session tokens for ${target}`);
-    await hydrateSavedUser();
-  }, [appendLog, hydrateSavedUser, preferredUserId]);
-
-  const forgetDevice = useCallback(async () => {
-    const target = preferredUserId?.trim();
-    if (!target) {
-      setDeviceError('No saved user is available to forget from this device.');
-      return;
-    }
-    setDeviceError(null);
-    await forgetTrustedDevice(target);
-    await clearLastLoggedInUser();
-    setSavedUserId(null);
-    setDeviceStatus(`Cleared trusted-device data for ${target}.`);
-    appendLog(`forgot trusted device for ${target}`);
-  }, [appendLog, preferredUserId]);
+  const isFlowBusy = pendingAction !== null || v6.state.status === 'loading';
 
   const renderMethodButton = (method: HawcxV6Method) => (
     <TouchableOpacity
       key={method.id}
-      style={styles.secondaryButton}
+      style={[styles.secondaryButton, isFlowBusy && styles.buttonDisabled]}
+      disabled={isFlowBusy}
       onPress={() => void v6.selectMethod(method.id)}
     >
       <Text style={styles.secondaryButtonText}>{method.label}</Text>
@@ -846,7 +799,7 @@ const App = () => {
     </TouchableOpacity>
   );
 
-  const promptActionLabel = actionLabelForPrompt(currentPrompt, selectedFlowType);
+  const promptActionLabel = actionLabelForPrompt(currentPrompt);
   const setupTotpPrompt = currentPrompt?.prompt.type === 'setup_totp' ? currentPrompt.prompt : null;
   const canSubmitPrompt = (() => {
     switch (currentPrompt?.prompt.type) {
@@ -863,39 +816,47 @@ const App = () => {
         return false;
     }
   })();
+  const currentStageDescriptor = STAGE_COPY[currentStage];
+  const currentStepLabel =
+    currentPrompt?.prompt.type === 'redirect'
+      ? 'Continue in browser'
+      : currentPrompt?.prompt.type === 'await_approval'
+        ? 'Complete the approval'
+        : currentPrompt
+          ? promptTitle(currentPrompt)
+          : v6.state.status === 'completed'
+            ? 'Authorization code received'
+            : 'Enter an identifier to begin';
+  const currentStepGuidance =
+    currentPrompt?.prompt.type === 'await_approval'
+      ? 'Approve the request in the linked browser or device, then poll for the result here.'
+      : currentPrompt
+        ? promptSubtitle(currentPrompt)
+        : 'Start with an email address or phone number to move through the primary verification step.';
+  const currentStepMetaValue = v6.state.step?.id
+    ? titleize(v6.state.step.id)
+    : `${currentStageDescriptor.title} • ${currentStepLabel}`;
+  const startButtonLoading =
+    pendingAction === 'start' || (v6.state.status === 'loading' && !currentPrompt);
+  const promptButtonLoading =
+    pendingAction === 'submit_prompt' || (v6.state.status === 'loading' && Boolean(currentPrompt));
+  const promptLoadingLabel =
+    currentPrompt?.prompt.type === 'setup_sms'
+      ? 'Saving…'
+      : currentPrompt?.prompt.type === 'setup_totp' || currentPrompt?.prompt.type === 'enter_totp'
+        ? 'Verifying…'
+        : currentPrompt?.prompt.type === 'await_approval'
+          ? 'Polling…'
+          : 'Submitting…';
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Hawcx React Native Example</Text>
+        <Text style={styles.title}>Hawcx React Native V6 Example</Text>
         <Text style={styles.subtitle}>
-          Secondary maintainer reference app for the local React SDK workspace. Use the separate
-          smoke app for release signoff.
+          Focused maintainer app for V6 sign-in, backend exchange, mixed-mode web login, and log
+          capture.
         </Text>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>SDK Status</Text>
-          <Text style={styles.statusLine}>
-            State: {initStatus === 'ready' ? 'Ready' : initStatus}
-          </Text>
-          {maskedKey ? <Text style={styles.statusLine}>{maskedKey}</Text> : null}
-          {activeConfig?.baseUrl ? (
-            <Text style={styles.statusLine}>Base URL: {activeConfig.baseUrl}</Text>
-          ) : null}
-          <Text style={styles.statusLine}>
-            Redirect schemes: {EXAMPLE_REDIRECT_SCHEMES.join(', ')}
-          </Text>
-          {savedUserId ? (
-            <Text style={[styles.statusLine, styles.successText]}>
-              Saved trusted user: {savedUserId}
-            </Text>
-          ) : (
-            <Text style={styles.statusLine}>Saved trusted user: none</Text>
-          )}
-          {initError ? (
-            <Text style={[styles.statusLine, styles.errorText]}>{initError}</Text>
-          ) : null}
-        </View>
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
@@ -913,6 +874,30 @@ const App = () => {
             Status: {STATUS_COPY[v6.state.status] ?? v6.state.status}
           </Text>
           <Text style={styles.statusLine}>{promptSubtitle(currentPrompt)}</Text>
+          <Text style={styles.statusLine}>
+            SDK state: {initStatus === 'ready' ? 'Ready' : initStatus}
+          </Text>
+          {savedUserId ? (
+            <Text style={[styles.statusLine, styles.successText]}>
+              Saved trusted user: {savedUserId}
+            </Text>
+          ) : null}
+          {initError ? (
+            <Text style={[styles.statusLine, styles.errorText]}>{initError}</Text>
+          ) : null}
+
+          <View style={styles.currentStepCard}>
+            <View style={styles.currentStepHeader}>
+              <Text style={styles.currentStepEyebrow}>Current step</Text>
+              <Text style={styles.currentStepCount}>
+                Step {currentStageDescriptor.number} of {STAGE_ORDER.length}
+              </Text>
+            </View>
+            <Text style={styles.currentStepTitle}>{currentStageDescriptor.title}</Text>
+            <Text style={styles.currentStepSubtitleText}>{currentStageDescriptor.subtitle}</Text>
+            <Text style={styles.currentStepBody}>{currentStepLabel}</Text>
+            <Text style={styles.currentStepDetail}>{currentStepGuidance}</Text>
+          </View>
 
           <View style={styles.stageRow}>
             {STAGE_ORDER.map((stage) => {
@@ -961,37 +946,14 @@ const App = () => {
                   Please enter a valid email address or phone number.
                 </Text>
               ) : null}
-              <View style={styles.chipRow}>
-                {FLOW_OPTIONS.map((option) => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={[
-                      styles.chipButton,
-                      selectedFlowType === option.value && styles.chipButtonActive,
-                    ]}
-                    onPress={() => setSelectedFlowType(option.value)}
-                  >
-                    <Text
-                      style={[
-                        styles.chipButtonText,
-                        selectedFlowType === option.value && styles.chipButtonTextActive,
-                      ]}
-                    >
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <TouchableOpacity
+              <ActionButton
                 testID="v6-start-button"
-                style={[styles.primaryButton, !isReady && styles.buttonDisabled]}
-                disabled={!isReady}
+                label={actionLabelForPrompt(undefined) ?? 'Start V6 Sign In'}
+                loadingLabel="Starting…"
+                disabled={!isReady || !isValidIdentifier(identifier) || isFlowBusy}
+                loading={startButtonLoading}
                 onPress={() => void startFlow()}
-              >
-                <Text style={styles.primaryButtonText}>
-                  {actionLabelForPrompt(undefined, selectedFlowType)}
-                </Text>
-              </TouchableOpacity>
+              />
             </>
           ) : null}
 
@@ -1001,12 +963,14 @@ const App = () => {
                 <Text style={styles.inlineBannerTitle}>Identifier locked for this step</Text>
                 <Text style={styles.inlineBannerText}>{currentIdentifier}</Text>
               </View>
-              <TouchableOpacity
-                style={styles.secondaryTinyButton}
+              <ActionButton
+                variant="secondaryTiny"
+                label="Change Identifier"
+                loadingLabel="Resetting…"
+                disabled={isFlowBusy}
+                loading={pendingAction === 'change_identifier'}
                 onPress={() => void changeIdentifier()}
-              >
-                <Text style={styles.secondaryTinyButtonText}>Change Identifier</Text>
-              </TouchableOpacity>
+              />
             </View>
           ) : null}
 
@@ -1043,22 +1007,23 @@ const App = () => {
                 onChangeText={setCodeInput}
               />
               {promptActionLabel ? (
-                <TouchableOpacity
-                  style={[styles.primaryButton, !canSubmitPrompt && styles.buttonDisabled]}
-                  disabled={!canSubmitPrompt}
+                <ActionButton
+                  label={promptActionLabel}
+                  loadingLabel={promptLoadingLabel}
+                  disabled={!canSubmitPrompt || isFlowBusy}
+                  loading={promptButtonLoading}
                   onPress={() => void submitCurrentPrompt()}
-                >
-                  <Text style={styles.primaryButtonText}>{promptActionLabel}</Text>
-                </TouchableOpacity>
+                />
               ) : null}
               <View style={styles.inlineRow}>
-                <TouchableOpacity
-                  style={[styles.secondaryTinyButton, !v6.canResend && styles.buttonDisabled]}
-                  disabled={!v6.canResend}
+                <ActionButton
+                  variant="secondaryTiny"
+                  label="Resend Code"
+                  loadingLabel="Sending…"
+                  disabled={!v6.canResend || isFlowBusy}
+                  loading={pendingAction === 'resend_code'}
                   onPress={() => void resendCode()}
-                >
-                  <Text style={styles.secondaryTinyButtonText}>Resend Code</Text>
-                </TouchableOpacity>
+                />
                 <Text style={styles.statusLine}>
                   {v6.canResend
                     ? 'Resend is available now.'
@@ -1089,13 +1054,13 @@ const App = () => {
                 </Text>
               ) : null}
               {promptActionLabel ? (
-                <TouchableOpacity
-                  style={[styles.primaryButton, !canSubmitPrompt && styles.buttonDisabled]}
-                  disabled={!canSubmitPrompt}
+                <ActionButton
+                  label={promptActionLabel}
+                  loadingLabel={promptLoadingLabel}
+                  disabled={!canSubmitPrompt || isFlowBusy}
+                  loading={promptButtonLoading}
                   onPress={() => void submitCurrentPrompt()}
-                >
-                  <Text style={styles.primaryButtonText}>{promptActionLabel}</Text>
-                </TouchableOpacity>
+                />
               ) : null}
             </>
           ) : null}
@@ -1126,13 +1091,13 @@ const App = () => {
                 onChangeText={setCodeInput}
               />
               {promptActionLabel ? (
-                <TouchableOpacity
-                  style={[styles.primaryButton, !canSubmitPrompt && styles.buttonDisabled]}
-                  disabled={!canSubmitPrompt}
+                <ActionButton
+                  label={promptActionLabel}
+                  loadingLabel={promptLoadingLabel}
+                  disabled={!canSubmitPrompt || isFlowBusy}
+                  loading={promptButtonLoading}
                   onPress={() => void submitCurrentPrompt()}
-                >
-                  <Text style={styles.primaryButtonText}>{promptActionLabel}</Text>
-                </TouchableOpacity>
+                />
               ) : null}
             </>
           ) : null}
@@ -1148,13 +1113,13 @@ const App = () => {
                 onChangeText={setCodeInput}
               />
               {promptActionLabel ? (
-                <TouchableOpacity
-                  style={[styles.primaryButton, !canSubmitPrompt && styles.buttonDisabled]}
-                  disabled={!canSubmitPrompt}
+                <ActionButton
+                  label={promptActionLabel}
+                  loadingLabel={promptLoadingLabel}
+                  disabled={!canSubmitPrompt || isFlowBusy}
+                  loading={promptButtonLoading}
                   onPress={() => void submitCurrentPrompt()}
-                >
-                  <Text style={styles.primaryButtonText}>{promptActionLabel}</Text>
-                </TouchableOpacity>
+                />
               ) : null}
             </>
           ) : null}
@@ -1167,12 +1132,13 @@ const App = () => {
                 <Text style={[styles.statusLine, styles.warningText]}>{redirectWarning}</Text>
               ) : null}
               {promptActionLabel ? (
-                <TouchableOpacity
-                  style={styles.primaryButton}
+                <ActionButton
+                  label={promptActionLabel}
+                  loadingLabel="Opening…"
+                  disabled={isFlowBusy}
+                  loading={promptButtonLoading}
                   onPress={() => void submitCurrentPrompt()}
-                >
-                  <Text style={styles.primaryButtonText}>{promptActionLabel}</Text>
-                </TouchableOpacity>
+                />
               ) : null}
               <TextInput
                 style={styles.input}
@@ -1182,12 +1148,12 @@ const App = () => {
                 value={manualRedirectUrl}
                 onChangeText={setManualRedirectUrl}
               />
-              <TouchableOpacity
-                style={styles.secondaryButton}
+              <ActionButton
+                variant="secondary"
+                label="Handle Redirect Manually"
+                disabled={!manualRedirectUrl.trim() || isFlowBusy}
                 onPress={() => void handleManualRedirect()}
-              >
-                <Text style={styles.secondaryButtonText}>Handle Redirect Manually</Text>
-              </TouchableOpacity>
+              />
             </>
           ) : null}
 
@@ -1206,12 +1172,13 @@ const App = () => {
                 </>
               ) : null}
               {promptActionLabel ? (
-                <TouchableOpacity
-                  style={styles.primaryButton}
+                <ActionButton
+                  label={promptActionLabel}
+                  loadingLabel={promptLoadingLabel}
+                  disabled={isFlowBusy}
+                  loading={promptButtonLoading}
                   onPress={() => void submitCurrentPrompt()}
-                >
-                  <Text style={styles.primaryButtonText}>{promptActionLabel}</Text>
-                </TouchableOpacity>
+                />
               ) : null}
             </>
           ) : null}
@@ -1219,7 +1186,13 @@ const App = () => {
           {v6.state.status === 'loading' ? (
             <View style={styles.loadingRow}>
               <ActivityIndicator color={COLORS.accent} />
-              <Text style={styles.statusLine}>Submitting request...</Text>
+              <Text style={styles.statusLine}>
+                {pendingAction === 'start'
+                  ? 'Starting sign in…'
+                  : pendingAction === 'process_scan'
+                    ? 'Processing scan result…'
+                    : promptLoadingLabel}
+              </Text>
             </View>
           ) : null}
 
@@ -1271,7 +1244,7 @@ const App = () => {
           <View style={styles.metaGrid}>
             <MetaItem label="Trace ID" value={v6.state.traceId ?? v6.state.error?.traceId} />
             <MetaItem label="Session" value={v6.state.session} />
-            <MetaItem label="Step" value={v6.state.step?.id} />
+            <MetaItem label="Current Step" value={currentStepMetaValue} />
             <MetaItem label="Expires" value={formatDateTime(v6.state.expiresAt) ?? undefined} />
           </View>
 
@@ -1290,15 +1263,22 @@ const App = () => {
           ) : null}
 
           <View style={styles.inlineRow}>
-            <TouchableOpacity
-              style={styles.secondaryTinyButton}
+            <ActionButton
+              variant="secondaryTiny"
+              label="Change Identifier"
+              loadingLabel="Resetting…"
+              disabled={isFlowBusy}
+              loading={pendingAction === 'change_identifier'}
               onPress={() => void changeIdentifier()}
-            >
-              <Text style={styles.secondaryTinyButtonText}>Change Identifier</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.secondaryTinyButton} onPress={() => void resetFlow()}>
-              <Text style={styles.secondaryTinyButtonText}>Reset Flow</Text>
-            </TouchableOpacity>
+            />
+            <ActionButton
+              variant="secondaryTiny"
+              label="Reset Flow"
+              loadingLabel="Resetting…"
+              disabled={isFlowBusy}
+              loading={pendingAction === 'reset_flow'}
+              onPress={() => void resetFlow()}
+            />
           </View>
 
           <View style={styles.backendCard}>
@@ -1347,9 +1327,16 @@ const App = () => {
             Protocol approvals use {preferredUserId ?? 'the identifier in the auth card'} as the
             signing user.
           </Text>
-          <TouchableOpacity style={styles.primaryButton} onPress={() => void runMixedModeScan()}>
-            <Text style={styles.primaryButtonText}>Process Scan Result</Text>
-          </TouchableOpacity>
+          <Text style={styles.statusLine}>
+            Registered return schemes: {EXAMPLE_REDIRECT_SCHEMES.join(', ')}
+          </Text>
+          <ActionButton
+            label="Process Scan Result"
+            loadingLabel="Processing…"
+            disabled={!scanInput.trim() || isFlowBusy}
+            loading={pendingAction === 'process_scan'}
+            onPress={() => void runMixedModeScan()}
+          />
           {webStatus ? (
             <Text style={[styles.statusLine, styles.successText]}>{webStatus}</Text>
           ) : null}
@@ -1358,134 +1345,12 @@ const App = () => {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Saved User & Device Actions</Text>
-          <Text style={styles.statusLine}>
-            Current saved user: {preferredUserId ?? 'none loaded from the native SDK'}
-          </Text>
-          <View style={styles.inlineRow}>
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => void hydrateSavedUser()}
-            >
-              <Text style={styles.secondaryButtonText}>Refresh Saved User</Text>
-            </TouchableOpacity>
-            {preferredUserId && preferredUserId !== identifier.trim() ? (
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={() => setIdentifier(preferredUserId)}
-              >
-                <Text style={styles.secondaryButtonText}>Use Saved User</Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
-          <View style={styles.inlineRow}>
-            <TouchableOpacity style={styles.secondaryButton} onPress={() => void signOut()}>
-              <Text style={styles.secondaryButtonText}>Sign Out (Keep Trusted Device)</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.destructiveButton} onPress={() => void forgetDevice()}>
-              <Text style={styles.primaryButtonText}>Forget This Device</Text>
-            </TouchableOpacity>
-          </View>
-          {deviceStatus ? (
-            <Text style={[styles.statusLine, styles.successText]}>{deviceStatus}</Text>
-          ) : null}
-          {deviceError ? (
-            <Text style={[styles.statusLine, styles.errorText]}>{deviceError}</Text>
-          ) : null}
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Push Approvals (Legacy Harness)</Text>
-          <Text style={styles.cardSubtitle}>
-            This card intentionally stays V5-style because push approval remains on the legacy
-            surface.
-          </Text>
-          <Text style={styles.statusLine}>
-            Android expects an FCM token string. iOS expects a comma-separated list of APNs bytes.
-          </Text>
-          <TextInput
-            style={[styles.input, styles.payloadInput]}
-            placeholder={Platform.OS === 'ios' ? 'e.g. 42, 13, 255' : 'FCM token'}
-            placeholderTextColor={COLORS.muted}
-            multiline
-            value={pushTokenInput}
-            onChangeText={setPushTokenInput}
-          />
-          <View style={styles.inlineRow}>
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => void registerPushToken()}
-            >
-              <Text style={styles.secondaryButtonText}>Register Token</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => void markUserAuthenticated()}
-            >
-              <Text style={styles.secondaryButtonText}>Notify Authenticated</Text>
-            </TouchableOpacity>
-          </View>
-          <TextInput
-            style={[styles.input, styles.payloadInput]}
-            placeholder='{"request_id":"...","ip_address":"...","deviceInfo":"...","timestamp":"..."}'
-            placeholderTextColor={COLORS.muted}
-            multiline
-            value={pushPayloadInput}
-            onChangeText={setPushPayloadInput}
-          />
-          <TouchableOpacity style={styles.secondaryButton} onPress={() => void forwardPush()}>
-            <Text style={styles.secondaryButtonText}>Send Payload To SDK</Text>
-          </TouchableOpacity>
-          <TextInput
-            style={styles.input}
-            placeholder="Request ID for approve / decline"
-            placeholderTextColor={COLORS.muted}
-            value={pushRequestId}
-            onChangeText={setPushRequestId}
-          />
-          <View style={styles.inlineRow}>
-            <TouchableOpacity
-              style={[styles.secondaryButton, !pushRequestId.trim() && styles.buttonDisabled]}
-              disabled={!pushRequestId.trim()}
-              onPress={() => void onApprovePush()}
-            >
-              <Text style={styles.secondaryButtonText}>Approve</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.destructiveButton, !pushRequestId.trim() && styles.buttonDisabled]}
-              disabled={!pushRequestId.trim()}
-              onPress={() => void onDeclinePush()}
-            >
-              <Text style={styles.primaryButtonText}>Decline</Text>
-            </TouchableOpacity>
-          </View>
-          {pushStatus ? (
-            <Text style={[styles.statusLine, styles.successText]}>{pushStatus}</Text>
-          ) : null}
-          {pushError ? (
-            <Text style={[styles.statusLine, styles.errorText]}>{pushError}</Text>
-          ) : null}
-          <Text style={styles.sectionTitle}>Recent Push Events</Text>
-          {pushEvents.length === 0 ? (
-            <Text style={styles.statusLine}>Waiting for events...</Text>
-          ) : (
-            pushEvents.map((event, index) => (
-              <View key={`${event.type}-${index}`} style={styles.eventCard}>
-                <Text style={styles.monoInline}>{event.type}</Text>
-                {'payload' in event && event.payload ? (
-                  <Text style={styles.monoBlock}>{JSON.stringify(event.payload, null, 2)}</Text>
-                ) : null}
-              </View>
-            ))
-          )}
-        </View>
-
-        <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View>
               <Text style={styles.cardTitle}>Logs</Text>
               <Text style={styles.cardSubtitle}>
-                Toggle lightweight in-app logging for auth, redirect, web, and push events.
+                Toggle lightweight in-app logging for auth, backend exchange, redirects, and web
+                login events.
               </Text>
             </View>
             <View style={styles.inlineSwitch}>
@@ -1641,6 +1506,15 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.45,
   },
+  buttonLoading: {
+    opacity: 0.82,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   inlineRow: {
     flexDirection: 'row',
     gap: 10,
@@ -1674,6 +1548,50 @@ const styles = StyleSheet.create({
   },
   chipButtonTextActive: {
     color: '#111827',
+  },
+  currentStepCard: {
+    backgroundColor: COLORS.cardAlt,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 4,
+  },
+  currentStepHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 10,
+  },
+  currentStepEyebrow: {
+    color: COLORS.muted,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  currentStepCount: {
+    color: COLORS.accentMuted,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  currentStepTitle: {
+    color: COLORS.text,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  currentStepSubtitleText: {
+    color: COLORS.accentMuted,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  currentStepBody: {
+    color: COLORS.text,
+    fontWeight: '600',
+    marginTop: 6,
+  },
+  currentStepDetail: {
+    color: COLORS.muted,
+    lineHeight: 18,
   },
   stageRow: {
     flexDirection: 'row',

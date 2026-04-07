@@ -30837,7 +30837,7 @@
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/HawcxProtocolV1\/HawcxV1SDK.swift",
       "kind": "BooleanLiteral",
-      "offset": 2045,
+      "offset": 2142,
       "length": 4,
       "value": "true"
     },
@@ -31370,8 +31370,8 @@
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/utils\/SDKLogger.swift",
       "kind": "BooleanLiteral",
       "offset": 323,
-      "length": 4,
-      "value": "true"
+      "length": 5,
+      "value": "false"
     },
     {
       "filePath": "\/Users\/agambhullar\/dev_ios\/ios_sdk\/HawcxFramework\/utils\/AuthErrorHandler.swift",
