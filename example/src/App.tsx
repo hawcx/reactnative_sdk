@@ -86,11 +86,18 @@ const STATUS_COPY: Record<string, string> = {
 
 type PendingAction =
   | 'start'
+  | 'select_method'
   | 'submit_prompt'
   | 'resend_code'
   | 'change_identifier'
   | 'reset_flow'
-  | 'process_scan';
+  | 'process_scan'
+  | 'handle_redirect';
+
+type PendingActionOptions = {
+  waitForTransition?: boolean;
+  methodId?: string;
+};
 
 type ActionButtonVariant = 'primary' | 'secondary' | 'secondaryTiny' | 'destructive';
 
@@ -290,25 +297,37 @@ const promptSubtitle = (prompt?: HawcxV6PromptPayload) => {
 
 const actionLabelForPrompt = (prompt?: HawcxV6PromptPayload) => {
   if (!prompt) {
-    return 'Start V6 Sign In';
+    return 'Continue';
   }
 
   switch (prompt.prompt.type) {
     case 'enter_code':
-      return 'Submit Code';
+      return 'Continue';
     case 'setup_sms':
-      return 'Save Phone';
+      return 'Continue';
     case 'setup_totp':
     case 'enter_totp':
-      return 'Verify Code';
+      return 'Continue';
     case 'redirect':
       return 'Open Browser';
     case 'await_approval':
-      return 'Poll Status';
+      return 'Check Status';
     default:
       return undefined;
   }
 };
+
+const buildV6TransitionKey = (state: HawcxV6AuthState) =>
+  [
+    state.status,
+    state.prompt?.prompt.type ?? 'none',
+    state.step?.id ?? 'none',
+    state.traceId ?? 'no-trace',
+    state.error?.code ?? 'no-error',
+    state.error?.traceId ?? 'no-error-trace',
+    state.completed?.traceId ?? 'no-completion',
+    state.completed?.session ?? 'no-completion-session',
+  ].join('|');
 
 const App = () => {
   const [activeConfig] = useState<HawcxInitializeConfig | null>(DEFAULT_HAWCX_CONFIG);
@@ -331,12 +350,18 @@ const App = () => {
   const [currentStage, setCurrentStage] = useState<ExampleStage>('primary');
   const [pendingRedirectUrl, setPendingRedirectUrl] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [pendingMethodId, setPendingMethodId] = useState<string | null>(null);
 
   const v6 = useHawcxV6Auth(undefined, { flowType: 'signin' });
   const web = useHawcxWebLogin();
   const handledCompletionRef = useRef<string | null>(null);
   const loggedStateRef = useRef<string>('');
   const previousPromptTypeRef = useRef<string | undefined>();
+  const pendingTransitionRef = useRef<{
+    action: PendingAction;
+    key: string;
+    sawLoading: boolean;
+  } | null>(null);
 
   const appendLog = useCallback(
     (message: string) => {
@@ -354,6 +379,7 @@ const App = () => {
   const currentIdentifier = v6.state.identifier ?? identifier.trim();
   const preferredUserId = savedUserId ?? currentIdentifier ?? null;
   const redirectPrompt = currentPrompt?.prompt.type === 'redirect' ? currentPrompt.prompt : null;
+  const v6TransitionKey = buildV6TransitionKey(v6.state);
   const redirectWarning =
     redirectPrompt?.returnScheme &&
     !EXAMPLE_REDIRECT_SCHEMES.some(
@@ -374,16 +400,49 @@ const App = () => {
     return false;
   }, [isReady]);
 
+  const clearPendingAction = useCallback((action?: PendingAction) => {
+    setPendingAction((current) => {
+      if (action && current !== action) {
+        return current;
+      }
+      return null;
+    });
+    if (!action || pendingTransitionRef.current?.action === action) {
+      pendingTransitionRef.current = null;
+    }
+    if (!action || action === 'select_method') {
+      setPendingMethodId(null);
+    }
+  }, []);
+
   const runPendingAction = useCallback(
-    async (action: PendingAction, work: () => Promise<unknown>) => {
+    async (
+      action: PendingAction,
+      work: () => Promise<unknown>,
+      { waitForTransition = false, methodId }: PendingActionOptions = {},
+    ) => {
       setPendingAction(action);
+      setPendingMethodId(methodId ?? null);
+      pendingTransitionRef.current = waitForTransition
+        ? {
+            action,
+            key: v6TransitionKey,
+            sawLoading: v6.state.status === 'loading',
+          }
+        : null;
+
       try {
-        return await work();
-      } finally {
-        setPendingAction((current) => (current === action ? null : current));
+        const result = await work();
+        if (!waitForTransition) {
+          clearPendingAction(action);
+        }
+        return result;
+      } catch (error) {
+        clearPendingAction(action);
+        throw error;
       }
     },
-    [],
+    [clearPendingAction, v6.state.status, v6TransitionKey],
   );
 
   const hydrateSavedUser = useCallback(async () => {
@@ -519,6 +578,27 @@ const App = () => {
   }, [v6.state]);
 
   useEffect(() => {
+    const pendingTransition = pendingTransitionRef.current;
+    if (!pendingTransition || pendingAction !== pendingTransition.action) {
+      return;
+    }
+
+    if (v6.state.status === 'loading') {
+      pendingTransition.sawLoading = true;
+      return;
+    }
+
+    if (
+      pendingTransition.sawLoading ||
+      v6TransitionKey !== pendingTransition.key ||
+      v6.state.status === 'completed' ||
+      v6.state.status === 'error'
+    ) {
+      clearPendingAction(pendingTransition.action);
+    }
+  }, [clearPendingAction, pendingAction, v6.state.status, v6TransitionKey]);
+
+  useEffect(() => {
     const promptType = currentPrompt?.prompt.type;
     if (previousPromptTypeRef.current === promptType) {
       return;
@@ -621,31 +701,38 @@ const App = () => {
         const message = (error as Error)?.message ?? 'Failed to handle redirect URL.';
         setWebError(message);
         appendLog(`redirect handling failed: ${message}`);
+      })
+      .finally(() => {
+        clearPendingAction('handle_redirect');
       });
-  }, [appendLog, isReady, pendingRedirectUrl, v6]);
+  }, [appendLog, clearPendingAction, isReady, pendingRedirectUrl, v6]);
 
   const startFlow = useCallback(async () => {
-    await runPendingAction('start', async () => {
-      if (!requireReady()) {
-        return;
-      }
-      const trimmedIdentifier = identifier.trim();
-      if (!isValidIdentifier(trimmedIdentifier)) {
-        setBackendError('Enter a valid email address or phone number to start the V6 flow.');
-        return;
-      }
+    if (!requireReady()) {
+      return;
+    }
+    const trimmedIdentifier = identifier.trim();
+    if (!isValidIdentifier(trimmedIdentifier)) {
+      setBackendError('Enter a valid email address or phone number to continue.');
+      return;
+    }
 
-      setBackendStatus(null);
-      setBackendError(null);
-      setWebStatus(null);
-      setWebError(null);
-      handledCompletionRef.current = null;
-      appendLog(`starting signin flow for ${trimmedIdentifier}`);
-      await v6.start({
-        identifier: trimmedIdentifier,
-        flowType: 'signin',
-      });
-    });
+    await runPendingAction(
+      'start',
+      async () => {
+        setBackendStatus(null);
+        setBackendError(null);
+        setWebStatus(null);
+        setWebError(null);
+        handledCompletionRef.current = null;
+        appendLog(`starting signin flow for ${trimmedIdentifier}`);
+        await v6.start({
+          identifier: trimmedIdentifier,
+          flowType: 'signin',
+        });
+      },
+      { waitForTransition: true },
+    );
   }, [appendLog, identifier, requireReady, runPendingAction, v6]);
 
   const openExternalUrl = useCallback(
@@ -662,33 +749,38 @@ const App = () => {
   );
 
   const submitCurrentPrompt = useCallback(async () => {
-    await runPendingAction('submit_prompt', async () => {
-      if (!requireReady() || !currentPrompt) {
-        return;
-      }
+    if (!requireReady() || !currentPrompt) {
+      return;
+    }
 
-      switch (currentPrompt.prompt.type) {
-        case 'enter_code':
-          await v6.submitCode(codeInput.trim());
-          break;
-        case 'setup_sms':
-          await v6.submitPhone(phoneInput.trim());
-          break;
-        case 'setup_totp':
-        case 'enter_totp':
-          await v6.submitTotp(codeInput.trim());
-          break;
-        case 'redirect':
-          openExternalUrl(currentPrompt.prompt.url);
-          break;
-        case 'await_approval':
-          await v6.poll();
-          appendLog('polled await-approval state');
-          break;
-        default:
-          break;
-      }
-    });
+    const waitForTransition = currentPrompt.prompt.type !== 'redirect';
+    await runPendingAction(
+      'submit_prompt',
+      async () => {
+        switch (currentPrompt.prompt.type) {
+          case 'enter_code':
+            await v6.submitCode(codeInput.trim());
+            break;
+          case 'setup_sms':
+            await v6.submitPhone(phoneInput.trim());
+            break;
+          case 'setup_totp':
+          case 'enter_totp':
+            await v6.submitTotp(codeInput.trim());
+            break;
+          case 'redirect':
+            await openExternalUrl(currentPrompt.prompt.url);
+            break;
+          case 'await_approval':
+            await v6.poll();
+            appendLog('polled await-approval state');
+            break;
+          default:
+            break;
+        }
+      },
+      { waitForTransition },
+    );
   }, [
     appendLog,
     codeInput,
@@ -699,6 +791,23 @@ const App = () => {
     runPendingAction,
     v6,
   ]);
+
+  const selectMethod = useCallback(
+    async (methodId: string) => {
+      if (!requireReady()) {
+        return;
+      }
+      await runPendingAction(
+        'select_method',
+        async () => {
+          await v6.selectMethod(methodId);
+          appendLog(`selected method ${methodId}`);
+        },
+        { waitForTransition: true, methodId },
+      );
+    },
+    [appendLog, requireReady, runPendingAction, v6],
+  );
 
   const changeIdentifier = useCallback(async () => {
     await runPendingAction('change_identifier', async () => {
@@ -782,22 +891,35 @@ const App = () => {
       setWebError('Paste the callback URL before forwarding it manually.');
       return;
     }
+    setPendingAction('handle_redirect');
     setPendingRedirectUrl(trimmedUrl);
   }, [manualRedirectUrl, requireReady]);
 
   const isFlowBusy = pendingAction !== null || v6.state.status === 'loading';
 
-  const renderMethodButton = (method: HawcxV6Method) => (
-    <TouchableOpacity
-      key={method.id}
-      style={[styles.secondaryButton, isFlowBusy && styles.buttonDisabled]}
-      disabled={isFlowBusy}
-      onPress={() => void v6.selectMethod(method.id)}
-    >
-      <Text style={styles.secondaryButtonText}>{method.label}</Text>
-      <Text style={styles.secondaryMeta}>{method.id}</Text>
-    </TouchableOpacity>
-  );
+  const renderMethodButton = (method: HawcxV6Method) => {
+    const isMethodLoading = pendingAction === 'select_method' && pendingMethodId === method.id;
+    return (
+      <TouchableOpacity
+        key={method.id}
+        style={[
+          styles.secondaryButton,
+          isFlowBusy && !isMethodLoading && styles.buttonDisabled,
+          isMethodLoading && styles.buttonLoading,
+        ]}
+        disabled={isFlowBusy}
+        onPress={() => void selectMethod(method.id)}
+      >
+        <View style={styles.buttonContent}>
+          {isMethodLoading ? <ActivityIndicator color={COLORS.text} size="small" /> : null}
+          <Text style={styles.secondaryButtonText}>
+            {isMethodLoading ? 'Continuing…' : method.label}
+          </Text>
+        </View>
+        <Text style={styles.secondaryMeta}>{method.id}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   const promptActionLabel = actionLabelForPrompt(currentPrompt);
   const setupTotpPrompt = currentPrompt?.prompt.type === 'setup_totp' ? currentPrompt.prompt : null;
@@ -834,20 +956,18 @@ const App = () => {
         ? promptSubtitle(currentPrompt)
         : 'Start with an email address or phone number to move through the primary verification step.';
   const currentStepMetaValue = v6.state.step?.id
-    ? titleize(v6.state.step.id)
+    ? `${titleize(v6.state.step.id)} • ${currentStageDescriptor.title}`
     : `${currentStageDescriptor.title} • ${currentStepLabel}`;
-  const startButtonLoading =
-    pendingAction === 'start' || (v6.state.status === 'loading' && !currentPrompt);
-  const promptButtonLoading =
-    pendingAction === 'submit_prompt' || (v6.state.status === 'loading' && Boolean(currentPrompt));
+  const startButtonLoading = pendingAction === 'start';
+  const promptButtonLoading = pendingAction === 'submit_prompt';
   const promptLoadingLabel =
     currentPrompt?.prompt.type === 'setup_sms'
       ? 'Saving…'
       : currentPrompt?.prompt.type === 'setup_totp' || currentPrompt?.prompt.type === 'enter_totp'
         ? 'Verifying…'
         : currentPrompt?.prompt.type === 'await_approval'
-          ? 'Polling…'
-          : 'Submitting…';
+          ? 'Checking…'
+          : 'Continuing…';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -860,12 +980,17 @@ const App = () => {
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <View>
+            <View style={styles.cardHeaderCopy}>
               <Text style={styles.cardTitle}>V6 Authentication</Text>
               <Text style={styles.cardSubtitle}>{promptTitle(currentPrompt)}</Text>
             </View>
-            <View style={styles.inlineSwitch}>
-              <Text style={styles.statusLine}>{backendFlowEnabled ? 'Backend' : 'Demo'}</Text>
+            <View style={styles.toggleControl}>
+              <View style={styles.toggleCopy}>
+                <Text style={styles.toggleLabel}>Exchange mode</Text>
+                <Text style={styles.toggleValue}>
+                  {backendFlowEnabled ? 'Backend' : 'Demo'}
+                </Text>
+              </View>
               <Switch value={backendFlowEnabled} onValueChange={setBackendFlowEnabled} />
             </View>
           </View>
@@ -904,6 +1029,7 @@ const App = () => {
               const descriptor = STAGE_COPY[stage];
               const isActive = currentStage === stage;
               const isPast = stageRank(stage) < stageRank(currentStage);
+              const stageStateLabel = isActive ? 'Current' : isPast ? 'Done' : 'Next';
               return (
                 <View
                   key={stage}
@@ -913,11 +1039,39 @@ const App = () => {
                     isPast && styles.stageBadgePast,
                   ]}
                 >
-                  <Text
-                    style={[styles.stageNumber, (isActive || isPast) && styles.stageNumberActive]}
-                  >
-                    {descriptor.number}
-                  </Text>
+                  <View style={styles.stageBadgeHeader}>
+                    <Text
+                      style={[
+                        styles.stageNumber,
+                        (isActive || isPast) && styles.stageNumberActive,
+                      ]}
+                    >
+                      {descriptor.number}
+                    </Text>
+                    <View
+                      style={[
+                        styles.stageStatusPill,
+                        isActive
+                          ? styles.stageStatusPillActive
+                          : isPast
+                            ? styles.stageStatusPillPast
+                            : styles.stageStatusPillUpcoming,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.stageStatusText,
+                          isActive
+                            ? styles.stageStatusTextActive
+                            : isPast
+                              ? styles.stageStatusTextPast
+                              : null,
+                        ]}
+                      >
+                        {stageStateLabel}
+                      </Text>
+                    </View>
+                  </View>
                   <Text
                     style={[styles.stageTitle, (isActive || isPast) && styles.stageTitleActive]}
                   >
@@ -948,8 +1102,8 @@ const App = () => {
               ) : null}
               <ActionButton
                 testID="v6-start-button"
-                label={actionLabelForPrompt(undefined) ?? 'Start V6 Sign In'}
-                loadingLabel="Starting…"
+                label={actionLabelForPrompt(undefined) ?? 'Continue'}
+                loadingLabel="Continuing…"
                 disabled={!isReady || !isValidIdentifier(identifier) || isFlowBusy}
                 loading={startButtonLoading}
                 onPress={() => void startFlow()}
@@ -1151,7 +1305,9 @@ const App = () => {
               <ActionButton
                 variant="secondary"
                 label="Handle Redirect Manually"
+                loadingLabel="Handling…"
                 disabled={!manualRedirectUrl.trim() || isFlowBusy}
+                loading={pendingAction === 'handle_redirect'}
                 onPress={() => void handleManualRedirect()}
               />
             </>
@@ -1346,15 +1502,18 @@ const App = () => {
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <View>
+            <View style={styles.cardHeaderCopy}>
               <Text style={styles.cardTitle}>Logs</Text>
               <Text style={styles.cardSubtitle}>
                 Toggle lightweight in-app logging for auth, backend exchange, redirects, and web
                 login events.
               </Text>
             </View>
-            <View style={styles.inlineSwitch}>
-              <Text style={styles.statusLine}>{loggingEnabled ? 'On' : 'Off'}</Text>
+            <View style={styles.toggleControl}>
+              <View style={styles.toggleCopy}>
+                <Text style={styles.toggleLabel}>In-app logs</Text>
+                <Text style={styles.toggleValue}>{loggingEnabled ? 'On' : 'Off'}</Text>
+              </View>
               <Switch value={loggingEnabled} onValueChange={setLoggingEnabled} />
             </View>
           </View>
@@ -1417,9 +1576,13 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 12,
+  },
+  cardHeaderCopy: {
+    flex: 1,
+    minWidth: 0,
   },
   cardTitle: {
     color: COLORS.text,
@@ -1525,6 +1688,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  toggleControl: {
+    marginLeft: 'auto',
+    minWidth: 138,
+    maxWidth: '100%',
+    backgroundColor: COLORS.cardAlt,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 999,
+    paddingLeft: 12,
+    paddingRight: 8,
+    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  toggleCopy: {
+    flexShrink: 1,
+  },
+  toggleLabel: {
+    color: COLORS.muted,
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  toggleValue: {
+    color: COLORS.text,
+    fontWeight: '600',
+    marginTop: 2,
+  },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1607,10 +1800,47 @@ const styles = StyleSheet.create({
   },
   stageBadgeActive: {
     borderColor: COLORS.accent,
-    backgroundColor: '#1c2b1b',
+    backgroundColor: '#2f1f14',
   },
   stageBadgePast: {
-    borderColor: COLORS.accentMuted,
+    borderColor: '#14532d',
+    backgroundColor: '#102117',
+  },
+  stageBadgeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  stageStatusPill: {
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+  },
+  stageStatusPillActive: {
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent,
+  },
+  stageStatusPillPast: {
+    backgroundColor: '#14532d',
+    borderColor: '#166534',
+  },
+  stageStatusPillUpcoming: {
+    backgroundColor: COLORS.card,
+    borderColor: COLORS.border,
+  },
+  stageStatusText: {
+    color: COLORS.muted,
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  stageStatusTextActive: {
+    color: '#111827',
+  },
+  stageStatusTextPast: {
+    color: '#bbf7d0',
   },
   stageNumber: {
     color: COLORS.muted,
@@ -1618,7 +1848,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   stageNumberActive: {
-    color: COLORS.accentMuted,
+    color: COLORS.text,
   },
   stageTitle: {
     color: COLORS.text,
@@ -1626,7 +1856,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   stageTitleActive: {
-    color: COLORS.accentMuted,
+    color: COLORS.text,
   },
   stageSubtitle: {
     color: COLORS.muted,
