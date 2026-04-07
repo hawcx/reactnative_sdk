@@ -3,4 +3,5 @@
 /captures/
 /.cxx/
 /build/
+/libs/
 *.iml
