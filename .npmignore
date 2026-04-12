@@ -4,6 +4,10 @@ android/local.properties
 android/.settings/
 android/libs/
 example/android/local.properties
+docs/
+src/__tests__/
+lib/typescript/__tests__/
+ios/Frameworks/.keep
 **/.DS_Store
 **/xcuserdata/
 *.xcuserstate
