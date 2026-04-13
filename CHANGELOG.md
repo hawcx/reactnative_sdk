@@ -1,7 +1,13 @@
 # Changelog
 
-## [1.1.0] - YYYY-MM-DD
-- TODO: add release notes
+## [1.1.1] - 2026-04-12
+- Refresh the bundled iOS Hawcx framework to native iOS SDK `6.0.3`.
+- Fix iOS consumer builds by shipping compiled Swift module binaries in the vendored XCFramework.
+
+## [1.1.0] - 2026-04-12
+- Add the public V6 adaptive authentication flow for React Native.
+- Ship V6-ready example apps, docs, and README guidance across iOS and Android.
+- Publish `HawcxReactNative` to CocoaPods in addition to the npm package release.
 
 ## [1.0.8] - 2026-01-21
 - Android biometrics restriction issue fixed
