@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.1.0] - YYYY-MM-DD
+- TODO: add release notes
+
 ## [1.0.8] - 2026-01-21
 - Android biometrics restriction issue fixed
 
