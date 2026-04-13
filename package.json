@@ -1,6 +1,6 @@
 {
   "name": "@hawcx/react-native-sdk",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "React Native SDK that wraps the Hawcx iOS and Android SDKs for secure mobile authentication across V5 and V6 flows.",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
