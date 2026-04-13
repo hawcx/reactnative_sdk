@@ -24,10 +24,8 @@ migration.
 Add the package:
 
 ```bash
-npm install @hawcx/react-native-sdk
+npm install @hawcx/react-native-sdk@1.1.0
 ```
-
-Pin to the released version your team has approved for production.
 
 ### iOS
 
