@@ -106,6 +106,119 @@ describe('useHawcxV6Auth', () => {
     expect(ref.current!.secondsUntilResend).toBe(0);
   });
 
+  it('can auto-select the primary method from the identifier when opted in', async () => {
+    const selectMethodMock = NativeModules.HawcxReactNative.v6SelectMethod as jest.Mock;
+    selectMethodMock.mockClear();
+
+    await renderHook({
+      flowType: 'signin',
+      primaryMethodSelectionPolicy: 'automatic_from_identifier',
+    });
+
+    await act(async () => {
+      await ref.current!.start({ identifier: 'user@example.com' });
+    });
+
+    await act(async () => {
+      emitV6({
+        type: 'prompt',
+        payload: {
+          session: 'auth_primary',
+          traceId: 'trace_primary',
+          expiresAt: '2026-03-24T10:10:00Z',
+          step: {
+            id: 'primary',
+          },
+          prompt: {
+            type: 'select_method',
+            phase: 'primary',
+            methods: [
+              { id: 'sms_otp', label: 'Text message' },
+              { id: 'email_otp', label: 'Email code' },
+            ],
+          },
+        },
+      });
+    });
+
+    expect(selectMethodMock).toHaveBeenCalledWith('email_otp');
+  });
+
+  it('keeps method selection manual by default for backward compatibility', async () => {
+    const selectMethodMock = NativeModules.HawcxReactNative.v6SelectMethod as jest.Mock;
+    selectMethodMock.mockClear();
+
+    await renderHook({
+      flowType: 'signin',
+    });
+
+    await act(async () => {
+      await ref.current!.start({ identifier: 'user@example.com' });
+    });
+
+    await act(async () => {
+      emitV6({
+        type: 'prompt',
+        payload: {
+          session: 'auth_manual',
+          traceId: 'trace_manual',
+          expiresAt: '2026-03-24T10:10:00Z',
+          step: {
+            id: 'primary',
+          },
+          prompt: {
+            type: 'select_method',
+            phase: 'primary',
+            methods: [
+              { id: 'sms_otp', label: 'Text message' },
+              { id: 'email_otp', label: 'Email code' },
+            ],
+          },
+        },
+      });
+    });
+
+    expect(selectMethodMock).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-select MFA methods even when opted in', async () => {
+    const selectMethodMock = NativeModules.HawcxReactNative.v6SelectMethod as jest.Mock;
+    selectMethodMock.mockClear();
+
+    await renderHook({
+      flowType: 'signin',
+      primaryMethodSelectionPolicy: 'automatic_from_identifier',
+    });
+
+    await act(async () => {
+      await ref.current!.start({ identifier: 'user@example.com' });
+    });
+
+    await act(async () => {
+      emitV6({
+        type: 'prompt',
+        payload: {
+          session: 'auth_mfa',
+          traceId: 'trace_mfa',
+          expiresAt: '2026-03-24T10:10:00Z',
+          step: {
+            id: 'mfa',
+          },
+          prompt: {
+            type: 'select_method',
+            phase: 'mfa',
+            methods: [
+              { id: 'sms_otp', label: 'Text message' },
+              { id: 'email_otp', label: 'Email code' },
+            ],
+          },
+        },
+      });
+    });
+
+    expect(selectMethodMock).not.toHaveBeenCalled();
+  });
+
   it('supports reset and changeIdentifier helpers with the expected local semantics', async () => {
     await renderHook();
 

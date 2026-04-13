@@ -725,10 +725,93 @@ export class HawcxClient {
 
 export const hawcxClient = new HawcxClient();
 
+export type HawcxV6PrimaryMethodSelectionPolicy = 'manual' | 'automatic_from_identifier';
+
 export type HawcxV6HookOptions = {
   flowType?: HawcxV6FlowType;
   now?: () => number;
   resendTickMs?: number;
+  primaryMethodSelectionPolicy?: HawcxV6PrimaryMethodSelectionPolicy;
+};
+
+const normalizeV6PrimaryMethodSelectionPolicy = (
+  value?: HawcxV6PrimaryMethodSelectionPolicy,
+): HawcxV6PrimaryMethodSelectionPolicy =>
+  value === 'automatic_from_identifier' ? value : 'manual';
+
+const isV6EmailLike = (value: string) =>
+  /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,64}$/i.test(value.trim());
+
+const isV6PhoneLike = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+
+  const digits = trimmed.replace(/\D/g, '');
+  if (digits.length < 7) {
+    return false;
+  }
+
+  if (/^[+\-().\s0-9]+$/.test(trimmed) === false) {
+    return false;
+  }
+
+  return trimmed.startsWith('+') ? digits.length >= 8 : true;
+};
+
+const normalizeV6StageKey = (value?: string) =>
+  value
+    ?.trim()
+    .toLowerCase()
+    .replace(/[_\s-]+/g, '') ?? '';
+
+const isV6MfaOrLaterStage = (value?: string) => {
+  const normalized = normalizeV6StageKey(value);
+  return (
+    normalized === 'mfa' ||
+    normalized === 'secondfactor' ||
+    normalized === 'devicetrust' ||
+    normalized === 'setupdevice' ||
+    normalized === 'devicechallenge'
+  );
+};
+
+const resolveV6PreferredMethodId = (
+  methods: Array<{ id: string }>,
+  identifier: string,
+  phase?: string,
+  stepId?: string,
+) => {
+  if (methods.length === 1) {
+    return methods[0]?.id;
+  }
+
+  const normalizedPhase = normalizeV6StageKey(phase);
+  if (normalizedPhase) {
+    if (normalizedPhase !== 'primary' || isV6MfaOrLaterStage(normalizedPhase)) {
+      return undefined;
+    }
+  } else if (isV6MfaOrLaterStage(stepId)) {
+    return undefined;
+  }
+
+  const normalizedIdentifier = identifier.trim();
+  if (isV6EmailLike(normalizedIdentifier)) {
+    return (
+      methods.find((method) => method.id.toLowerCase().includes('email'))?.id ??
+      methods.find((method) => method.id.toLowerCase().includes('magic'))?.id
+    );
+  }
+
+  if (isV6PhoneLike(normalizedIdentifier)) {
+    return methods.find((method) => {
+      const normalized = method.id.toLowerCase();
+      return normalized.includes('sms') || normalized.includes('phone');
+    })?.id;
+  }
+
+  return undefined;
 };
 
 export class HawcxV6Client {
@@ -840,9 +923,13 @@ export function useHawcxV6Auth(
 ): HawcxV6AuthHookResult {
   const now = options.now ?? Date.now;
   const resendTickMs = Math.max(250, options.resendTickMs ?? 1000);
+  const primaryMethodSelectionPolicy = normalizeV6PrimaryMethodSelectionPolicy(
+    options.primaryMethodSelectionPolicy,
+  );
   const [state, setState] = useState<HawcxV6AuthState>(() =>
     createInitialHawcxV6AuthState(options.flowType),
   );
+  const autoSelectedMethodKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     const subscription = client.addFlowListener((event) => {
@@ -891,6 +978,57 @@ export function useHawcxV6Auth(
   );
 
   const selectMethod = useCallback((methodId: string) => client.selectMethod(methodId), [client]);
+
+  useEffect(() => {
+    const prompt = state.prompt;
+    if (
+      primaryMethodSelectionPolicy !== 'automatic_from_identifier' ||
+      state.status !== 'select_method' ||
+      !prompt ||
+      prompt.prompt.type !== 'select_method'
+    ) {
+      autoSelectedMethodKeyRef.current = null;
+      return;
+    }
+
+    const selectionKey = [
+      prompt.session,
+      prompt.traceId,
+      prompt.prompt.phase ?? 'no-phase',
+      state.step?.id ?? 'no-step',
+      prompt.prompt.methods.map((method) => method.id).join(','),
+      state.identifier?.trim().toLowerCase() ?? 'no-identifier',
+    ].join('|');
+
+    if (autoSelectedMethodKeyRef.current === selectionKey) {
+      return;
+    }
+
+    const preferredMethodId = resolveV6PreferredMethodId(
+      prompt.prompt.methods,
+      state.identifier ?? '',
+      prompt.prompt.phase,
+      state.step?.id,
+    );
+
+    if (!preferredMethodId) {
+      return;
+    }
+
+    autoSelectedMethodKeyRef.current = selectionKey;
+    selectMethod(preferredMethodId).catch(() => {
+      if (autoSelectedMethodKeyRef.current === selectionKey) {
+        autoSelectedMethodKeyRef.current = null;
+      }
+    });
+  }, [
+    primaryMethodSelectionPolicy,
+    selectMethod,
+    state.identifier,
+    state.prompt,
+    state.status,
+    state.step?.id,
+  ]);
 
   const submitCode = useCallback((code: string) => client.submitCode(code), [client]);
 

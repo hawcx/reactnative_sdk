@@ -352,7 +352,10 @@ const App = () => {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [pendingMethodId, setPendingMethodId] = useState<string | null>(null);
 
-  const v6 = useHawcxV6Auth(undefined, { flowType: 'signin' });
+  const v6 = useHawcxV6Auth(undefined, {
+    flowType: 'signin',
+    primaryMethodSelectionPolicy: 'automatic_from_identifier',
+  });
   const web = useHawcxWebLogin();
   const handledCompletionRef = useRef<string | null>(null);
   const loggedStateRef = useRef<string>('');
@@ -362,7 +365,6 @@ const App = () => {
     key: string;
     sawLoading: boolean;
   } | null>(null);
-
   const appendLog = useCallback(
     (message: string) => {
       if (!loggingEnabled) {
@@ -940,21 +942,25 @@ const App = () => {
   })();
   const currentStageDescriptor = STAGE_COPY[currentStage];
   const currentStepLabel =
-    currentPrompt?.prompt.type === 'redirect'
-      ? 'Continue in browser'
-      : currentPrompt?.prompt.type === 'await_approval'
-        ? 'Complete the approval'
-        : currentPrompt
-          ? promptTitle(currentPrompt)
-          : v6.state.status === 'completed'
-            ? 'Authorization code received'
-            : 'Enter an identifier to begin';
+    v6.state.status === 'loading'
+      ? 'Submitting request'
+      : currentPrompt?.prompt.type === 'redirect'
+        ? 'Continue in browser'
+        : currentPrompt?.prompt.type === 'await_approval'
+          ? 'Complete the approval'
+          : currentPrompt
+            ? promptTitle(currentPrompt)
+            : v6.state.status === 'completed'
+              ? 'Authorization code received'
+              : 'Enter an identifier to begin';
   const currentStepGuidance =
-    currentPrompt?.prompt.type === 'await_approval'
-      ? 'Approve the request in the linked browser or device, then poll for the result here.'
-      : currentPrompt
-        ? promptSubtitle(currentPrompt)
-        : 'Start with an email address or phone number to move through the primary verification step.';
+    v6.state.status === 'loading'
+      ? 'Hawcx is processing the current action and will return the next step when it is ready.'
+      : currentPrompt?.prompt.type === 'await_approval'
+        ? 'Approve the request in the linked browser or device, then poll for the result here.'
+        : currentPrompt
+          ? promptSubtitle(currentPrompt)
+          : 'Start with an email address or phone number to move through the primary verification step.';
   const currentStepMetaValue = v6.state.step?.id
     ? `${titleize(v6.state.step.id)} • ${currentStageDescriptor.title}`
     : `${currentStageDescriptor.title} • ${currentStepLabel}`;
@@ -1010,7 +1016,6 @@ const App = () => {
           {initError ? (
             <Text style={[styles.statusLine, styles.errorText]}>{initError}</Text>
           ) : null}
-
           <View style={styles.currentStepCard}>
             <View style={styles.currentStepHeader}>
               <Text style={styles.currentStepEyebrow}>Current step</Text>
