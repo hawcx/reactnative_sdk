@@ -329,6 +329,56 @@ const buildV6TransitionKey = (state: HawcxV6AuthState) =>
     state.completed?.session ?? 'no-completion-session',
   ].join('|');
 
+const isEmailLike = (value: string) =>
+  /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,64}$/i.test(value.trim());
+
+const isPhoneLike = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+  const digits = trimmed.replace(/\D/g, '');
+  if (digits.length < 7) {
+    return false;
+  }
+  if (/^[+\-().\s0-9]+$/.test(trimmed) === false) {
+    return false;
+  }
+  return trimmed.startsWith('+') ? digits.length >= 8 : true;
+};
+
+const preferredMethodFromIdentifier = (
+  methods: Array<{ id: string }>,
+  identifier: string,
+) => {
+  const normalizedIdentifier = identifier.trim();
+  if (isEmailLike(normalizedIdentifier)) {
+    return (
+      methods.find((method) => method.id.toLowerCase().includes('email'))?.id ??
+      methods.find((method) => method.id.toLowerCase().includes('magic'))?.id
+    );
+  }
+  if (isPhoneLike(normalizedIdentifier)) {
+    return methods.find((method) => {
+      const normalized = method.id.toLowerCase();
+      return normalized.includes('sms') || normalized.includes('phone');
+    })?.id;
+  }
+  return undefined;
+};
+
+const summarizeRedirectUrl = (rawUrl: string) => {
+  try {
+    const parsed = new URL(rawUrl);
+    const hasCode = parsed.searchParams.has('code');
+    const hasState = parsed.searchParams.has('state');
+    const hasError = parsed.searchParams.has('error');
+    return `${parsed.protocol}//${parsed.host}${parsed.pathname} code=${hasCode} state=${hasState} error=${hasError}`;
+  } catch {
+    return 'invalid_url';
+  }
+};
+
 const App = () => {
   const [activeConfig] = useState<HawcxInitializeConfig | null>(DEFAULT_HAWCX_CONFIG);
   const [initStatus, setInitStatus] = useState<'idle' | 'initializing' | 'ready' | 'error'>('idle');
@@ -352,10 +402,7 @@ const App = () => {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [pendingMethodId, setPendingMethodId] = useState<string | null>(null);
 
-  const v6 = useHawcxV6Auth(undefined, {
-    flowType: 'signin',
-    primaryMethodSelectionPolicy: 'automatic_from_identifier',
-  });
+  const v6 = useHawcxV6Auth(undefined, { flowType: 'signin' });
   const web = useHawcxWebLogin();
   const handledCompletionRef = useRef<string | null>(null);
   const loggedStateRef = useRef<string>('');
@@ -365,6 +412,8 @@ const App = () => {
     key: string;
     sawLoading: boolean;
   } | null>(null);
+  const attemptedAutoSelectionKeysRef = useRef<Set<string>>(new Set());
+  const suppressedAutoSelectionKeyRef = useRef<string | null>(null);
   const appendLog = useCallback(
     (message: string) => {
       if (!loggingEnabled) {
@@ -654,7 +703,11 @@ const App = () => {
       return;
     }
 
-    const completionKey = `${completion.session}:${completion.traceId}`;
+    const completionKey = [
+      completion.session,
+      completion.traceId ?? 'no-trace',
+      completion.expiresAt,
+    ].join(':');
     if (handledCompletionRef.current === completionKey) {
       return;
     }
@@ -672,7 +725,7 @@ const App = () => {
   useEffect(() => {
     const receiveUrl = (url: string) => {
       setPendingRedirectUrl(url);
-      appendLog(`received redirect URL: ${url}`);
+      appendLog(`received redirect URL: ${summarizeRedirectUrl(url)}`);
     };
 
     const subscription = Linking.addEventListener('url', ({ url }) => receiveUrl(url));
@@ -727,6 +780,8 @@ const App = () => {
         setWebStatus(null);
         setWebError(null);
         handledCompletionRef.current = null;
+        attemptedAutoSelectionKeysRef.current.clear();
+        suppressedAutoSelectionKeyRef.current = null;
         appendLog(`starting signin flow for ${trimmedIdentifier}`);
         await v6.start({
           identifier: trimmedIdentifier,
@@ -811,6 +866,48 @@ const App = () => {
     [appendLog, requireReady, runPendingAction, v6],
   );
 
+  useEffect(() => {
+    if (currentPrompt?.prompt.type !== 'select_method') {
+      suppressedAutoSelectionKeyRef.current = null;
+      return;
+    }
+
+    const methodIds = currentPrompt.prompt.methods.map((method) => method.id).join(',');
+    const selectionKey = [
+      currentPrompt.session,
+      currentPrompt.prompt.phase ?? currentStage,
+      methodIds,
+      currentIdentifier.trim().toLowerCase(),
+    ].join('|');
+
+    if (pendingAction === 'select_method') {
+      return;
+    }
+
+    if (attemptedAutoSelectionKeysRef.current.has(selectionKey)) {
+      if (suppressedAutoSelectionKeyRef.current !== selectionKey) {
+        suppressedAutoSelectionKeyRef.current = selectionKey;
+      }
+      return;
+    }
+
+    const phaseStage = stageFromStepId(currentPrompt.prompt.phase);
+    const preferredMethodId =
+      currentPrompt.prompt.methods.length === 1
+        ? currentPrompt.prompt.methods[0]?.id
+        : phaseStage === 'mfa' || currentStage !== 'primary'
+          ? undefined
+          : preferredMethodFromIdentifier(currentPrompt.prompt.methods, currentIdentifier);
+
+    if (!preferredMethodId) {
+      return;
+    }
+
+    attemptedAutoSelectionKeysRef.current.add(selectionKey);
+    suppressedAutoSelectionKeyRef.current = null;
+    void selectMethod(preferredMethodId);
+  }, [currentIdentifier, currentPrompt, currentStage, pendingAction, selectMethod]);
+
   const changeIdentifier = useCallback(async () => {
     await runPendingAction('change_identifier', async () => {
       await v6.changeIdentifier();
@@ -818,6 +915,8 @@ const App = () => {
       setPhoneInput('');
       setBackendStatus(null);
       setBackendError(null);
+      attemptedAutoSelectionKeysRef.current.clear();
+      suppressedAutoSelectionKeyRef.current = null;
       appendLog('reset flow to change identifier');
     });
   }, [appendLog, runPendingAction, v6]);
@@ -827,6 +926,8 @@ const App = () => {
       await v6.reset();
       setBackendStatus(null);
       setBackendError(null);
+      attemptedAutoSelectionKeysRef.current.clear();
+      suppressedAutoSelectionKeyRef.current = null;
       appendLog('fully reset V6 flow');
     });
   }, [appendLog, runPendingAction, v6]);
@@ -1415,7 +1516,9 @@ const App = () => {
               <Text style={styles.successBannerBody}>
                 Code: {summarizeValue(v6.state.completed.authCode, 8, 6)}
               </Text>
-              <Text style={styles.successBannerBody}>Trace ID: {v6.state.completed.traceId}</Text>
+              {v6.state.completed.traceId ? (
+                <Text style={styles.successBannerBody}>Trace ID: {v6.state.completed.traceId}</Text>
+              ) : null}
               <Text style={styles.successBannerBody}>
                 Expires:{' '}
                 {formatDateTime(v6.state.completed.expiresAt) ?? v6.state.completed.expiresAt}

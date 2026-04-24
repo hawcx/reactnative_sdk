@@ -144,6 +144,43 @@ describe('useHawcxV6Auth', () => {
     expect(selectMethodMock).toHaveBeenCalledWith('email_otp');
   });
 
+  it('can auto-select the primary method when trace ids are missing', async () => {
+    const selectMethodMock = NativeModules.HawcxReactNative.v6SelectMethod as jest.Mock;
+    selectMethodMock.mockClear();
+
+    await renderHook({
+      flowType: 'signin',
+      primaryMethodSelectionPolicy: 'automatic_from_identifier',
+    });
+
+    await act(async () => {
+      await ref.current!.start({ identifier: 'user@example.com' });
+    });
+
+    await act(async () => {
+      emitV6({
+        type: 'prompt',
+        payload: {
+          session: 'auth_primary_no_trace',
+          expiresAt: '2026-03-24T10:10:00Z',
+          step: {
+            id: 'primary',
+          },
+          prompt: {
+            type: 'select_method',
+            phase: 'primary',
+            methods: [
+              { id: 'sms_otp', label: 'Text message' },
+              { id: 'email_otp', label: 'Email code' },
+            ],
+          },
+        },
+      });
+    });
+
+    expect(selectMethodMock).toHaveBeenCalledWith('email_otp');
+  });
+
   it('keeps method selection manual by default for backward compatibility', async () => {
     const selectMethodMock = NativeModules.HawcxReactNative.v6SelectMethod as jest.Mock;
     selectMethodMock.mockClear();
@@ -304,6 +341,39 @@ describe('useHawcxV6Auth', () => {
         authCode: 'code_123',
         codeVerifier: 'verifier_123',
         traceId: 'trace_456',
+      },
+    });
+  });
+
+  it('surfaces immediate completion events when trace ids are missing', async () => {
+    await renderHook();
+
+    await act(async () => {
+      await ref.current!.start({ identifier: 'returning@example.com' });
+    });
+
+    await act(async () => {
+      emitV6({
+        type: 'completed',
+        payload: {
+          session: 'auth_returning',
+          authCode: 'code_returning',
+          expiresAt: '2026-03-24T10:12:00Z',
+          codeVerifier: 'verifier_returning',
+        },
+      });
+    });
+
+    expect(ref.current!.state).toMatchObject({
+      status: 'completed',
+      session: 'auth_returning',
+      identifier: 'returning@example.com',
+      traceId: undefined,
+      completed: {
+        session: 'auth_returning',
+        authCode: 'code_returning',
+        codeVerifier: 'verifier_returning',
+        traceId: undefined,
       },
     });
   });

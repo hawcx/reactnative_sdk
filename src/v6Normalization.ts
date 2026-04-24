@@ -133,7 +133,7 @@ const normalizePromptBase = (value: Record<string, unknown>): HawcxV6PromptBase 
   const session = asString(value.session);
   const traceId = asString(value.traceId);
   const expiresAt = asString(value.expiresAt);
-  if (!session || !traceId || !expiresAt) {
+  if (!session || !expiresAt) {
     return null;
   }
 
@@ -283,7 +283,7 @@ const normalizeCompletedPayload = (value: unknown): HawcxV6CompletedPayload | nu
   const authCode = asString(value.authCode);
   const expiresAt = asString(value.expiresAt);
   const traceId = asString(value.traceId);
-  if (!session || !authCode || !expiresAt || !traceId) {
+  if (!session || !authCode || !expiresAt) {
     return null;
   }
   return {

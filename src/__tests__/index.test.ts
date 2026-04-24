@@ -358,6 +358,73 @@ describe('V6 flow bridge helpers', () => {
     subscription.remove();
   });
 
+  it('normalizes prompt events when trace ids are missing', async () => {
+    const handler = jest.fn();
+    const subscription = addV6FlowListener(handler);
+
+    emitV6({
+      type: 'prompt',
+      payload: {
+        session: 'auth_trace_optional',
+        expiresAt: '2026-03-24T10:00:00Z',
+        prompt: {
+          type: 'enter_code',
+          destination: 'u***@example.com',
+        },
+      },
+    });
+
+    expect(handler).toHaveBeenCalledWith({
+      type: 'prompt',
+      payload: {
+        session: 'auth_trace_optional',
+        traceId: undefined,
+        expiresAt: '2026-03-24T10:00:00Z',
+        step: undefined,
+        risk: undefined,
+        codeChannel: undefined,
+        prompt: {
+          type: 'enter_code',
+          destination: 'u***@example.com',
+          codeLength: undefined,
+          codeFormat: undefined,
+          codeExpiresAt: undefined,
+          resendAt: undefined,
+        },
+      },
+    });
+
+    subscription.remove();
+  });
+
+  it('normalizes completed events when trace ids are missing', async () => {
+    const handler = jest.fn();
+    const subscription = addV6FlowListener(handler);
+
+    emitV6({
+      type: 'completed',
+      payload: {
+        session: 'auth_trace_optional',
+        authCode: 'code_123',
+        expiresAt: '2026-03-24T10:00:00Z',
+        codeVerifier: 'verifier_123',
+      },
+    });
+
+    expect(handler).toHaveBeenCalledWith({
+      type: 'completed',
+      payload: {
+        session: 'auth_trace_optional',
+        authCode: 'code_123',
+        expiresAt: '2026-03-24T10:00:00Z',
+        codeVerifier: 'verifier_123',
+        traceId: undefined,
+      },
+    });
+
+    subscription.remove();
+  });
+
   it('normalizes error events with field details', async () => {
     const handler = jest.fn();
     const subscription = addV6FlowListener(handler);

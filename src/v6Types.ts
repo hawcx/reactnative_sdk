@@ -51,7 +51,7 @@ export type HawcxV6ErrorDetails = {
 
 export type HawcxV6PromptBase = {
   session: string;
-  traceId: string;
+  traceId?: string;
   expiresAt: string;
   step?: HawcxV6StepInfo;
   risk?: HawcxV6RiskInfo;
@@ -130,7 +130,7 @@ export type HawcxV6CompletedPayload = {
   authCode: string;
   expiresAt: string;
   codeVerifier?: string;
-  traceId: string;
+  traceId?: string;
 };
 
 export type HawcxV6ErrorAction =

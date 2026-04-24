@@ -135,4 +135,32 @@ describe('Hawcx V6 state helpers', () => {
       },
     });
   });
+
+  it('advances to completed even when trace ids are missing', () => {
+    const state = reduceHawcxV6FlowEvent(
+      {
+        type: 'completed',
+        payload: {
+          session: 'auth_returning',
+          authCode: 'code_returning',
+          expiresAt: '2026-03-24T10:12:00Z',
+          codeVerifier: 'verifier_returning',
+        },
+      },
+      createInitialHawcxV6AuthState(),
+    );
+
+    expect(state).toMatchObject({
+      status: 'completed',
+      session: 'auth_returning',
+      expiresAt: '2026-03-24T10:12:00Z',
+      traceId: undefined,
+      completed: {
+        session: 'auth_returning',
+        authCode: 'code_returning',
+        codeVerifier: 'verifier_returning',
+      },
+    });
+    expect(state.completed?.traceId).toBeUndefined();
+  });
 });

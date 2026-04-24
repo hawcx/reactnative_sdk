@@ -993,7 +993,7 @@ export function useHawcxV6Auth(
 
     const selectionKey = [
       prompt.session,
-      prompt.traceId,
+      prompt.traceId ?? 'no-trace',
       prompt.prompt.phase ?? 'no-phase',
       state.step?.id ?? 'no-step',
       prompt.prompt.methods.map((method) => method.id).join(','),
