@@ -1,13 +1,10 @@
 # Changelog
 
-## [1.1.4] - YYYY-MM-DD
-- TODO: add release notes
+## [1.1.4] - 2026-04-24
+- Fix V6 React Native flows that could remain on the identifier step when prompt or completion events do not include a trace ID.
+- Allow successful V6 completions without requiring `traceId` in event normalization or React state handling.
+- Update the example app to handle backend-selected primary method prompts more reliably while keeping MFA method selection explicit.
 
-## [1.1.3] - YYYY-MM-DD
-- TODO: add release notes
-
-## [1.1.2] - YYYY-MM-DD
-- TODO: add release notes
 
 ## [1.1.1] - 2026-04-12
 - Refresh the bundled iOS Hawcx framework to native iOS SDK `6.0.3`.
