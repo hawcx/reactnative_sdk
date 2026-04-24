@@ -497,6 +497,24 @@ describe('push token helpers', () => {
     );
   });
 
+  it('encodes APNs byte tokens on iOS without relying on Buffer', async () => {
+    overridePlatformOS('ios');
+    await setPushDeviceToken([1, 2, 3, 254, 255]);
+    expect(NativeModules.HawcxReactNative.setApnsDeviceToken).toHaveBeenCalledWith('AQID/v8=');
+  });
+
+  it('rejects empty APNs byte tokens on iOS', async () => {
+    overridePlatformOS('ios');
+    await expect(setPushDeviceToken([])).rejects.toThrow('tokenData cannot be empty');
+  });
+
+  it('rejects invalid APNs byte tokens on iOS', async () => {
+    overridePlatformOS('ios');
+    await expect(setPushDeviceToken([256])).rejects.toThrow(
+      'tokenData[0] must be an integer between 0 and 255',
+    );
+  });
+
   it('rejects non-string tokens on Android', async () => {
     overridePlatformOS('android');
     await expect(setPushDeviceToken([1, 2, 3])).rejects.toThrow(

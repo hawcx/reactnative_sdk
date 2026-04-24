@@ -521,6 +521,123 @@ class HawcxReactNative: RCTEventEmitter {
     }
 
     @objc
+    func setApnsDeviceToken(_ tokenBase64: NSString,
+                            resolver resolve: @escaping RCTPromiseResolveBlock,
+                            rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let sdk = hawcxSDK else {
+            reject("hawcx.sdk", "initialize must be called before setApnsDeviceToken", nil)
+            return
+        }
+
+        let trimmed = tokenBase64.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            reject("hawcx.input", "token cannot be empty", nil)
+            return
+        }
+        guard let tokenData = Data(base64Encoded: trimmed), !tokenData.isEmpty else {
+            reject("hawcx.input", "token must be valid base64 data", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            sdk.setAPNsDeviceToken(tokenData)
+            resolve(nil)
+        }
+    }
+
+    @objc
+    func userDidAuthenticate(_ resolve: @escaping RCTPromiseResolveBlock,
+                             rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let sdk = hawcxSDK else {
+            reject("hawcx.sdk", "initialize must be called before userDidAuthenticate", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            sdk.userDidAuthenticate()
+            resolve(nil)
+        }
+    }
+
+    @objc
+    func handlePushNotification(_ payload: NSDictionary,
+                                resolver resolve: @escaping RCTPromiseResolveBlock,
+                                rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let sdk = hawcxSDK else {
+            reject("hawcx.sdk", "initialize must be called before handlePushNotification", nil)
+            return
+        }
+
+        var userInfo: [AnyHashable: Any] = [:]
+        payload.forEach { key, value in
+            if let stringKey = key as? String {
+                userInfo[stringKey] = value
+            }
+        }
+
+        DispatchQueue.main.async {
+            let handled = sdk.handlePushNotification(userInfo: userInfo)
+            resolve(handled)
+        }
+    }
+
+    @objc
+    func approvePushRequest(_ requestId: NSString,
+                            resolver resolve: @escaping RCTPromiseResolveBlock,
+                            rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let sdk = hawcxSDK else {
+            reject("hawcx.sdk", "initialize must be called before approvePushRequest", nil)
+            return
+        }
+
+        let trimmed = requestId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            reject("hawcx.input", "requestId cannot be empty", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            sdk.approveLoginRequest(requestId: trimmed) { error in
+                DispatchQueue.main.async {
+                    if let error {
+                        reject("hawcx.sdk", error.localizedDescription, error)
+                    } else {
+                        resolve(nil)
+                    }
+                }
+            }
+        }
+    }
+
+    @objc
+    func declinePushRequest(_ requestId: NSString,
+                            resolver resolve: @escaping RCTPromiseResolveBlock,
+                            rejecter reject: @escaping RCTPromiseRejectBlock) {
+        guard let sdk = hawcxSDK else {
+            reject("hawcx.sdk", "initialize must be called before declinePushRequest", nil)
+            return
+        }
+
+        let trimmed = requestId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            reject("hawcx.input", "requestId cannot be empty", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            sdk.declineLoginRequest(requestId: trimmed) { error in
+                DispatchQueue.main.async {
+                    if let error {
+                        reject("hawcx.sdk", error.localizedDescription, error)
+                    } else {
+                        resolve(nil)
+                    }
+                }
+            }
+        }
+    }
+
+    @objc
     func getLastLoggedInUser(_ resolve: @escaping RCTPromiseResolveBlock,
                              rejecter reject: @escaping RCTPromiseRejectBlock) {
         guard let sdk = hawcxSDK else {
