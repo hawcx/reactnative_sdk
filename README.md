@@ -300,6 +300,8 @@ useEffect(() => {
     const result = await response.json();
 
     if (result.accessToken) {
+      // The backend has already exchanged the auth code. This helper only persists
+      // backend-issued tokens for shared native session and push helpers.
       await storeBackendOAuthTokens(
         identifier,
         result.accessToken,
@@ -312,8 +314,10 @@ useEffect(() => {
 }, [identifier, v6.state]);
 ```
 
-`storeBackendOAuthTokens` is optional for the core V6 flow. Use it when your backend
-returns tokens that the shared native session and push helpers should persist.
+`storeBackendOAuthTokens` is optional for the core V6 flow. It does **not** exchange
+authorization codes. Use it only after your backend has already exchanged the code,
+verified the result, and returned backend-issued tokens that the shared native session
+and push helpers should persist.
 
 For backend implementation details, see:
 

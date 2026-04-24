@@ -83,6 +83,12 @@ RCT_EXTERN_METHOD(webApprove:(NSString *)token
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(storeBackendOAuthTokens:(NSString *)userId
+                  accessToken:(NSString *)accessToken
+                  refreshToken:(id)refreshToken
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
 RCT_EXTERN_METHOD(setApnsDeviceToken:(NSString *)tokenBase64
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)

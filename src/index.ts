@@ -217,12 +217,55 @@ const v6FlowEventEmitter = new NativeEventEmitter(HawcxReactNativeModule);
 const isIOS = () => Platform.OS === 'ios';
 const isAndroid = () => Platform.OS === 'android';
 
+const BASE64_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
 const ensureNonEmpty = (value: string, field: string): string => {
   const trimmed = value?.trim();
   if (!trimmed) {
     throw new Error(`${field} is required`);
   }
   return trimmed;
+};
+
+const normalizeByteArray = (value: Uint8Array | number[], field: string): Uint8Array => {
+  if (value instanceof Uint8Array) {
+    if (value.length === 0) {
+      throw new Error(`${field} cannot be empty`);
+    }
+    return value;
+  }
+
+  if (value.length === 0) {
+    throw new Error(`${field} cannot be empty`);
+  }
+
+  value.forEach((byte, index) => {
+    if (!Number.isInteger(byte) || byte < 0 || byte > 255) {
+      throw new Error(`${field}[${index}] must be an integer between 0 and 255`);
+    }
+  });
+
+  return Uint8Array.from(value);
+};
+
+const bytesToBase64 = (value: Uint8Array | number[], field: string): string => {
+  const bytes = normalizeByteArray(value, field);
+  let output = '';
+
+  for (let index = 0; index < bytes.length; index += 3) {
+    const byte1 = bytes[index];
+    const hasByte2 = index + 1 < bytes.length;
+    const hasByte3 = index + 2 < bytes.length;
+    const byte2 = hasByte2 ? bytes[index + 1] : 0;
+    const byte3 = hasByte3 ? bytes[index + 2] : 0;
+
+    output += BASE64_ALPHABET[Math.floor(byte1 / 4)];
+    output += BASE64_ALPHABET[(byte1 % 4) * 16 + Math.floor(byte2 / 16)];
+    output += hasByte2 ? BASE64_ALPHABET[(byte2 % 16) * 4 + Math.floor(byte3 / 64)] : '=';
+    output += hasByte3 ? BASE64_ALPHABET[byte3 % 64] : '=';
+  }
+
+  return output;
 };
 
 const resolveBaseUrl = (config: HawcxInitializeConfig): string => {
@@ -416,8 +459,11 @@ export function setApnsDeviceToken(tokenData: Uint8Array | number[]): Promise<vo
   if (!isIOS()) {
     return Promise.resolve();
   }
-  const buffer = Buffer.from(tokenData);
-  return HawcxReactNative.setApnsDeviceToken(buffer.toString('base64'));
+  try {
+    return HawcxReactNative.setApnsDeviceToken(bytesToBase64(tokenData, 'tokenData'));
+  } catch (error) {
+    return Promise.reject(error);
+  }
 }
 
 export function setFcmToken(token: string): Promise<void> {
