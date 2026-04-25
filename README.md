@@ -24,7 +24,7 @@ migration.
 Add the package:
 
 ```bash
-npm install @hawcx/react-native-sdk@1.1.4
+npm install @hawcx/react-native-sdk@1.1.5
 ```
 
 ### iOS

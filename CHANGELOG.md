@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.5] - 2026-04-24
+- Fix iOS React Native bridge exports for backend token persistence, post-auth session notification, and push helper APIs.
+- Add iOS bridge parity coverage so JavaScript methods, Objective-C exports, and Swift implementations stay aligned.
+- Remove the runtime `Buffer` dependency from APNs token encoding for React Native app compatibility.
+
 ## [1.1.4] - 2026-04-24
 - Fix V6 React Native flows that could remain on the identifier step when prompt or completion events do not include a trace ID.
 - Allow successful V6 completions without requiring `traceId` in event normalization or React state handling.
