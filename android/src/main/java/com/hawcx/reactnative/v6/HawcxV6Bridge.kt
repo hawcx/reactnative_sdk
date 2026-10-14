@@ -165,6 +165,15 @@ internal class HawcxV6Bridge(
         return sdk.flow.resend()
     }
 
+    /** Thread-safe in the SDK (guarded by the controller's poll lock). No-op before initialize. */
+    fun pausePolling() {
+        sdk?.flow?.pausePolling()
+    }
+
+    fun resumePolling() {
+        sdk?.flow?.resumePolling()
+    }
+
     fun poll() {
         val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
         sdk.flow.poll()
@@ -337,6 +346,7 @@ private object HawcxV6FlowEventCodec {
             context.stepInfo?.let { putMap("step", encodeStepInfo(it)) }
             context.risk?.let { putMap("risk", encodeRiskInfo(it)) }
             context.codeChannel?.takeIf { it.isNotBlank() }?.let { putString("codeChannel", it) }
+            context.pollPath?.takeIf { it.isNotBlank() }?.let { putString("pollPath", it) }
             putMap("prompt", encodePrompt(prompt))
         }
     }

@@ -163,6 +163,10 @@ export type HawcxV6AuthHookResult = {
   submitPhone: (phone: string) => Promise<void>;
   resend: () => Promise<boolean>;
   poll: () => Promise<void>;
+  /** Holds background polling on the waiting screen (see `HawcxV6Client.pausePolling`). */
+  pausePolling: () => Promise<void>;
+  /** Resumes polling held by `pausePolling`. */
+  resumePolling: () => Promise<void>;
   cancel: () => Promise<void>;
   changeIdentifier: () => Promise<void>;
   reset: () => Promise<void>;
@@ -184,6 +188,8 @@ type NativeBridge = {
   v6SubmitPhone(phone: string): Promise<void>;
   v6Resend(): Promise<boolean>;
   v6Poll(): Promise<void>;
+  v6PausePolling(): Promise<void>;
+  v6ResumePolling(): Promise<void>;
   v6Cancel(): Promise<void>;
   v6Reset(): Promise<void>;
   v6ApproveQr(
@@ -490,6 +496,26 @@ export function v6Resend(): Promise<boolean> {
 
 export function v6Poll(): Promise<void> {
   return HawcxReactNative.v6Poll();
+}
+
+/**
+ * Holds background polling on the current waiting screen (`await_approval`, or
+ * the magic-link code screen). The native SDKs already pause by themselves when
+ * the app goes to the background and resume when it returns; this is for manual
+ * control (e.g. while a modal covers the waiting screen). A poll already in
+ * flight still completes. Idempotent; resolves without effect before
+ * `initialize`.
+ */
+export function v6PausePolling(): Promise<void> {
+  return HawcxReactNative.v6PausePolling();
+}
+
+/**
+ * Resumes polling held by `v6PausePolling`. A poll that fell due meanwhile goes
+ * out straight away. Idempotent; resolves without effect before `initialize`.
+ */
+export function v6ResumePolling(): Promise<void> {
+  return HawcxReactNative.v6ResumePolling();
 }
 
 export function v6Cancel(): Promise<void> {
@@ -1064,6 +1090,16 @@ export class HawcxV6Client {
     return v6Poll();
   }
 
+  /** See `v6PausePolling`. */
+  pausePolling(): Promise<void> {
+    return v6PausePolling();
+  }
+
+  /** See `v6ResumePolling`. */
+  resumePolling(): Promise<void> {
+    return v6ResumePolling();
+  }
+
   cancel(): Promise<void> {
     return v6Cancel();
   }
@@ -1259,6 +1295,8 @@ export function useHawcxV6Auth(
 
   const resend = useCallback(() => client.resend(), [client]);
   const poll = useCallback(() => client.poll(), [client]);
+  const pausePolling = useCallback(() => client.pausePolling(), [client]);
+  const resumePolling = useCallback(() => client.resumePolling(), [client]);
 
   const cancel = useCallback(async () => {
     await client.cancel();
@@ -1309,6 +1347,8 @@ export function useHawcxV6Auth(
     submitPhone,
     resend,
     poll,
+    pausePolling,
+    resumePolling,
     cancel,
     changeIdentifier,
     reset,

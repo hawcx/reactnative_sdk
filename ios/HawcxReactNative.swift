@@ -316,6 +316,27 @@ class HawcxReactNative: RCTEventEmitter {
         }
     }
 
+    /// Manual hold on background polling. The native SDK already pauses on
+    /// `didEnterBackground` and resumes on `willEnterForeground`. A no-op
+    /// before `initialize`.
+    @objc
+    func v6PausePolling(_ resolve: @escaping RCTPromiseResolveBlock,
+                        rejecter reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.main.async {
+            self.hawcxV6Bridge?.pausePolling()
+            resolve(nil)
+        }
+    }
+
+    @objc
+    func v6ResumePolling(_ resolve: @escaping RCTPromiseResolveBlock,
+                         rejecter reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.main.async {
+            self.hawcxV6Bridge?.resumePolling()
+            resolve(nil)
+        }
+    }
+
     @objc
     func v6Cancel(_ resolve: @escaping RCTPromiseResolveBlock,
                   rejecter reject: @escaping RCTPromiseRejectBlock) {

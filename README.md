@@ -383,6 +383,21 @@ For backend implementation details, see:
 - [Node.js backend quickstart](https://docs.hawcx.com/docs/v1/sdk-reference/backend/nodejs/quickstart)
 - [Python backend quickstart](https://docs.hawcx.com/docs/v1/sdk-reference/backend/python/quickstart)
 
+## Polling (await approval and magic links)
+
+While an `await_approval` prompt (push or QR) or a magic-link code screen is showing, the
+**native SDK** polls by itself; there is no JavaScript poll loop. It polls the route the server
+advertises (`prompt.pollPath`, e.g. `/v1/auth/poll`, falling back to `POST /v1/auth` on older
+servers), every 2s for the first 30s, then every 5s until 2 minutes, then every 10s, never faster
+than `pollInterval`. It honours `Retry-After`, treats a 429 as "slow down" rather than an error,
+keeps one poll in flight, and never emits `loading` for a poll.
+
+Polling pauses on its own while the app is in the background (iOS app notifications, Android
+`ProcessLifecycleOwner`). For manual control, for example while a modal covers the waiting
+screen, call `pausePolling()` / `resumePolling()` (on `useHawcxV6Auth()`, `HawcxV6Client`, or as
+`v6PausePolling` / `v6ResumePolling`). Both are idempotent and resolve without effect before
+`initialize`.
+
 ## QR Approvals and Web Login Helpers
 
 The package also exposes helpers for QR approval and legacy web-login scans:

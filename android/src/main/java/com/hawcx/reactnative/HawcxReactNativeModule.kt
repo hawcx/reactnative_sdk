@@ -323,6 +323,24 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    /**
+     * Manual hold on background polling. The native SDK already pauses on
+     * ProcessLifecycleOwner ON_STOP and resumes on ON_START. No-op before initialize.
+     */
+    @ReactMethod
+    fun v6PausePolling(promise: Promise) {
+        runCatching { hawcxV6Bridge?.pausePolling() }
+            .onSuccess { promise.resolve(null) }
+            .onFailure { error -> promise.reject(CODE_SDK, error.message, error) }
+    }
+
+    @ReactMethod
+    fun v6ResumePolling(promise: Promise) {
+        runCatching { hawcxV6Bridge?.resumePolling() }
+            .onSuccess { promise.resolve(null) }
+            .onFailure { error -> promise.reject(CODE_SDK, error.message, error) }
+    }
+
     @ReactMethod
     fun v6Cancel(promise: Promise) {
         val bridge = hawcxV6Bridge ?: run {
