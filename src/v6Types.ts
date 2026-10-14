@@ -74,6 +74,12 @@ export type HawcxV6EnterCodePrompt = HawcxV6PromptBase & {
     codeFormat?: string;
     codeExpiresAt?: string;
     resendAt?: string;
+    /**
+     * Seconds between background polls. Present on the magic-link code screen:
+     * the native SDK polls while this prompt shows, so the flow can complete
+     * (a `completed` event) when the link is confirmed on another device.
+     */
+    pollInterval?: number;
   };
 };
 
@@ -183,6 +189,13 @@ export type HawcxV6AuthState = {
   isLoading: boolean;
   requiresRedirect: boolean;
   awaitingApproval: boolean;
+  /**
+   * True while the code screen is up and the native SDK polls in the background
+   * for a magic-link confirmation (enter_code with `pollInterval`).
+   */
+  magicLinkPolling: boolean;
+  /** Last result of `completeMagicLinkRedirect` (cleared on a new start/reset). */
+  magicLinkRedirect?: HawcxV6MagicLinkRedirectOutcome;
 };
 
 export type HawcxV6StartOptions = {
@@ -192,3 +205,16 @@ export type HawcxV6StartOptions = {
   inviteCode?: string;
   codeChallenge?: string;
 };
+
+/**
+ * Result of `completeMagicLinkRedirect(url)`:
+ * - `not_magic_link`: the URL has no `hawcx_magic_link` param; route it elsewhere.
+ * - `resumed`: this app started the sign-in; it continues through the flow events.
+ * - `handed_off`: the sign-in was started elsewhere; that window finishes it.
+ * - `failed`: expired or already used, or (when `retryable`) temporarily unavailable.
+ */
+export type HawcxV6MagicLinkRedirectOutcome =
+  | { outcome: 'not_magic_link' }
+  | { outcome: 'resumed' }
+  | { outcome: 'handed_off' }
+  | { outcome: 'failed'; code: string; message: string; retryable: boolean };
