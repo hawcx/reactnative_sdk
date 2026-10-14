@@ -43,18 +43,43 @@ internal struct HawcxV6StartOptions {
     }
 }
 
+internal enum HawcxV6MagicLinkLanding {
+    /// https with a host; no user info, query or fragment (the server matches
+    /// registered URLs exactly; the native SDK applies the same rule).
+    static func parse(_ value: Any?) throws -> URL? {
+        guard let raw = (value as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nilIfEmpty else {
+            return nil
+        }
+        guard let components = URLComponents(string: raw),
+              components.scheme?.lowercased() == "https",
+              components.host?.isEmpty == false,
+              components.user == nil,
+              components.password == nil,
+              components.query == nil,
+              components.fragment == nil,
+              let url = components.url else {
+            throw HawcxV6BridgeError.invalidInput("magicLinkLandingUrl must be an https URL without query or fragment")
+        }
+        return url
+    }
+}
+
 internal struct HawcxV6InitializeOptions {
     let relyingParty: String?
     let autoPollApprovals: Bool
+    let magicLinkLandingURL: URL?
 
-    static func from(config: NSDictionary) -> HawcxV6InitializeOptions {
+    static func from(config: NSDictionary) throws -> HawcxV6InitializeOptions {
         let relyingParty = (config["relyingParty"] as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .nilIfEmpty
         let autoPollApprovals = (config["autoPollApprovals"] as? NSNumber)?.boolValue ?? true
         return HawcxV6InitializeOptions(
             relyingParty: relyingParty,
-            autoPollApprovals: autoPollApprovals
+            autoPollApprovals: autoPollApprovals,
+            magicLinkLandingURL: try HawcxV6MagicLinkLanding.parse(config["magicLinkLandingUrl"])
         )
     }
 }
@@ -74,7 +99,8 @@ internal final class HawcxV6Bridge {
             configId: configId,
             baseURL: baseURL,
             relyingParty: options.relyingParty,
-            autoPollApprovals: options.autoPollApprovals
+            autoPollApprovals: options.autoPollApprovals,
+            magicLinkLandingURL: options.magicLinkLandingURL
         )
 
         sdk.flow.onUpdate = { [weak self] update in
@@ -194,6 +220,23 @@ internal final class HawcxV6Bridge {
         sdk.flow.oauthCallback(code: callback.code, state: callback.state)
     }
 
+    /// Resolves `{outcome, code?, message?, retryable?}` on the main queue.
+    func completeMagicLinkRedirect(
+        urlString: String,
+        completion: @escaping ([String: Any]) -> Void
+    ) throws {
+        guard let sdk else {
+            throw HawcxV6BridgeError.notInitialized
+        }
+        guard let url = URL(string: urlString) else {
+            completion(["outcome": "not_magic_link"])
+            return
+        }
+        sdk.completeMagicLinkRedirect(url) { outcome in
+            completion(HawcxV6MagicLinkOutcomeCodec.encode(outcome))
+        }
+    }
+
     func dispose(resetFlow: Bool) {
         guard let sdk else { return }
         sdk.flow.onUpdate = nil
@@ -207,6 +250,33 @@ internal final class HawcxV6Bridge {
 internal enum HawcxV6QrApprovalResult {
     case approved(payloadType: String)
     case bound(payloadType: String, userId: String?)
+}
+
+internal enum HawcxV6MagicLinkOutcomeCodec {
+    static func encode(_ outcome: HawcxV1MagicLinkRedirectOutcome) -> [String: Any] {
+        switch outcome {
+        case .notMagicLink:
+            return ["outcome": "not_magic_link"]
+        case .resumed:
+            return ["outcome": "resumed"]
+        case .handedOff:
+            return ["outcome": "handed_off"]
+        case let .failed(code, message, retryable):
+            return [
+                "outcome": "failed",
+                "code": code,
+                "message": message,
+                "retryable": retryable
+            ]
+        @unknown default:
+            return [
+                "outcome": "failed",
+                "code": "unknown_outcome",
+                "message": "Unsupported magic-link outcome",
+                "retryable": false
+            ]
+        }
+    }
 }
 
 internal enum HawcxV6FlowEventCodec {
@@ -225,7 +295,7 @@ internal enum HawcxV6FlowEventCodec {
             ]
         case .prompt(let context, let prompt):
             var payload = encodePromptContext(context)
-            payload["prompt"] = encodePrompt(prompt)
+            payload["prompt"] = encodePrompt(prompt, context: context)
             return [
                 "type": "prompt",
                 "payload": payload
@@ -287,7 +357,13 @@ internal enum HawcxV6FlowEventCodec {
         return payload
     }
 
-    private static func encodePrompt(_ prompt: HawcxV1UserPrompt) -> [String: Any] {
+    /// Magic-link code screen poll interval (seconds). HawcxFramework 6.1.0 carries
+    /// it on the prompt context so `HawcxV1UserPrompt.enterCode` stays unchanged.
+    private static func enterCodePollInterval(_ context: HawcxV1PromptContext) -> Int? {
+        context.pollInterval
+    }
+
+    private static func encodePrompt(_ prompt: HawcxV1UserPrompt, context: HawcxV1PromptContext) -> [String: Any] {
         switch prompt {
         case let .selectMethod(methods, phase):
             var payload: [String: Any] = [
@@ -314,6 +390,9 @@ internal enum HawcxV6FlowEventCodec {
             }
             if let resendAt, !resendAt.isEmpty {
                 payload["resendAt"] = resendAt
+            }
+            if let pollInterval = enterCodePollInterval(context) {
+                payload["pollInterval"] = pollInterval
             }
             return payload
         case .enterTotp:
