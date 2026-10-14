@@ -90,6 +90,12 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
             )
         }
 
+        val v6Options = runCatching { HawcxV6InitializeOptions.from(configMap) }
+            .getOrElse { error ->
+                promise.reject(CODE_CONFIG, error.message, error)
+                return
+            }
+
         runOnUiThread {
             try {
                 resetNativeLanes(resetV6Flow = true)
@@ -110,7 +116,7 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
                 v6Bridge.configure(
                     legacySdk = sdk,
                     configId = projectApiKey,
-                    options = HawcxV6InitializeOptions.from(configMap)
+                    options = v6Options
                 )
                 hawcxV6Bridge = v6Bridge
                 promise.resolve(null)
@@ -411,6 +417,29 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
                 promise.resolve(null)
             }.onFailure { error ->
                 promise.reject(CODE_INPUT, error.message, error)
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6CompleteMagicLinkRedirect(url: String?, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        val sanitizedUrl = url?.trim().orEmpty()
+        if (sanitizedUrl.isEmpty()) {
+            promise.reject(CODE_INPUT, "url is required")
+            return
+        }
+
+        runOnUiThread {
+            runCatching {
+                bridge.completeMagicLinkRedirect(sanitizedUrl) { outcome ->
+                    promise.resolve(outcome)
+                }
+            }.onFailure { error ->
+                promise.reject(CODE_SDK, error.message, error)
             }
         }
     }

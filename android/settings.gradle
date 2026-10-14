@@ -11,6 +11,13 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
     repositories {
+        if (providers.gradleProperty("hawcx.useMavenLocal").getOrElse("false").toBoolean()) {
+            mavenLocal {
+                content {
+                    includeGroup("api.hawcx")
+                }
+            }
+        }
         google()
         mavenCentral()
         def hawcxMavenUser = System.getenv("HAWCX_MAVEN_USER") ?: System.getenv("GITHUB_USER")
