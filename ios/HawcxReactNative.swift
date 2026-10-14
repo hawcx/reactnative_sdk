@@ -70,11 +70,20 @@ class HawcxReactNative: RCTEventEmitter {
                 return
             }
 
+            let v6Options: HawcxV6InitializeOptions
+            do {
+                v6Options = try HawcxV6InitializeOptions.from(config: config)
+            } catch {
+                self.tearDownNativeLanes(resetV6Flow: true)
+                reject("hawcx.config", error.localizedDescription, error)
+                return
+            }
+
             let v6Bridge = HawcxV6Bridge(emitter: self)
             v6Bridge.configure(
                 configId: projectApiKey,
                 baseURL: v6BaseURL,
-                options: HawcxV6InitializeOptions.from(config: config)
+                options: v6Options
             )
             self.hawcxV6Bridge = v6Bridge
             resolve(nil)
@@ -353,6 +362,30 @@ class HawcxReactNative: RCTEventEmitter {
                 }
                 try bridge.handleRedirect(urlString: trimmed)
                 resolve(nil)
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
+    func v6CompleteMagicLinkRedirect(_ url: NSString,
+                                     resolver resolve: @escaping RCTPromiseResolveBlock,
+                                     rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let trimmed = url.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            reject("hawcx.input", "url is required", nil)
+            return
+        }
+
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                try bridge.completeMagicLinkRedirect(urlString: trimmed) { outcome in
+                    resolve(outcome)
+                }
             } catch {
                 self.rejectV6Error(error, reject: reject)
             }
