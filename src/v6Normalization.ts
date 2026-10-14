@@ -151,6 +151,7 @@ const normalizePromptBase = (value: Record<string, unknown>): HawcxV6PromptBase 
     step,
     risk: normalizeRisk(value.risk),
     codeChannel: asString(value.codeChannel),
+    pollPath: asString(value.pollPath),
   };
 };
 

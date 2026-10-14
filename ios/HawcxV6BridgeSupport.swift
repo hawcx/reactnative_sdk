@@ -166,6 +166,15 @@ internal final class HawcxV6Bridge {
         sdk.flow.poll()
     }
 
+    /// Thread-safe in the SDK (hops to the controller's state queue).
+    func pausePolling() {
+        sdk?.flow.pausePolling()
+    }
+
+    func resumePolling() {
+        sdk?.flow.resumePolling()
+    }
+
     func cancel() throws {
         guard let sdk else {
             throw HawcxV6BridgeError.notInitialized
@@ -353,6 +362,9 @@ internal enum HawcxV6FlowEventCodec {
         }
         if let codeChannel = context.codeChannel, !codeChannel.isEmpty {
             payload["codeChannel"] = codeChannel
+        }
+        if let pollPath = context.pollPath, !pollPath.isEmpty {
+            payload["pollPath"] = pollPath
         }
         return payload
     }

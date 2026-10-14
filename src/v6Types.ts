@@ -56,6 +56,15 @@ export type HawcxV6PromptBase = {
   step?: HawcxV6StepInfo;
   risk?: HawcxV6RiskInfo;
   codeChannel?: string;
+  /**
+   * Poll route the server advertised on a waiting step (`await_approval`, or a
+   * magic-link `enter_code` should a server send it), relative to the API base,
+   * e.g. `/v1/auth/poll`. Absent on older servers. Informational only: the
+   * native SDK polls by itself (2s for 30s, then 5s to 2 min, then 10s; it
+   * honours Retry-After and keeps the flow on a 429) and pauses while the app
+   * is in the background.
+   */
+  pollPath?: string;
 };
 
 export type HawcxV6SelectMethodPrompt = HawcxV6PromptBase & {
