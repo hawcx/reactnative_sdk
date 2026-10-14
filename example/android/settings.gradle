@@ -3,6 +3,14 @@ import org.gradle.api.initialization.resolve.RepositoriesMode
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
+        // Local native-SDK testing only (see README): -Phawcx.useMavenLocal=true
+        if (providers.gradleProperty("hawcx.useMavenLocal").getOrElse("false").toBoolean()) {
+            mavenLocal {
+                content {
+                    includeGroup("api.hawcx")
+                }
+            }
+        }
         google()
         mavenCentral()
         maven { url = uri("https://www.jitpack.io") }

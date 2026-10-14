@@ -9,6 +9,12 @@ export const HAWCX_BASE_URL = 'https://stage-api.hawcx.com';
 export const EXAMPLE_DEFAULT_IDENTIFIER = 'user@example.com';
 export const EXAMPLE_DEFAULT_BACKEND_URL = 'http://localhost:3000/api/login';
 export const EXAMPLE_REDIRECT_SCHEMES = ['hawcxexampleapp', 'com.hawcx.example'] as const;
+/**
+ * Magic-link landing URL. It must be registered, exactly, on the project and be
+ * served as a Universal Link / App Link for this app (see README). Leave blank
+ * to keep magic links on background polling only.
+ */
+export const EXAMPLE_MAGIC_LINK_LANDING_URL = '';
 
 const buildDefaultConfig = (): HawcxInitializeConfig | null => {
   const trimmedKey = HAWCX_PROJECT_API_KEY.trim();
@@ -19,9 +25,11 @@ const buildDefaultConfig = (): HawcxInitializeConfig | null => {
   if (!trimmedBase) {
     return null;
   }
+  const magicLinkLandingUrl = EXAMPLE_MAGIC_LINK_LANDING_URL.trim();
   return {
     projectApiKey: trimmedKey,
     baseUrl: trimmedBase,
+    ...(magicLinkLandingUrl ? { magicLinkLandingUrl } : {}),
   };
 };
 
