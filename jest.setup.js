@@ -20,6 +20,7 @@ NativeModules.HawcxReactNative = NativeModules.HawcxReactNative || {
     }),
   ),
   v6HandleRedirectUrl: jest.fn(() => Promise.resolve()),
+  v6CompleteMagicLinkRedirect: jest.fn(() => Promise.resolve({ outcome: 'not_magic_link' })),
   storeBackendOAuthTokens: jest.fn(() => Promise.resolve(true)),
   getLastLoggedInUser: jest.fn(() => Promise.resolve('')),
   clearSessionTokens: jest.fn(() => Promise.resolve()),
