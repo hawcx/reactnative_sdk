@@ -235,6 +235,65 @@ const openRedirect = async () => {
 React Native handles the JavaScript callback side, but you still need to register your
 callback scheme natively on iOS and Android so the app receives the return URL.
 
+## Magic Links
+
+When the server sends a magic-link code screen, the `enter_code` prompt carries
+`pollInterval` (seconds). While that prompt shows, the native SDK polls in the
+background, so the flow can finish with a `completed` event when the user confirms the
+link on another device. `v6.state.magicLinkPolling` is `true` while this happens; keep
+the code field usable, the typed code still works.
+
+To finish a sign-in in the app when the user taps the link on the same phone, register
+a landing URL and pass it at initialization:
+
+```tsx
+await initialize({
+  projectApiKey: '<YOUR_CONFIG_ID>',
+  baseUrl: 'https://stage-api.hawcx.com',
+  magicLinkLandingUrl: 'https://login.example.com/app/magic-link/',
+});
+```
+
+- The landing URL must be https with no query, fragment or user info, and must match a
+  landing URL registered on the project exactly. The server redirects a confirmed link
+  to it with `?hawcx_magic_link=<token>&hawcx_project=<project_id>`.
+- Serve it as a Universal Link (iOS: `apple-app-site-association` plus the
+  `applinks:` associated domain) and an App Link (Android: `assetlinks.json` plus an
+  `autoVerify` intent filter for that path). Also serve a web page at that URL for
+  devices where the app is not installed or the link opens in an in-app browser.
+- With a landing URL set, the in-progress flow is saved in the Keychain / Android
+  Keystore while the code screen shows, so the link can resume it after the app was
+  killed.
+
+Pass every incoming URL to `completeMagicLinkRedirect`:
+
+```tsx
+useEffect(() => {
+  const handle = async (url: string | null) => {
+    if (!url || !isHawcxMagicLinkUrl(url, LANDING_URL)) {
+      return; // not a magic link: keep your other handlers (OAuth callbacks, ...)
+    }
+    const outcome = await v6.completeMagicLinkRedirect(url);
+    // outcome.outcome: 'resumed' | 'handed_off' | 'failed' | 'not_magic_link'
+  };
+  void Linking.getInitialURL().then(handle);
+  const subscription = Linking.addEventListener('url', ({ url }) => void handle(url));
+  return () => subscription.remove();
+}, [v6.completeMagicLinkRedirect]);
+```
+
+| Outcome | Meaning |
+|---|---|
+| `not_magic_link` | Not a landing URL (no `hawcx_magic_link`, or not on the configured landing URL). Nothing was sent. |
+| `resumed` | This app started the sign-in; it continues through the normal flow events (usually `completed`). |
+| `handed_off` | The sign-in was started elsewhere (another device or the web). Tell the user to go back there. |
+| `failed` | `{ code, message, retryable }`. `retryable: true` (service unavailable, network): the saved flow is kept, try the link again. Otherwise the link is expired or used, or the flow failed after the link was accepted (the error also arrives as a flow `error` event). |
+
+A link that the server refuses for this saved flow (`magic_link_resume_invalid`, for
+example a flow started on another device) falls back to the hand-off automatically.
+`v6.state.magicLinkRedirect` keeps the last outcome until the next `start` or `reset`.
+Never log the landing URL: it carries a single-use sign-in token.
+
 ## Backend Exchange
 
 When the flow completes, the SDK returns:
@@ -379,6 +438,21 @@ npm run android
 
 Use it to validate V6 auth flows against your environment before integrating into your
 own app.
+
+### Developing against local native SDK builds
+
+The package ships the released native SDKs. To try unreleased native builds locally
+(do not commit these overrides):
+
+- iOS: build `HawcxFramework.xcframework` with the iOS SDK's `build-sdk` script and copy
+  it over `ios/Frameworks/HawcxFramework.xcframework`, then run `pod install` in
+  `example/ios` (its Podfile syncs that framework into `node_modules`).
+- Android: publish the SDK to Maven Local (`./gradlew -PhawcxVersion=<x.y.z-SNAPSHOT>
+  :app:publishReleasePublicationToMavenLocal` in the Android SDK) and build with
+  `-Phawcx.useMavenLocal=true -PHAWCX_ANDROID_SDK_VERSION=<x.y.z-SNAPSHOT>`.
+- To make the example use this checkout instead of the npm release, replace
+  `example/node_modules/@hawcx/react-native-sdk` with a symlink to the repo root and run
+  `npm run build` at the root.
 
 ## Documentation
 

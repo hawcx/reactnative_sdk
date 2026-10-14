@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+- Magic link: the `enter_code` prompt carries `pollInterval` on the magic-link code screen and the native SDKs poll in the background (`state.magicLinkPolling`), so a link confirmed on another device completes the flow.
+- Magic link: `initialize({ magicLinkLandingUrl })` and `completeMagicLinkRedirect(url)` (also on `HawcxV6Client` and `useHawcxV6Auth`) finish a same-device link from a Universal Link / App Link with typed outcomes `not_magic_link | resumed | handed_off | failed{code, message, retryable}`; `isHawcxMagicLinkUrl(url, landingUrl?)` routes incoming URLs.
+- Requires native iOS SDK `6.1.0` (vendored `HawcxFramework.xcframework`) and Android SDK `api.hawcx:hawcx:6.1.0`.
+
 ## [1.1.5] - 2026-04-24
 - Fix iOS React Native bridge exports for backend token persistence, post-auth session notification, and push helper APIs.
 - Add iOS bridge parity coverage so JavaScript methods, Objective-C exports, and Swift implementations stay aligned.
