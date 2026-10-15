@@ -124,6 +124,8 @@ internal struct HawcxV6InitializeOptions {
 internal final class HawcxV6Bridge {
     private weak var emitter: HawcxReactNative?
     private(set) var sdk: HawcxV1SDK?
+    /// Approvals v2 approver over `sdk.approvals`; nil before `configure`.
+    private(set) var approver: HawcxV6ApproverBridge?
 
     init(emitter: HawcxReactNative) {
         self.emitter = emitter
@@ -153,6 +155,7 @@ internal final class HawcxV6Bridge {
         }
 
         self.sdk = sdk
+        self.approver = HawcxV6ApproverBridge(sdk: sdk)
     }
 
     func start(options: HawcxV6StartOptions) throws {
@@ -370,40 +373,26 @@ internal final class HawcxV6Bridge {
         sdk.flow.cancel()
     }
 
+    /// A v1 (6.0.x) QR approval through `HawcxV1SDK.approvals.approveV1`.
     func approveQr(
         rawPayload: String,
         identifier: String,
         rememberDevice: Bool,
         completion: @escaping (Result<HawcxV6QrApprovalResult, HawcxV1QrApprovalError>) -> Void
     ) throws {
-        guard let sdk else {
+        guard let approver else {
             throw HawcxV6BridgeError.notInitialized
         }
-
-        guard let payload = HawcxV1QrPayloadParser.parse(rawPayload) else {
-            throw HawcxV6BridgeError.invalidInput("rawPayload must be a valid Hawcx QR payload")
-        }
-
         let trimmedIdentifier = identifier.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedIdentifier.isEmpty else {
             throw HawcxV6BridgeError.invalidInput("identifier is required")
         }
-
-        let service = HawcxV1QrApprovalService(
-            config: sdk.client.config,
-            signer: sdk.crypto
+        try approver.approveV1(
+            rawPayload: rawPayload,
+            identifier: trimmedIdentifier,
+            rememberDevice: rememberDevice,
+            completion: completion
         )
-
-        service.approve(payload: payload, identifier: trimmedIdentifier, rememberDevice: rememberDevice) { result in
-            switch result {
-            case .success(.approved):
-                completion(.success(.approved(payloadType: payload.type.rawValue)))
-            case .success(.bound(let userid)):
-                completion(.success(.bound(payloadType: payload.type.rawValue, userId: userid)))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
     }
 
     func handleRedirect(urlString: String) throws {
@@ -437,6 +426,8 @@ internal final class HawcxV6Bridge {
     func dispose(resetFlow: Bool) {
         redirectSession?.cancel()
         redirectSession = nil
+        approver?.dispose()
+        approver = nil
         guard let sdk else { return }
         sdk.flow.onUpdate = nil
         sdk.flow.onNotice = nil

@@ -20,6 +20,21 @@ import {
   isHawcxV6ApprovalOutcome,
 } from './v6State';
 import { HawcxServiceError, toHawcxServiceError, withServiceErrors } from './v6Errors';
+import {
+  apnsTokenHex,
+  normalizeApprovalReference,
+  normalizeApprovalRequest,
+  normalizeApprovalResult,
+  normalizeScannedApproval,
+  type HawcxV6ApprovalDecision,
+  type HawcxV6ApprovalReference,
+  type HawcxV6ApprovalRequest,
+  type HawcxV6ApprovalResult,
+  type HawcxV6PushRegistrationInput,
+  type HawcxV6PushRegistrationReport,
+  type HawcxV6ScannedApproval,
+  type HawcxV6UnregisterPushOptions,
+} from './v6Approver';
 import type {
   HawcxV6AuthState,
   HawcxV6DeviceSummary,
@@ -64,6 +79,18 @@ export type {
   HawcxV6StepInfo,
   HawcxV6UnknownPrompt,
 } from './v6Types';
+export type {
+  HawcxV6ApprovalDecision,
+  HawcxV6ApprovalKind,
+  HawcxV6ApprovalReference,
+  HawcxV6ApprovalRequest,
+  HawcxV6ApprovalRequester,
+  HawcxV6ApprovalResult,
+  HawcxV6PushRegistrationInput,
+  HawcxV6PushRegistrationReport,
+  HawcxV6ScannedApproval,
+  HawcxV6UnregisterPushOptions,
+} from './v6Approver';
 export type {
   HawcxV6QrApprovalResult,
   HawcxV6QrPayload,
@@ -250,6 +277,25 @@ type NativeBridge = {
   ): Promise<void>;
   v6LogoutEverywhere(sessionToken: string | null): Promise<Record<string, unknown>>;
   v6LaunchRedirect(url: string, returnScheme: string | null): Promise<Record<string, unknown>>;
+  v6RegisterPushToken(
+    registration: Record<string, unknown>,
+    force: boolean,
+  ): Promise<Record<string, unknown>>;
+  v6UnregisterPushToken(identifier: string | null, appId: string | null): Promise<void>;
+  v6ApprovalReferenceFromPush(payload: Record<string, unknown>): Promise<unknown>;
+  v6ScanApproval(raw: string): Promise<unknown>;
+  v6FetchApprovalContext(
+    reference: HawcxV6ApprovalReference,
+    identifier: string | null,
+  ): Promise<unknown>;
+  v6DecideApproval(
+    handle: string,
+    decision: HawcxV6ApprovalDecision,
+    numberChoice: number | null,
+    rememberDevice: boolean,
+  ): Promise<unknown>;
+  v6DiscardApproval(handle: string): Promise<void>;
+  v6EnrolledIdentifiers(): Promise<unknown>;
   storeBackendOAuthTokens(
     userId: string,
     accessToken: string,
@@ -781,12 +827,207 @@ export async function approveV6Qr(
 ): Promise<HawcxV6QrApprovalResult> {
   const trimmedPayload = ensureNonEmpty(rawPayload, 'rawPayload');
   const trimmedIdentifier = ensureNonEmpty(identifier, 'identifier');
-  const result = await HawcxReactNative.v6ApproveQr(
-    trimmedPayload,
-    trimmedIdentifier,
-    options.rememberDevice ?? false,
+  const result = await withServiceErrors(() =>
+    HawcxReactNative.v6ApproveQr(
+      trimmedPayload,
+      trimmedIdentifier,
+      options.rememberDevice ?? false,
+    ),
   );
   return normalizeV6QrApprovalResult(result);
+}
+
+// MARK: - Approver (approvals v2)
+
+const localServiceError = (code: string, message: string) =>
+  new HawcxServiceError({ code, message, retryable: false });
+
+const buildPushRegistration = (input: HawcxV6PushRegistrationInput): Record<string, unknown> => {
+  const appId = input.appId?.trim() || undefined;
+  if (input.provider === 'apns') {
+    if (!isIOS()) {
+      throw localServiceError('invalid_registration', 'APNs tokens are registered on iOS only');
+    }
+    return compact({
+      provider: 'apns',
+      token: apnsTokenHex(input.token),
+      apnsEnv: input.apnsEnv,
+      appId,
+    });
+  }
+  if (input.provider === 'fcm') {
+    if (!isAndroid()) {
+      throw localServiceError('invalid_registration', 'FCM tokens are registered on Android only');
+    }
+    return compact({ provider: 'fcm', token: input.token.trim(), appId });
+  }
+  throw localServiceError('invalid_registration', 'provider must be apns or fcm');
+};
+
+/**
+ * Registers this device's push token (device-signed) for every enrolled
+ * identifier of this project, so approvals reach it. Call after each sign-in and
+ * whenever the token changes. Identifiers already registered with the same
+ * token are skipped unless `force`. Rejects with `HawcxServiceError`
+ * (`invalid_registration`, `unknown_app`, `device_not_found`, `keychain_unavailable`, ...).
+ */
+export function registerPushTokenWithReport(
+  input: HawcxV6PushRegistrationInput,
+  force = false,
+): Promise<HawcxV6PushRegistrationReport> {
+  try {
+    const registration = buildPushRegistration(input);
+    return withServiceErrors(() => HawcxReactNative.v6RegisterPushToken(registration, force)).then(
+      (value) => ({
+        registered: typeof value?.registered === 'number' ? value.registered : 0,
+        orphanedIdentifiers: Array.isArray(value?.orphanedIdentifiers)
+          ? value.orphanedIdentifiers.filter((item): item is string => typeof item === 'string')
+          : [],
+      }),
+    );
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+/** `registerPushTokenWithReport` without the orphan report. */
+export function registerPushToken(
+  input: HawcxV6PushRegistrationInput,
+  force = false,
+): Promise<{ registered: number }> {
+  return registerPushTokenWithReport(input, force).then(({ registered }) => ({ registered }));
+}
+
+/**
+ * Removes this app's push registration: for every identifier registered from
+ * this install, for one `identifier`, or (with `appId`) for that identifier and
+ * app even without a local record. Call it BEFORE signing out or clearing device
+ * keys: it is signed with the device key. Rejects with `push_not_registered`
+ * when nothing was registered from here (treat as "nothing to do"),
+ * `device_not_enrolled`, or `keychain_unavailable` (retryable).
+ */
+export function unregisterPushToken(target?: string | HawcxV6UnregisterPushOptions): Promise<void> {
+  try {
+    let identifier: string | null = null;
+    let appId: string | null = null;
+    if (typeof target === 'string') {
+      identifier = target.trim() || null;
+    } else if (target) {
+      identifier = target.identifier?.trim() || null;
+      appId = target.appId?.trim() || null;
+      if (appId && !identifier) {
+        throw new Error('identifier is required with appId');
+      }
+    }
+    return withServiceErrors(() => HawcxReactNative.v6UnregisterPushToken(identifier, appId)).then(
+      () => undefined,
+    );
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+/**
+ * The approval a push points at, or null (not a Hawcx v2 push, or already
+ * expired). Pass the APNs `userInfo` / notification data (iOS) or the FCM data
+ * map (Android); an FCM message `{data: {hawcx}}` is unwrapped. No network call.
+ * Show nothing from the push itself: fetch the context.
+ */
+export function approvalReferenceFromPush(
+  payload: Record<string, unknown>,
+): Promise<HawcxV6ApprovalReference | null> {
+  const data =
+    payload && payload.hawcx === undefined && typeof payload.data === 'object' && payload.data
+      ? (payload.data as Record<string, unknown>)
+      : payload;
+  if (!data || typeof data !== 'object') {
+    return Promise.resolve(null);
+  }
+  return HawcxReactNative.v6ApprovalReferenceFromPush(data).then(normalizeApprovalReference);
+}
+
+/**
+ * Reads a scanned QR: `{version: 2, reference}` for approvals v2 (fetch the
+ * context next), `{version: 1, payloadType}` for a 6.0.x QR (confirm with the
+ * user, then `approveV6Qr`), null for anything else. No network call.
+ */
+export function scanApproval(raw: string): Promise<HawcxV6ScannedApproval | null> {
+  const trimmed = typeof raw === 'string' ? raw.trim() : '';
+  if (!trimmed) {
+    return Promise.resolve(null);
+  }
+  return HawcxReactNative.v6ScanApproval(trimmed).then(normalizeScannedApproval);
+}
+
+/**
+ * Fetches what to show for an approval (who is asking, whether a number is
+ * required). push / qr_auth try the enrolled identifiers (most recently used
+ * first) unless `identifier` is given; qr_login needs the `identifier` the user
+ * picked from `enrolledIdentifiers()`. Rejects with `HawcxServiceError`
+ * (`approval_expired`, `identifier_required`, `device_not_enrolled`,
+ * `project_mismatch`, `approval_not_found`, `approval_resolved` with
+ * `outcome`, `unsupported_approval_version`, `account_locked`, `rate_limited`, ...).
+ */
+export function fetchApprovalContext(
+  reference: HawcxV6ApprovalReference,
+  identifier?: string,
+): Promise<HawcxV6ApprovalRequest> {
+  return withServiceErrors(() =>
+    HawcxReactNative.v6FetchApprovalContext(reference, identifier?.trim() || null),
+  ).then(normalizeApprovalRequest);
+}
+
+/**
+ * Approves or denies a fetched approval. Approve needs the number the user typed
+ * when `numberRequired` (never fill it in); deny ignores it. Gate approve
+ * behind the device owner (biometrics / passcode) in the app. Resolves
+ * `approved`, `denied`, `wrong_number`, or `resolved` (already over). Rejects
+ * with `number_required`, `invalid_number`, `approval_expired`,
+ * `approval_handle_unknown`, or a retryable server error.
+ */
+export function decideApproval(
+  handle: string,
+  decision: HawcxV6ApprovalDecision,
+  options: { numberChoice?: number; rememberDevice?: boolean } = {},
+): Promise<HawcxV6ApprovalResult> {
+  try {
+    const key = ensureNonEmpty(handle, 'handle');
+    if (decision !== 'approve' && decision !== 'deny') {
+      throw new Error('decision must be approve or deny');
+    }
+    let numberChoice: number | null = null;
+    if (decision === 'approve' && options.numberChoice !== undefined) {
+      if (!Number.isInteger(options.numberChoice)) {
+        throw localServiceError('invalid_number', 'The number has two digits');
+      }
+      numberChoice = options.numberChoice;
+    }
+    return withServiceErrors(() =>
+      HawcxReactNative.v6DecideApproval(
+        key,
+        decision,
+        numberChoice,
+        options.rememberDevice ?? false,
+      ),
+    ).then(normalizeApprovalResult);
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+/** Drops a fetched approval from the native cache (e.g. the user dismissed it). */
+export function discardApproval(handle: string): Promise<void> {
+  if (typeof handle !== 'string' || !handle) {
+    return Promise.resolve();
+  }
+  return HawcxReactNative.v6DiscardApproval(handle);
+}
+
+/** Identifiers enrolled on this device for this project, most recently used first. */
+export function enrolledIdentifiers(): Promise<string[]> {
+  return withServiceErrors(() => HawcxReactNative.v6EnrolledIdentifiers()).then((value) =>
+    Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [],
+  );
 }
 
 export function v6HandleRedirectUrl(url: string): Promise<void> {
@@ -874,7 +1115,23 @@ export function webApprove(token: string): Promise<void> {
   }
 }
 
+const warnedDeprecations = new Set<string>();
+
+const warnDeprecated = (name: string, replacement: string) => {
+  if (warnedDeprecations.has(name)) {
+    return;
+  }
+  warnedDeprecations.add(name);
+
+  console.warn(`[Hawcx] ${name} is deprecated: use ${replacement} (approvals v2).`);
+};
+
+/** @internal */
+export const __resetDeprecationWarningsForTests = () => warnedDeprecations.clear();
+
+/** @deprecated Legacy v4 push. Use `registerPushToken({provider: 'apns', ...})`. */
 export function setApnsDeviceToken(tokenData: Uint8Array | number[]): Promise<void> {
+  warnDeprecated('setApnsDeviceToken', 'registerPushToken');
   if (!isIOS()) {
     return Promise.resolve();
   }
@@ -885,7 +1142,9 @@ export function setApnsDeviceToken(tokenData: Uint8Array | number[]): Promise<vo
   }
 }
 
+/** @deprecated Legacy v4 push. Use `registerPushToken({provider: 'fcm', ...})`. */
 export function setFcmToken(token: string): Promise<void> {
+  warnDeprecated('setFcmToken', 'registerPushToken');
   if (!isAndroid()) {
     return Promise.resolve();
   }
@@ -896,7 +1155,9 @@ export function setFcmToken(token: string): Promise<void> {
   }
 }
 
+/** @deprecated Legacy v4 push. Use `registerPushToken`. */
 export function setPushDeviceToken(token: Uint8Array | number[] | string): Promise<void> {
+  warnDeprecated('setPushDeviceToken', 'registerPushToken');
   if (isIOS()) {
     if (typeof token === 'string') {
       return Promise.reject(
@@ -920,11 +1181,15 @@ export function notifyUserAuthenticated(): Promise<void> {
   return HawcxReactNative.userDidAuthenticate();
 }
 
+/** @deprecated Legacy v4 push. Use `approvalReferenceFromPush` + `fetchApprovalContext`. */
 export function handlePushNotification(payload: Record<string, unknown>): Promise<boolean> {
+  warnDeprecated('handlePushNotification', 'approvalReferenceFromPush');
   return HawcxReactNative.handlePushNotification(payload);
 }
 
+/** @deprecated Legacy v4 push. Use `decideApproval(handle, 'approve', ...)`. */
 export function approvePushRequest(requestId: string): Promise<void> {
+  warnDeprecated('approvePushRequest', 'decideApproval');
   try {
     return HawcxReactNative.approvePushRequest(ensureNonEmpty(requestId, 'requestId'));
   } catch (error) {
@@ -932,7 +1197,9 @@ export function approvePushRequest(requestId: string): Promise<void> {
   }
 }
 
+/** @deprecated Legacy v4 push. Use `decideApproval(handle, 'deny')`. */
 export function declinePushRequest(requestId: string): Promise<void> {
+  warnDeprecated('declinePushRequest', 'decideApproval');
   try {
     return HawcxReactNative.declinePushRequest(ensureNonEmpty(requestId, 'requestId'));
   } catch (error) {
@@ -1633,6 +1900,110 @@ export function useHawcxV6Auth(
     resendAvailability: state.resend,
     secondsUntilResend: state.resend.secondsUntilResend,
   };
+}
+
+export type HawcxApproverHookResult = {
+  /** The fetched approval being shown, if any. */
+  request?: HawcxV6ApprovalRequest;
+  /** Result of the last decision. */
+  result?: HawcxV6ApprovalResult;
+  /** Last error of fetch / approve / deny. */
+  error?: HawcxServiceError;
+  loading: boolean;
+  /** Fetches the context for a reference (from a push or a scan). */
+  fetch: (
+    reference: HawcxV6ApprovalReference,
+    identifier?: string,
+  ) => Promise<HawcxV6ApprovalRequest>;
+  /** Approve with the number the user typed (when `request.numberRequired`). */
+  approve: (
+    numberChoice?: number,
+    options?: { rememberDevice?: boolean },
+  ) => Promise<HawcxV6ApprovalResult>;
+  deny: () => Promise<HawcxV6ApprovalResult>;
+  /** Clears the hook and discards the native cache entry. */
+  reset: () => Promise<void>;
+};
+
+/**
+ * Approver screen state (separate from the requester's `useHawcxV6Auth`).
+ * Approve / deny reject (and set `error`) on failure; the request stays so a
+ * retryable error can be retried.
+ */
+export function useHawcxApprover(): HawcxApproverHookResult {
+  const [request, setRequest] = useState<HawcxV6ApprovalRequest | undefined>();
+  const [result, setResult] = useState<HawcxV6ApprovalResult | undefined>();
+  const [error, setError] = useState<HawcxServiceError | undefined>();
+  const [loading, setLoading] = useState(false);
+  const requestRef = useRef<HawcxV6ApprovalRequest | undefined>();
+
+  const run = useCallback(async <T>(work: () => Promise<T>): Promise<T> => {
+    setLoading(true);
+    setError(undefined);
+    try {
+      return await work();
+    } catch (caught) {
+      const mapped = toHawcxServiceError(caught);
+      setError(mapped);
+      throw mapped;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetch = useCallback(
+    (reference: HawcxV6ApprovalReference, identifier?: string) =>
+      run(async () => {
+        setResult(undefined);
+        const fetched = await fetchApprovalContext(reference, identifier);
+        requestRef.current = fetched;
+        setRequest(fetched);
+        return fetched;
+      }),
+    [run],
+  );
+
+  const decide = useCallback(
+    (decision: HawcxV6ApprovalDecision, numberChoice?: number, rememberDevice?: boolean) =>
+      run(async () => {
+        const current = requestRef.current;
+        if (!current) {
+          throw new HawcxServiceError({
+            code: 'approval_handle_unknown',
+            message: 'Fetch an approval first',
+          });
+        }
+        const decided = await decideApproval(current.handle, decision, {
+          numberChoice,
+          rememberDevice,
+        });
+        setResult(decided);
+        return decided;
+      }),
+    [run],
+  );
+
+  const approve = useCallback(
+    (numberChoice?: number, options?: { rememberDevice?: boolean }) =>
+      decide('approve', numberChoice, options?.rememberDevice),
+    [decide],
+  );
+
+  const deny = useCallback(() => decide('deny'), [decide]);
+
+  const reset = useCallback(async () => {
+    const current = requestRef.current;
+    requestRef.current = undefined;
+    setRequest(undefined);
+    setResult(undefined);
+    setError(undefined);
+    setLoading(false);
+    if (current) {
+      await discardApproval(current.handle);
+    }
+  }, []);
+
+  return { request, result, error, loading, fetch, approve, deny, reset };
 }
 
 export function useHawcxAuth(client: HawcxClient = hawcxClient) {

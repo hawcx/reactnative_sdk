@@ -3,6 +3,8 @@ package com.hawcx.reactnative
 import android.os.Handler
 import android.os.Looper
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.Dynamic
+import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -11,6 +13,7 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.hawcx.internal.HawcxSDK
+import com.hawcx.reactnative.v6.HawcxV6ApproverBridge
 import com.hawcx.reactnative.v6.HawcxV6Bridge
 import com.hawcx.reactnative.v6.HawcxV6InitializeOptions
 import com.hawcx.reactnative.v6.HawcxV6StartOptions
@@ -117,7 +120,8 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
                 v6Bridge.configure(
                     legacySdk = sdk,
                     configId = projectApiKey,
-                    options = v6Options
+                    options = v6Options,
+                    appId = applicationContext.packageName
                 )
                 hawcxV6Bridge = v6Bridge
                 promise.resolve(null)
@@ -411,9 +415,112 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
                         }
                     )
                 }.onFailure { error ->
-                    promise.reject(CODE_SDK, error.message, error)
+                    promise.rejectApproval(error)
                 }
             }
+        }
+    }
+
+    // MARK: - Approver (approvals v2)
+
+    private fun withApprover(promise: Promise, work: (HawcxV6ApproverBridge) -> Unit) {
+        val approver = hawcxV6Bridge?.approver ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        runCatching { work(approver) }.onFailure { promise.rejectApproval(it) }
+    }
+
+    @ReactMethod
+    fun v6RegisterPushToken(registration: ReadableMap?, force: Boolean, promise: Promise) {
+        val input = registration ?: run {
+            promise.reject(CODE_INPUT, "registration is required")
+            return
+        }
+        withApprover(promise) { approver ->
+            approver.registerPushToken(input, force) { result ->
+                result.onSuccess { promise.resolve(it) }.onFailure { promise.rejectApproval(it) }
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6UnregisterPushToken(identifier: String?, appId: String?, promise: Promise) {
+        withApprover(promise) { approver ->
+            approver.unregisterPushToken(
+                identifier?.trim()?.ifEmpty { null },
+                appId?.trim()?.ifEmpty { null }
+            ) { result ->
+                result.onSuccess { promise.resolve(null) }.onFailure { promise.rejectApproval(it) }
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6ApprovalReferenceFromPush(payload: ReadableMap?, promise: Promise) {
+        val data = payload ?: run {
+            promise.resolve(null)
+            return
+        }
+        withApprover(promise) { approver -> promise.resolve(approver.approvalReference(data)) }
+    }
+
+    @ReactMethod
+    fun v6ScanApproval(raw: String?, promise: Promise) {
+        val trimmed = raw?.trim().orEmpty()
+        withApprover(promise) { approver ->
+            promise.resolve(if (trimmed.isEmpty()) null else approver.scan(trimmed))
+        }
+    }
+
+    @ReactMethod
+    fun v6FetchApprovalContext(reference: ReadableMap?, identifier: String?, promise: Promise) {
+        val raw = reference ?: run {
+            promise.reject(CODE_INPUT, "reference is required")
+            return
+        }
+        withApprover(promise) { approver ->
+            approver.fetchContext(raw, identifier?.trim()?.ifEmpty { null }) { result ->
+                result.onSuccess { promise.resolve(it) }.onFailure { promise.rejectApproval(it) }
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6DecideApproval(handle: String?, decision: String?, numberChoice: Dynamic?, rememberDevice: Boolean, promise: Promise) {
+        val key = handle?.trim().orEmpty()
+        if (key.isEmpty()) {
+            promise.reject(CODE_INPUT, "handle is required")
+            return
+        }
+        val number = numberChoice?.takeUnless { it.isNull }?.let {
+            if (it.type == ReadableType.Number) it.asDouble() else null
+        }
+        if (number != null && number % 1.0 != 0.0) {
+            promise.reject("invalid_number", "The number has two digits")
+            return
+        }
+        withApprover(promise) { approver ->
+            approver.decide(key, decision.orEmpty(), number?.toInt(), rememberDevice) { result ->
+                result.onSuccess { promise.resolve(it) }.onFailure { promise.rejectApproval(it) }
+            }
+        }
+    }
+
+    @ReactMethod
+    fun v6DiscardApproval(handle: String?, promise: Promise) {
+        handle?.let { hawcxV6Bridge?.approver?.discard(it) }
+        promise.resolve(null)
+    }
+
+    @ReactMethod
+    fun v6EnrolledIdentifiers(promise: Promise) {
+        withApprover(promise) { approver ->
+            approver.enrolledIdentifiers()
+                .onSuccess { ids ->
+                    promise.resolve(Arguments.createArray().apply { ids.forEach { pushString(it) } })
+                }
+                .onFailure { promise.rejectApproval(it) }
         }
     }
 

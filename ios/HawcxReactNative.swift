@@ -121,8 +121,7 @@ class HawcxReactNative: RCTEventEmitter {
     private func qrApprovalNSError(_ error: HawcxV1QrApprovalError) -> NSError {
         var userInfo: [String: Any] = [
             NSLocalizedDescriptionKey: error.message,
-            "retryable": error.retryable,
-            "shouldClearRecord": error.shouldClearRecord
+            "retryable": error.retryable
         ]
         if let retryAfterSeconds = error.retryAfterSeconds {
             userInfo["retryAfterSeconds"] = retryAfterSeconds
@@ -547,6 +546,132 @@ class HawcxReactNative: RCTEventEmitter {
             } catch {
                 self.rejectV6Error(error, reject: reject)
             }
+        }
+    }
+
+    // MARK: - Approver (approvals v2)
+
+    private func withApprover(
+        reject: @escaping RCTPromiseRejectBlock,
+        _ work: @escaping (HawcxV6ApproverBridge) -> Void
+    ) {
+        DispatchQueue.main.async {
+            guard let approver = self.hawcxV6Bridge?.approver else {
+                self.rejectV6Error(HawcxV6BridgeError.notInitialized, reject: reject)
+                return
+            }
+            work(approver)
+        }
+    }
+
+    private func settle<T>(
+        _ result: Result<T, HawcxV1ApprovalError>,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock,
+        transform: (T) -> Any?
+    ) {
+        switch result {
+        case let .success(value): resolve(transform(value))
+        case let .failure(error): rejectApprovalError(error, reject: reject)
+        }
+    }
+
+    @objc
+    func v6RegisterPushToken(_ registration: NSDictionary,
+                             force: NSNumber,
+                             resolver resolve: @escaping RCTPromiseResolveBlock,
+                             rejecter reject: @escaping RCTPromiseRejectBlock) {
+        withApprover(reject: reject) { approver in
+            approver.registerPushToken(registration, force: force.boolValue) { result in
+                self.settle(result, resolve: resolve, reject: reject) { $0 }
+            }
+        }
+    }
+
+    @objc
+    func v6UnregisterPushToken(_ identifier: Any?,
+                               appId: Any?,
+                               resolver resolve: @escaping RCTPromiseResolveBlock,
+                               rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let identifierValue = HawcxReactNative.optionalString(identifier)
+        let appIdValue = HawcxReactNative.optionalString(appId)
+        withApprover(reject: reject) { approver in
+            approver.unregisterPushToken(identifier: identifierValue, appId: appIdValue) { result in
+                self.settle(result, resolve: resolve, reject: reject) { _ in nil }
+            }
+        }
+    }
+
+    @objc
+    func v6ApprovalReferenceFromPush(_ payload: NSDictionary,
+                                     resolver resolve: @escaping RCTPromiseResolveBlock,
+                                     rejecter reject: @escaping RCTPromiseRejectBlock) {
+        withApprover(reject: reject) { approver in
+            resolve(approver.approvalReference(fromPush: payload))
+        }
+    }
+
+    @objc
+    func v6ScanApproval(_ raw: NSString,
+                        resolver resolve: @escaping RCTPromiseResolveBlock,
+                        rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        withApprover(reject: reject) { approver in
+            resolve(trimmed.isEmpty ? nil : approver.scan(trimmed))
+        }
+    }
+
+    @objc
+    func v6FetchApprovalContext(_ reference: NSDictionary,
+                                identifier: Any?,
+                                resolver resolve: @escaping RCTPromiseResolveBlock,
+                                rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let identifierValue = HawcxReactNative.optionalString(identifier)
+        withApprover(reject: reject) { approver in
+            approver.fetchContext(reference: reference, identifier: identifierValue) { result in
+                self.settle(result, resolve: resolve, reject: reject) { $0 }
+            }
+        }
+    }
+
+    @objc
+    func v6DecideApproval(_ handle: NSString,
+                          decision: NSString,
+                          numberChoice: Any?,
+                          rememberDevice: NSNumber,
+                          resolver resolve: @escaping RCTPromiseResolveBlock,
+                          rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let number = (numberChoice as? NSNumber)?.intValue
+        let handleValue = handle as String
+        let decisionValue = decision as String
+        withApprover(reject: reject) { approver in
+            approver.decide(
+                handle: handleValue,
+                decision: decisionValue,
+                numberChoice: number,
+                rememberDevice: rememberDevice.boolValue
+            ) { result in
+                self.settle(result, resolve: resolve, reject: reject) { $0 }
+            }
+        }
+    }
+
+    @objc
+    func v6DiscardApproval(_ handle: NSString,
+                           resolver resolve: @escaping RCTPromiseResolveBlock,
+                           rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let handleValue = handle as String
+        DispatchQueue.main.async {
+            self.hawcxV6Bridge?.approver?.discard(handle: handleValue)
+            resolve(nil)
+        }
+    }
+
+    @objc
+    func v6EnrolledIdentifiers(_ resolve: @escaping RCTPromiseResolveBlock,
+                               rejecter reject: @escaping RCTPromiseRejectBlock) {
+        withApprover(reject: reject) { approver in
+            resolve(approver.enrolledIdentifiers())
         }
     }
 

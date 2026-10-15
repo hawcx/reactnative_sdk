@@ -8,6 +8,7 @@ import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.hawcx.internal.HawcxSDK
 import com.hawcx.protocol.v1.HawcxV1ApprovalError
+import com.hawcx.protocol.v1.HawcxV1QrApprovalError
 import com.hawcx.protocol.v1.HawcxV1DeviceSummary
 import com.hawcx.protocol.v1.HawcxV1ErrorDetails
 import com.hawcx.protocol.v1.HawcxV1FieldError
@@ -17,8 +18,6 @@ import com.hawcx.protocol.v1.HawcxV1MagicLinkRedirectOutcome
 import com.hawcx.protocol.v1.HawcxV1Method
 import com.hawcx.protocol.v1.HawcxV1OAuthCallbackParser
 import com.hawcx.protocol.v1.HawcxV1PromptContext
-import com.hawcx.protocol.v1.HawcxV1QrApprovalOutcome
-import com.hawcx.protocol.v1.HawcxV1QrPayloadParser
 import com.hawcx.protocol.v1.HawcxV1RedirectLaunchResult
 import com.hawcx.protocol.v1.HawcxV1RiskInfo
 import com.hawcx.protocol.v1.HawcxV1RiskLocation
@@ -131,7 +130,13 @@ internal class HawcxV6Bridge(
 ) {
     private var sdk: HawcxV1SDK? = null
 
-    fun configure(legacySdk: HawcxSDK, configId: String, options: HawcxV6InitializeOptions) {
+    /** Approvals v2 approver over `sdk.approvals`; null before [configure]. */
+    @Volatile
+    var approver: HawcxV6ApproverBridge? = null
+        private set
+
+    /** [appId]: the default push `app_id` (the application id). */
+    fun configure(legacySdk: HawcxSDK, configId: String, options: HawcxV6InitializeOptions, appId: String) {
         dispose(resetFlow = true)
 
         // buildProtocolV1Sdk wires the Keystore-backed saved-flow store, so a
@@ -161,6 +166,7 @@ internal class HawcxV6Bridge(
         }
 
         this.sdk = sdk
+        this.approver = HawcxV6ApproverBridge(sdk, appId)
     }
 
     fun start(options: HawcxV6StartOptions) {
@@ -310,51 +316,22 @@ internal class HawcxV6Bridge(
         sdk.reset()
     }
 
+    /** A v1 (6.0.x) QR approval through `HawcxV1SDK.approvals.approveV1`. */
     fun approveQr(
         rawPayload: String,
         identifier: String,
         rememberDevice: Boolean,
         completion: (Result<HawcxV6QrApprovalResult>) -> Unit
     ) {
-        val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
-        val payload = HawcxV1QrPayloadParser.parse(rawPayload.trim())
-        if (payload == null) {
-            completion(Result.failure(IllegalArgumentException("rawPayload must be a valid Hawcx QR payload")))
-            return
-        }
-
+        val approver = requireNotNull(approver) { "initialize must be called before using V6 bridge methods" }
         val trimmedIdentifier = identifier.trim()
         if (trimmedIdentifier.isEmpty()) {
             completion(Result.failure(IllegalArgumentException("identifier is required")))
             return
         }
-
-        val service = sdk.createQrApprovalService()
-        if (service == null) {
-            completion(Result.failure(IllegalStateException("QR approval is unavailable for the current V6 bridge configuration")))
-            return
-        }
-
-        service.approve(
-            payload = payload,
-            identifier = trimmedIdentifier,
-            rememberDevice = rememberDevice
-        ) { result ->
-            completion(result.mapCatching { outcome ->
-                when (outcome) {
-                    HawcxV1QrApprovalOutcome.Approved -> HawcxV6QrApprovalResult(
-                        outcome = "approved",
-                        payloadType = payload.type.wireValue
-                    )
-
-                    is HawcxV1QrApprovalOutcome.Bound -> HawcxV6QrApprovalResult(
-                        outcome = "bound",
-                        payloadType = payload.type.wireValue,
-                        userId = outcome.userid
-                    )
-                }
-            })
-        }
+        runCatching {
+            approver.approveV1(rawPayload.trim(), trimmedIdentifier, rememberDevice, completion)
+        }.onFailure { completion(Result.failure(it)) }
     }
 
     fun handleRedirectUrl(url: String) {
@@ -373,6 +350,8 @@ internal class HawcxV6Bridge(
     }
 
     fun dispose(resetFlow: Boolean) {
+        approver?.dispose()
+        approver = null
         val current = sdk ?: return
         current.flow.onUpdate = null
         current.flow.onNotice = null
@@ -437,6 +416,10 @@ internal fun Promise.rejectApproval(error: Throwable) {
             error.decidedByThisDevice?.let { putBoolean("decidedByThisDevice", it) }
         }
         reject(error.code, error.message, userInfo)
+    } else if (error is HawcxV1QrApprovalError) {
+        reject(error.code, error.message, HawcxV6ApproverBridge.qrUserInfo(error))
+    } else if (error is IllegalArgumentException) {
+        reject("hawcx.input", error.message ?: "Invalid input", error)
     } else {
         reject("hawcx.sdk", error.message ?: "Unexpected error", error)
     }
