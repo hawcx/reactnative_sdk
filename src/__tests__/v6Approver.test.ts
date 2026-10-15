@@ -142,6 +142,35 @@ describe('push-token registration', () => {
   });
 });
 
+describe('typed errors before initialize', () => {
+  it('wraps push reference, scan and discard rejections in HawcxServiceError', async () => {
+    const notReady = () => Promise.reject(nativeError('hawcx.sdk', 'Not initialized'));
+    native.v6ApprovalReferenceFromPush.mockImplementationOnce(notReady);
+    native.v6ScanApproval.mockImplementationOnce(notReady);
+    native.v6DiscardApproval.mockImplementationOnce(notReady);
+    for (const call of [
+      () => approvalReferenceFromPush({ hawcx: '{}' }),
+      () => scanApproval('{"v":2}'),
+      () => discardApproval('h-1'),
+    ]) {
+      const caught = await call().catch((error: unknown) => error);
+      expect(caught).toBeInstanceOf(HawcxServiceError);
+      expect(caught).toMatchObject({ code: 'hawcx.sdk' });
+    }
+  });
+
+  it('rejects a non-string FCM token as invalid_registration', async () => {
+    setPlatform('android');
+    const caught = await registerPushTokenWithReport({
+      provider: 'fcm',
+      token: 42 as unknown as string,
+    }).catch((error: unknown) => error);
+    expect(caught).toBeInstanceOf(HawcxServiceError);
+    expect(caught).toMatchObject({ code: 'invalid_registration' });
+    expect(native.v6RegisterPushToken).not.toHaveBeenCalled();
+  });
+});
+
 describe('references', () => {
   it('reads a push payload, unwrapping an FCM data envelope', async () => {
     native.v6ApprovalReferenceFromPush.mockResolvedValueOnce(reference);

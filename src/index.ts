@@ -843,14 +843,34 @@ const localServiceError = (code: string, message: string) =>
   new HawcxServiceError({ code, message, retryable: false });
 
 const buildPushRegistration = (input: HawcxV6PushRegistrationInput): Record<string, unknown> => {
-  const appId = input.appId?.trim() || undefined;
+  if (!input || typeof input !== 'object') {
+    throw localServiceError('invalid_registration', 'registration is required');
+  }
+  const appId = typeof input.appId === 'string' ? input.appId.trim() || undefined : undefined;
+  if (input.provider === 'fcm' && typeof input.token !== 'string') {
+    throw localServiceError('invalid_registration', 'FCM token must be a string');
+  }
+  if (
+    input.provider === 'apns' &&
+    typeof input.token !== 'string' &&
+    !(input.token instanceof Uint8Array) &&
+    !Array.isArray(input.token)
+  ) {
+    throw localServiceError('invalid_registration', 'APNs token must be a hex string or bytes');
+  }
   if (input.provider === 'apns') {
     if (!isIOS()) {
       throw localServiceError('invalid_registration', 'APNs tokens are registered on iOS only');
     }
     return compact({
       provider: 'apns',
-      token: apnsTokenHex(input.token),
+      token: (() => {
+        try {
+          return apnsTokenHex(input.token);
+        } catch (error) {
+          throw localServiceError('invalid_registration', (error as Error).message);
+        }
+      })(),
       apnsEnv: input.apnsEnv,
       appId,
     });
@@ -943,7 +963,9 @@ export function approvalReferenceFromPush(
   if (!data || typeof data !== 'object') {
     return Promise.resolve(null);
   }
-  return HawcxReactNative.v6ApprovalReferenceFromPush(data).then(normalizeApprovalReference);
+  return withServiceErrors(() => HawcxReactNative.v6ApprovalReferenceFromPush(data)).then(
+    normalizeApprovalReference,
+  );
 }
 
 /**
@@ -956,7 +978,9 @@ export function scanApproval(raw: string): Promise<HawcxV6ScannedApproval | null
   if (!trimmed) {
     return Promise.resolve(null);
   }
-  return HawcxReactNative.v6ScanApproval(trimmed).then(normalizeScannedApproval);
+  return withServiceErrors(() => HawcxReactNative.v6ScanApproval(trimmed)).then(
+    normalizeScannedApproval,
+  );
 }
 
 /**
@@ -1020,7 +1044,7 @@ export function discardApproval(handle: string): Promise<void> {
   if (typeof handle !== 'string' || !handle) {
     return Promise.resolve();
   }
-  return HawcxReactNative.v6DiscardApproval(handle);
+  return withServiceErrors(() => HawcxReactNative.v6DiscardApproval(handle)).then(() => undefined);
 }
 
 /** Identifiers enrolled on this device for this project, most recently used first. */
