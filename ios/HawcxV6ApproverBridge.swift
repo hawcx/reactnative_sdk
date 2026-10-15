@@ -19,8 +19,13 @@ internal final class HawcxV6ApproverBridge {
     }
 
     func dispose() {
+        disposed = true
         cache.removeAll()
     }
+
+    /// Set by `dispose()`: a fetch finishing afterwards must not cache into
+    /// this (dead) bridge, where no later decide could find it.
+    private var disposed = false
 
     // MARK: - Push tokens
 
@@ -99,7 +104,19 @@ internal final class HawcxV6ApproverBridge {
             return
         }
         sdk.approvals.fetchContext(reference, identifier: identifier) { [weak self] result in
-            guard let self else { return }
+            // Always settle: a bridge torn down mid-fetch (re-initialize,
+            // teardown) answers approval_handle_unknown instead of hanging.
+            guard let self, !self.disposed else {
+                if case let .failure(error) = result {
+                    completion(.failure(error))
+                } else {
+                    completion(.failure(Self.localError(
+                        "approval_handle_unknown",
+                        "The approver was reset while fetching; fetch the approval again"
+                    )))
+                }
+                return
+            }
             switch result {
             case let .success(request):
                 self.pruneExpired()
