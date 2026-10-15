@@ -1,5 +1,7 @@
 package com.hawcx.reactnative.v6
 
+import android.os.Handler
+import android.os.Looper
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableType
@@ -52,7 +54,16 @@ internal class HawcxV6ApproverBridge(
             retryable = false
         )
 
+    /** Removes each cached request at its expiry (+1 s), like iOS. */
+    private val evictor = Handler(Looper.getMainLooper())
+
+    /** Set by [dispose]: a fetch finishing afterwards must not cache into this bridge. */
+    @Volatile
+    private var disposed = false
+
     fun dispose() {
+        disposed = true
+        evictor.removeCallbacksAndMessages(null)
         cache.clear()
     }
 
@@ -130,10 +141,17 @@ internal class HawcxV6ApproverBridge(
             return
         }
         approvals.fetchContext(reference, identifier) { result ->
-            completion(result.map { request ->
+            if (disposed && result.isSuccess) {
+                completion(Result.failure(localError(
+                    "approval_handle_unknown",
+                    "The approver was reset while fetching; fetch the approval again"
+                )))
+            } else completion(result.map { request ->
                 pruneExpired()
                 val handle = UUID.randomUUID().toString()
                 cache[handle] = request
+                val delay = (request.expiresAtMillis - System.currentTimeMillis()).coerceAtLeast(0L) + 1_000L
+                evictor.postDelayed({ cache.remove(handle) }, delay)
                 encodeRequest(request, handle)
             })
         }
@@ -150,6 +168,7 @@ internal class HawcxV6ApproverBridge(
             completion(Result.failure(localError("invalid_decision", "decision must be approve or deny")))
             return
         }
+        pruneExpired(keep = handle)
         val request = cache[handle] ?: run {
             completion(Result.failure(localError("approval_handle_unknown", "This request is no longer available")))
             return
@@ -174,6 +193,7 @@ internal class HawcxV6ApproverBridge(
 
     fun discard(handle: String) {
         cache.remove(handle)
+        pruneExpired()
     }
 
     /** Most recently used first; `keychain_unavailable` (retryable) when the keys can't be read right now. */
@@ -219,8 +239,9 @@ internal class HawcxV6ApproverBridge(
         }
     }
 
-    private fun pruneExpired() {
-        cache.entries.removeIf { it.value.isExpired }
+    /** Drops expired requests; [keep] stays so its caller can answer approval_expired. */
+    private fun pruneExpired(keep: String? = null) {
+        cache.entries.removeIf { it.key != keep && it.value.isExpired }
     }
 
     companion object {
