@@ -25,6 +25,18 @@ describe('V6 mixed-mode web login helpers', () => {
     expect(
       routeWebLoginScan('{"v":"2","type":"qr_auth","project_id":"p","approval_id":"a"}').kind,
     ).toBe('approval_v2');
+    // Like native scan: any v == 2 is v2 and never falls back to the v1 protocol QR.
+    const v2WithoutApprovalId = JSON.stringify({
+      v: 2,
+      type: 'qr_auth',
+      session_id: 'auth_123',
+      nonce: 'nonce_123',
+      project_id: 'project_123',
+    });
+    expect(routeWebLoginScan(v2WithoutApprovalId)).toEqual({
+      kind: 'approval_v2',
+      raw: v2WithoutApprovalId,
+    });
     // Unknown JSON is invalid, not a PIN hunt.
     expect(routeWebLoginScan('{"v":9,"approval_id":"1234567"}')).toEqual({ kind: 'invalid' });
   });

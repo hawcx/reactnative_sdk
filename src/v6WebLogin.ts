@@ -149,10 +149,10 @@ const parseJsonObject = (raw: string): Record<string, unknown> | null => {
   }
 };
 
+// Like native `scan`: any JSON with v == 2 is approvals v2 (valid or not) and
+// never falls back to the v1 protocol QR; `scanApproval` decides validity.
 const isApprovalV2Payload = (value: Record<string, unknown>): boolean =>
-  (value.v === 2 || value.v === '2') &&
-  (value.type === 'qr_auth' || value.type === 'qr_login') &&
-  Boolean(asString(value.approval_id));
+  value.v === 2 || value.v === '2';
 
 export const routeWebLoginScan = (raw: string): HawcxWebLoginScanRoute => {
   const json = parseJsonObject(raw);
