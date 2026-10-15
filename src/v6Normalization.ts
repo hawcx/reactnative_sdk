@@ -198,6 +198,14 @@ const normalizePromptBase = (value: Record<string, unknown>): HawcxV6PromptBase 
   };
 };
 
+const unknownPrompt = (
+  base: HawcxV6UnknownPrompt extends infer P ? Omit<P, 'prompt'> : never,
+  rawType: string,
+): HawcxV6UnknownPrompt => ({
+  ...base,
+  prompt: { type: 'unknown', rawType: toSnakeCase(rawType) },
+});
+
 const normalizePromptPayload = (value: unknown): HawcxV6PromptPayload | null => {
   if (!isRecord(value)) {
     return null;
@@ -303,7 +311,8 @@ const normalizePromptPayload = (value: unknown): HawcxV6PromptPayload | null => 
       );
       const pollInterval = asNumber(rawPrompt?.pollInterval ?? value.pollInterval);
       if (!promptExpiresAt || pollInterval === undefined) {
-        return null;
+        // Malformed known prompt: surface it, never drop it.
+        return unknownPrompt(base, 'await_approval');
       }
       const payload: HawcxV6AwaitApprovalPrompt = {
         ...base,
@@ -323,7 +332,7 @@ const normalizePromptPayload = (value: unknown): HawcxV6PromptPayload | null => 
       const retryAfterSeconds = asNumber(rawPrompt?.retryAfterSeconds ?? value.retryAfterSeconds);
       const lockedUntil = asString(rawPrompt?.lockedUntil ?? value.lockedUntil);
       if (retryAfterSeconds === undefined || !lockedUntil) {
-        return null;
+        return unknownPrompt(base, 'locked');
       }
       const payload: HawcxV6LockedPrompt = {
         ...base,
@@ -337,11 +346,7 @@ const normalizePromptPayload = (value: unknown): HawcxV6PromptPayload | null => 
         promptType === 'unknown'
           ? asString(rawPrompt?.rawType ?? value.rawType) ?? 'unknown'
           : promptType;
-      const payload: HawcxV6UnknownPrompt = {
-        ...base,
-        prompt: { type: 'unknown', rawType: toSnakeCase(rawType) },
-      };
-      return payload;
+      return unknownPrompt(base, rawType);
     }
   }
 };

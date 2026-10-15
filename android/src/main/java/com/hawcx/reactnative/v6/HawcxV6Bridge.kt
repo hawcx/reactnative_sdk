@@ -550,11 +550,20 @@ private object HawcxV6FlowEventCodec {
                     putString("lockedUntil", prompt.lockedUntil)
                 }
                 else -> {
+                    // The native prompt has no wire `type` field; its class name
+                    // mirrors it (consumer rules keep the names under R8), so
+                    // send it in wire form. Display-only.
                     putString("type", "unknown")
-                    prompt::class.simpleName?.let { putString("rawType", it) }
+                    wirePromptType(prompt)?.let { putString("rawType", it) }
                 }
             }
         }
+    }
+
+    /** `AwaitApproval` -> `await_approval`; null when the name is missing or obfuscated. */
+    private fun wirePromptType(prompt: HawcxV1UserPrompt): String? {
+        val name = prompt.javaClass.simpleName.takeIf { it.length > 2 } ?: return null
+        return name.replace(Regex("([a-z0-9])([A-Z])"), "$1_$2").lowercase()
     }
 
     private fun encodeMethod(method: HawcxV1Method): WritableMap {

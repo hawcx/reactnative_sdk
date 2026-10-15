@@ -41,6 +41,14 @@ describe('unknown step types', () => {
     });
   });
 
+  it.each([
+    ['await_approval', { type: 'await_approval', pollInterval: 2 }],
+    ['locked', { type: 'locked', retryAfterSeconds: 30 }],
+  ])('surfaces a malformed %s prompt as unknown instead of dropping it', (rawType, prompt) => {
+    const event = normalizeV6FlowEvent(promptEvent(prompt));
+    expect(event?.type === 'prompt' && event.payload.prompt).toEqual({ type: 'unknown', rawType });
+  });
+
   it('falls back to "unknown" when no raw type is reported', () => {
     const event = normalizeV6FlowEvent(promptEvent({ type: 'unknown' }));
     expect(event?.type === 'prompt' && event.payload.prompt).toEqual({
@@ -80,6 +88,11 @@ describe('native bridges (6.2.0)', () => {
     const swift = read('ios/HawcxV6BridgeSupport.swift');
     expect(swift).toMatch(/@unknown default:\s*\n\s*return encodeUnknownPrompt\(prompt\)/);
     const kotlin = read('android/src/main/java/com/hawcx/reactnative/v6/HawcxV6Bridge.kt');
-    expect(kotlin).toMatch(/else -> \{\s*\n\s*putString\("type", "unknown"\)/);
+    expect(kotlin).toMatch(/else -> \{[^}]*putString\("type", "unknown"\)/);
+    // rawType in wire form from the (R8-kept) class name, not a raw simpleName.
+    expect(kotlin).toContain('wirePromptType(prompt)');
+    expect(read('android/consumer-rules.pro')).toContain(
+      '-keepnames class com.hawcx.protocol.v1.HawcxV1UserPrompt$*',
+    );
   });
 });

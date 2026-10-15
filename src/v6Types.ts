@@ -181,7 +181,11 @@ export type HawcxV6LockedPrompt = HawcxV6PromptBase & {
 
 /**
  * A step this SDK version doesn't model (a newer server, or a native prompt the
- * bridge doesn't map yet). `rawType` is the server step type in snake_case.
+ * bridge doesn't map yet), or a known step that arrived malformed (e.g. an
+ * `await_approval` without `expiresAt`). `rawType` is the step type in
+ * snake_case, for display and logs only: on iOS it comes from the native case
+ * name, on Android from the native prompt class name (kept under R8 by the
+ * consumer rules). Don't branch on it.
  * Show a generic "update the app" or restart screen; never auto-retry.
  */
 export type HawcxV6UnknownPrompt = HawcxV6PromptBase & {
