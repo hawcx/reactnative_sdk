@@ -14,6 +14,21 @@ describe('V6 mixed-mode web login helpers', () => {
     jest.clearAllMocks();
   });
 
+  it('routes approvals v2 QR payloads to the approver, never to the legacy PIN', () => {
+    const raw = JSON.stringify({
+      v: 2,
+      type: 'qr_login',
+      project_id: 'proj_1234567',
+      approval_id: 'appr_7654321',
+    });
+    expect(routeWebLoginScan(raw)).toEqual({ kind: 'approval_v2', raw });
+    expect(
+      routeWebLoginScan('{"v":"2","type":"qr_auth","project_id":"p","approval_id":"a"}').kind,
+    ).toBe('approval_v2');
+    // Unknown JSON is invalid, not a PIN hunt.
+    expect(routeWebLoginScan('{"v":9,"approval_id":"1234567"}')).toEqual({ kind: 'invalid' });
+  });
+
   it('routes protocol QR auth payloads', () => {
     expect(
       routeWebLoginScan(

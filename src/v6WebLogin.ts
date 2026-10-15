@@ -28,6 +28,11 @@ export type HawcxWebLoginScanRoute =
       payload: HawcxV6QrPayload;
     }
   | {
+      /** Approvals v2 (`{"v":2,"type":"qr_auth"|"qr_login",...}`): pass `raw` to `scanApproval`. */
+      kind: 'approval_v2';
+      raw: string;
+    }
+  | {
       kind: 'legacy_pin';
       pin: string;
     }
@@ -131,13 +136,41 @@ export const extractLegacyWebLoginPin = (raw: string): string | null => {
   return null;
 };
 
+const parseJsonObject = (raw: string): Record<string, unknown> | null => {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith('{')) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const isApprovalV2Payload = (value: Record<string, unknown>): boolean =>
+  (value.v === 2 || value.v === '2') &&
+  (value.type === 'qr_auth' || value.type === 'qr_login') &&
+  Boolean(asString(value.approval_id));
+
 export const routeWebLoginScan = (raw: string): HawcxWebLoginScanRoute => {
+  const json = parseJsonObject(raw);
+  if (json && isApprovalV2Payload(json)) {
+    return { kind: 'approval_v2', raw: raw.trim() };
+  }
+
   const protocolPayload = parseHawcxV6QrPayload(raw);
   if (protocolPayload) {
     return {
       kind: 'protocol_qr',
       payload: protocolPayload,
     };
+  }
+
+  if (json) {
+    // A JSON object that isn't a Hawcx QR is never searched for a legacy PIN.
+    return { kind: 'invalid' };
   }
 
   const pin = extractLegacyWebLoginPin(raw);
