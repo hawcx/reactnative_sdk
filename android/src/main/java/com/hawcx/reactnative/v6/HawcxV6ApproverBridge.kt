@@ -92,7 +92,7 @@ internal class HawcxV6ApproverBridge(
     // MARK: - References
 
     /** FCM data is `Map<String, String>`: nested maps (an APNs-style object) become JSON strings. */
-    fun approvalReference(fromPush payload: ReadableMap): WritableMap? {
+    fun approvalReferenceFromPush(payload: ReadableMap): WritableMap? {
         val data = HashMap<String, String>()
         val iterator = payload.keySetIterator()
         while (iterator.hasNextKey()) {

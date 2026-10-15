@@ -462,7 +462,7 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
             promise.resolve(null)
             return
         }
-        withApprover(promise) { approver -> promise.resolve(approver.approvalReference(data)) }
+        withApprover(promise) { approver -> promise.resolve(approver.approvalReferenceFromPush(data)) }
     }
 
     @ReactMethod
