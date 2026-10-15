@@ -264,6 +264,18 @@ internal final class HawcxV6Bridge {
     }
 
     private var redirectSession: HawcxV1OAuthRedirectSession?
+    /// Settles the current launch's promise exactly once. Cancelling an
+    /// ASWebAuthenticationSession never calls its completion, so a replaced or
+    /// disposed launch is settled here with `redirect_cancelled`.
+    private var settleRedirect: ((Result<Void, HawcxV1ApprovalError>) -> Void)?
+
+    private func cancelPendingRedirect() {
+        let settle = settleRedirect
+        settleRedirect = nil
+        redirectSession?.cancel()
+        redirectSession = nil
+        settle?(.failure(Self.redirectError("redirect_cancelled", "The sign-in window was replaced or closed")))
+    }
 
     /// ASWebAuthenticationSession for a `redirect` step; the callback goes to
     /// the flow (`oauthCallback`) before `completion` succeeds. Main thread.
@@ -285,12 +297,25 @@ internal final class HawcxV6Bridge {
             completion(.failure(Self.redirectError("invalid_callback", "returnScheme is required on iOS")))
             return
         }
-        redirectSession?.cancel()
+        cancelPendingRedirect()
+        var settled = false
+        let settleOnce: (Result<Void, HawcxV1ApprovalError>) -> Void = { result in
+            guard !settled else { return }
+            settled = true
+            completion(result)
+        }
         let session = HawcxV1OAuthRedirectSession(presentationAnchorProvider: anchor)
         redirectSession = session
-        session.start(url: url, callbackScheme: returnScheme) { [weak self, weak sdk] result in
+        settleRedirect = settleOnce
+        session.start(url: url, callbackScheme: returnScheme) { [weak self, weak sdk, weak session] result in
             DispatchQueue.main.async {
-                self?.redirectSession = nil
+                // Only the current launch clears the slot; a replaced one was
+                // already settled with redirect_cancelled.
+                if let self, self.redirectSession === session {
+                    self.redirectSession = nil
+                    self.settleRedirect = nil
+                }
+                let completion = settleOnce
                 switch result {
                 case let .success(callbackURL):
                     guard let callback = HawcxV1OAuthCallbackParser.parse(callbackURL), let sdk else {
@@ -426,8 +451,7 @@ internal final class HawcxV6Bridge {
     }
 
     func dispose(resetFlow: Bool) {
-        redirectSession?.cancel()
-        redirectSession = nil
+        cancelPendingRedirect()
         approver?.dispose()
         approver = nil
         guard let sdk else { return }
