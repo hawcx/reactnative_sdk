@@ -180,6 +180,14 @@ internal final class HawcxV6ApproverBridge {
                 completion(.success(.bound(payloadType: payload.type.rawValue, userId: userid)))
             case let .failure(error):
                 completion(.failure(error))
+            default:
+                completion(.failure(HawcxV1QrApprovalError(
+                    code: "unknown_outcome",
+                    message: "Unsupported QR approval outcome",
+                    retryable: false,
+                    shouldClearRecord: false,
+                    retryAfterSeconds: nil
+                )))
             }
         }
     }

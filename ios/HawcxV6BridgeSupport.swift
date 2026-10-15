@@ -305,6 +305,8 @@ internal final class HawcxV6Bridge {
                     completion(.failure(Self.redirectError("invalid_callback", "The callback URL was not received")))
                 case let .failure(.failed(message)):
                     completion(.failure(Self.redirectError("redirect_failed", message)))
+                default:
+                    completion(.failure(Self.redirectError("redirect_failed", "The sign-in window failed")))
                 }
             }
         }
