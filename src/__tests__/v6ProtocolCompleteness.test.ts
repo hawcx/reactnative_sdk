@@ -63,8 +63,12 @@ describe('normalization of the 6.2 fields', () => {
     });
   });
 
-  it('drops a locked step without lockedUntil', () => {
-    expect(normalizeV6FlowEvent(prompt({ type: 'locked', retryAfterSeconds: 3 }))).toBeNull();
+  it('surfaces a locked step without lockedUntil as unknown, never drops it', () => {
+    const event = normalizeV6FlowEvent(prompt({ type: 'locked', retryAfterSeconds: 3 }));
+    expect(event?.type === 'prompt' && event.payload.prompt).toEqual({
+      type: 'unknown',
+      rawType: 'locked',
+    });
   });
 
   it('reads the approvals v2 fields of await_approval', () => {
