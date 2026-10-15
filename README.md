@@ -429,7 +429,8 @@ screen, call `pausePolling()` / `resumePolling()` (on `useHawcxV6Auth()`, `Hawcx
   after the native SDK cleared this device's revoked keys and restarted the flow once. Notice
   events also reach `addV6FlowListener` as `{type: 'notice'}`.
 - `setup_totp` may carry `backupCodes`. Show them once and never log them.
-- Prompts the SDK does not model arrive as `{type: 'unknown', rawType}` (status `unknown`).
+- Prompts the SDK does not model, or known prompts that arrive malformed, arrive as
+  `{type: 'unknown', rawType}` (status `unknown`). `rawType` is for display and logs only.
 - Errors: `sdk_outdated` (HTTP 426, abort), and `rate_limited` / `Retry-After` in
   `details.retryAfterSeconds`. `HawcxV6ErrorCodes` lists the common codes.
 - Start options: `scope`, `samlReqId` (`samlreq_<hex>`, validated natively), and
@@ -484,9 +485,16 @@ const scanned = await scanApproval(qrText);
 // 3. Show who is asking and decide.
 const approver = useHawcxApprover();
 const request = await approver.fetch(reference); // qr_login: approver.fetch(reference, pickedIdentifier)
-await approver.approve(request.numberRequired ? typedNumber : undefined); // gate behind biometrics
-await approver.deny();
+// Pass the handle of the request the user saw; capture it BEFORE the confirm dialog.
+const shown = request.handle;
+// ... biometrics / confirm ...
+await approver.approve(shown, request.numberRequired ? typedNumber : undefined);
+await approver.deny(shown);
 ```
+
+- `approve` / `deny` are bound to the handle the user confirmed. If a newer push replaced the
+  request while the confirm dialog was open, they reject with `approval_handle_unknown` and
+  send nothing; show the new request and confirm again.
 
 - Show only what `fetch` returns (`requester.appName`, `origin`, `browser`, `location`, `ip`,
   `requestedAt`, `locationMismatch`), never anything from the push itself.
@@ -501,7 +509,8 @@ await approver.deny();
   - `account_locked`, `number_required`, `invalid_number`, `approval_handle_unknown`
   - retryable: `rate_limited`, `approval_not_ready`, `keychain_unavailable`, ...
 - For qr_login, let the user pick from `enrolledIdentifiers()` when more than one account is
-  enrolled.
+  enrolled. It rejects with retryable `keychain_unavailable` while the device is locked (both
+  platforms): ask the user to unlock and retry, don't treat it as "not enrolled".
 - **Unregister before signing out or clearing keys** (`unregisterPushToken()`): it is signed with
   the device key. `push_not_registered` means nothing was registered from this install. Use
   `unregisterPushToken({identifier, appId})` to unregister without a local record.
@@ -599,6 +608,32 @@ The package ships the released native SDKs. To try unreleased native builds loca
 - To make the example use this checkout instead of the npm release, replace
   `example/node_modules/@hawcx/react-native-sdk` with a symlink to the repo root and run
   `npm run build` at the root.
+
+## Release checklist
+
+This branch is not releasable from a clean checkout until these are done, in order:
+
+1. **Publish Android 6.2.0 first** (`api.hawcx:hawcx:6.2.0`). `android/build.gradle` already
+   defaults to it, so any install fails until it is on the registry.
+2. **Vendor the iOS 6.2.0 xcframework built from the release tag** (not a dev build) into
+   `ios/Frameworks/HawcxFramework.xcframework` and commit it. The bridge does not compile against
+   the committed 6.1 framework.
+3. **Bump to 2.0.0** in `package.json` (the podspec and the Android
+   `HAWCX_REACT_NATIVE_ANDROID_VERSION` default read it), the README install snippet, and the
+   CHANGELOG heading. Major, because:
+   - runtime behaviour changes: Android `approveV6Qr` rejects with server codes instead of
+     `hawcx.sdk`; iOS no longer sends `shouldClearRecord`; `routeWebLoginScan` no longer pulls a
+     PIN out of JSON; the approver hook's `approve` / `deny` take the confirmed handle; six legacy
+     push calls warn;
+   - TypeScript breaks: wider `HawcxV6PromptPayload` / `HawcxV6AuthStatus` / `HawcxV6FlowEvent`
+     unions break exhaustive switches, and optional `identifier` breaks code reading it as
+     `string`;
+   - the native minimum moves to 6.2.0, and the bridge now sends `X-Hawcx-SDK-Version`, which
+     puts React Native apps under the server's 426 gate;
+   - `[Unreleased]` also holds the unshipped magic-link work, so this is the first release with
+     both.
+4. **Confirm prod `AUTH_SDK_MIN_VERSIONS_JSON`** holds no minimum above 6.2.0 for these
+   platforms before publishing, and keep that note at the top of the release notes.
 
 ## Documentation
 

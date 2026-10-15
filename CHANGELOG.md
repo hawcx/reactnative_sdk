@@ -1,6 +1,29 @@
 # Changelog
 
 ## [Unreleased]
+
+> **Release as 2.0.0, not 1.x.** Not releasable yet: see "Release checklist" in the README (publish Android 6.2.0 first, vendor the iOS 6.2.0 release-tag xcframework, bump to 2.0.0, confirm prod `AUTH_SDK_MIN_VERSIONS_JSON`). The 426 gate note below must stay at the top of the release notes.
+
+### Breaking
+- Server 426 gate: the bridge now sends `X-Hawcx-SDK-Version`, so React Native apps fall under the server's `AUTH_SDK_MIN_VERSIONS_JSON` minimums. The prod value must not hold a minimum above the shipped native version (6.2.0).
+- Native minimum is 6.2.0 on both platforms (iOS vendored `HawcxFramework.xcframework`, Android `api.hawcx:hawcx:6.2.0`).
+- Android `approveV6Qr` rejects with the server's code instead of `hawcx.sdk`.
+- iOS `approveV6Qr` rejections no longer carry `userInfo.shouldClearRecord` (a server answer never clears keys now).
+- `routeWebLoginScan` no longer pulls a 7-digit PIN out of a JSON payload; any JSON QR with `v: 2` routes to `approval_v2`.
+- `useHawcxApprover().approve(handle, number?, opts?)` / `deny(handle)` take the handle of the request the user confirmed and reject with `approval_handle_unknown` when the current request changed.
+- Types: `HawcxV6PromptPayload`, `HawcxV6AuthStatus` and `HawcxV6FlowEvent` gain variants (exhaustive switches need a new case); `HawcxV6StartOptions.identifier` is optional.
+- Six legacy push calls are deprecated and warn once.
+
+### Platform differences
+- `launchRedirect` resolves at different points: on iOS after the auth session returns the callback (`{launchedWith: 'auth_session'}`), on Android once the page opens in Custom Tabs or a browser (`{launchedWith}`); the callback then arrives through the app's deep link. A replaced or disposed iOS launch rejects with `redirect_cancelled`.
+- `approvals_unavailable` is Android-only (the approvals service needs the device-key signer).
+- `enrolledIdentifiers()` rejects with retryable `keychain_unavailable` on both platforms while the device keys can't be read (iOS uses the native `enrolledIdentifiersOrThrow()`).
+- Unknown-step `rawType` is display-only: the native case name on iOS, the native prompt class name in wire form on Android.
+
+### Not shipped
+- `HawcxV6Completed.sessionToken` / `state.sessionToken` from the plan and spec were deliberately not shipped: the session token stays native (`completed.hasSessionToken`, `getSessionToken()`).
+
+### Added and changed
 - Magic link: the `enter_code` prompt carries `pollInterval` on the magic-link code screen and the native SDKs poll in the background (`state.magicLinkPolling`), so a link confirmed on another device completes the flow.
 - Magic link: `initialize({ magicLinkLandingUrl })` and `completeMagicLinkRedirect(url)` (also on `HawcxV6Client` and `useHawcxV6Auth`) finish a same-device link from a Universal Link / App Link with typed outcomes `not_magic_link | resumed | handed_off | failed{code, message, retryable}`; `isHawcxMagicLinkUrl(url, landingUrl?)` routes incoming URLs.
 - Polling: the native SDKs follow the poll-route contract (advertised `pollPath`, 2s→5s→10s schedule, `Retry-After`, 429 keeps the flow, paused in the background). Prompts expose `pollPath`; `pausePolling()` / `resumePolling()` (also `v6PausePolling` / `v6ResumePolling`, `HawcxV6Client`, `useHawcxV6Auth`) give manual control. No JS poll loop.

@@ -1047,7 +1047,11 @@ export function discardApproval(handle: string): Promise<void> {
   return withServiceErrors(() => HawcxReactNative.v6DiscardApproval(handle)).then(() => undefined);
 }
 
-/** Identifiers enrolled on this device for this project, most recently used first. */
+/**
+ * Identifiers enrolled on this device for this project, most recently used first.
+ * Rejects with retryable `keychain_unavailable` (both platforms) while the device
+ * keys can't be read, e.g. the device is locked: that is not "not enrolled".
+ */
 export function enrolledIdentifiers(): Promise<string[]> {
   return withServiceErrors(() => HawcxReactNative.v6EnrolledIdentifiers()).then((value) =>
     Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [],
