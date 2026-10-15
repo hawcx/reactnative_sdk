@@ -10,6 +10,9 @@ migration.
 - V6 adaptive authentication via `useHawcxV6Auth`, `startV6Flow`, and `hawcxV6Client`
 - Production native iOS and Android SDK integrations under the hood
 - Redirect, approval polling, and QR approval helpers for V6 flows
+- Approvals v2 on both sides: the requester (number matching, typed outcomes, anonymous
+  QR sign-in) and the approver (push-token registration, push / QR references, context,
+  approve / deny), plus self-service device APIs
 - Existing V5 auth and push/session helpers for apps already in production
 
 ## Requirements
@@ -235,6 +238,18 @@ const openRedirect = async () => {
 React Native handles the JavaScript callback side, but you still need to register your
 callback scheme natively on iOS and Android so the app receives the return URL.
 
+`launchRedirect(url, returnScheme)` (on `HawcxV6Client`, or `v6LaunchRedirect`) opens the
+step with the platform's sign-in browser instead of `Linking`:
+
+- iOS: an `ASWebAuthenticationSession` for `returnScheme` (required on iOS). It hands the
+  callback to the flow itself and then resolves `{launchedWith: 'auth_session'}`.
+- Android: Custom Tabs, falling back to the browser. It resolves `custom_tab` / `browser` once
+  the page is open; the callback still arrives through your intent filter, so keep the
+  `Linking` handler above.
+
+It rejects with `HawcxServiceError` (`redirect_cancelled`, `invalid_callback`, `invalid_url`,
+`no_browser`, `redirect_failed`).
+
 ## Magic Links
 
 When the server sends a magic-link code screen, the `enter_code` prompt carries
@@ -398,6 +413,104 @@ screen, call `pausePolling()` / `resumePolling()` (on `useHawcxV6Auth()`, `Hawcx
 `v6PausePolling` / `v6ResumePolling`). Both are idempotent and resolve without effect before
 `initialize`.
 
+## Requester: approvals v2, locked, notices, QR sign-in
+
+- `await_approval` carries `mode` (`push` | `qr`), `approvalId` and `number` (10-99) for
+  approvals v2; show `number` large ("Check your phone"). They are absent for v1 approvals.
+  `state.approval` mirrors them.
+- An approval ends with an error event: `approval_denied`, `approval_wrong_number`,
+  `approval_superseded` or `approval_blocked` (`state.approvalOutcome`,
+  `isHawcxV6ApprovalOutcome(code)`). Push start limits are `push_rate_limited` (429, with
+  `details.retryAfterSeconds`) and `push_unavailable`. Both have `action: 'select_method'`: call
+  `backToMethodSelection()` to show the method list again without a new start.
+- `locked` (status `locked`, `state.locked`): too many attempts. Show `lockedUntil`. Nothing is
+  polled or retried.
+- Notices: `state.notice` (`{code, message}`), e.g. `device_revoked`, or `unauthorized_device`
+  after the native SDK cleared this device's revoked keys and restarted the flow once. Notice
+  events also reach `addV6FlowListener` as `{type: 'notice'}`.
+- `setup_totp` may carry `backupCodes`. Show them once and never log them.
+- Prompts the SDK does not model arrive as `{type: 'unknown', rawType}` (status `unknown`).
+- Errors: `sdk_outdated` (HTTP 426, abort), and `rate_limited` / `Retry-After` in
+  `details.retryAfterSeconds`. `HawcxV6ErrorCodes` lists the common codes.
+- Start options: `scope`, `samlReqId` (`samlreq_<hex>`, validated natively), and
+  `method: 'qr_login'` for an anonymous QR sign-in with no identifier. Shortcuts are
+  `startQrLogin()` on the hook and client, and `startV6QrLogin()`. Show the `await_approval`
+  step's `qrData` as a QR code. The tenant must enable `qr_login`; otherwise the error is
+  `qr_login_not_allowed`.
+
+## Device APIs (session token)
+
+A completed flow may return a session token, the bearer for the self-service device APIs.
+**It stays native:** the `completed` event only says `hasSessionToken: true`. Pass `null` as the
+token to use it:
+
+```tsx
+const devices = await hawcxV6Client.listDevices(null);
+await hawcxV6Client.revokeDevice(null, devices[0].deviceId, 'lost'); // cannot_revoke_current_device for this one
+const { sessionsEnded } = await hawcxV6Client.logoutEverywhere(null);
+```
+
+`getSessionToken()` returns the token if your backend needs it. It is a secret bearer
+credential: the SDK never logs it, and you must not either. Native code clears it on a new
+start or reset, and it is not kept across launches. Failures reject with `HawcxServiceError`
+(`code`, `status`, `retryable`, `retryAfterSeconds`).
+
+## Approver: approve sign-ins from this phone (approvals v2)
+
+The signed-in phone approves a sign-in that started on another screen, by push or by QR.
+The approval's token, signatures and device keys never reach JavaScript. A fetched approval
+is cached natively and you get an opaque `handle`.
+
+```tsx
+import {
+  approvalReferenceFromPush, scanApproval, registerPushToken, unregisterPushToken,
+  useHawcxApprover, enrolledIdentifiers, approveV6Qr,
+} from '@hawcx/react-native-sdk';
+
+// 1. After each sign-in and on token refresh (iOS: APNs hex or bytes; Android: the FCM token).
+await registerPushToken(
+  Platform.OS === 'ios'
+    ? { provider: 'apns', token: apnsTokenHex, apnsEnv: 'production' }
+    : { provider: 'fcm', token: fcmToken },
+);
+
+// 2. A push arrived (APNs userInfo, or the FCM data map; {data: {hawcx}} is unwrapped).
+const reference = await approvalReferenceFromPush(notificationData); // null: not ours, or expired
+
+// 2'. Or a QR was scanned.
+const scanned = await scanApproval(qrText);
+// {version: 2, reference} -> context; {version: 1} -> confirm, then approveV6Qr(qrText, identifier)
+
+// 3. Show who is asking and decide.
+const approver = useHawcxApprover();
+const request = await approver.fetch(reference); // qr_login: approver.fetch(reference, pickedIdentifier)
+await approver.approve(request.numberRequired ? typedNumber : undefined); // gate behind biometrics
+await approver.deny();
+```
+
+- Show only what `fetch` returns (`requester.appName`, `origin`, `browser`, `location`, `ip`,
+  `requestedAt`, `locationMismatch`), never anything from the push itself.
+- When `numberRequired` is true, approve needs the number the user typed. The SDK never fills
+  it in. Deny never needs it.
+- Results are `approved`, `denied`, `wrong_number`, or `resolved` (`resolvedOutcome`:
+  approved, denied, expired, wrong_number, superseded or blocked; plus `decidedByThisDevice`).
+- Errors are `HawcxServiceError`, with the server's or the SDK's code:
+  - `device_not_enrolled`, `project_mismatch`, `identifier_required` (qr_login),
+    `approval_expired`
+  - `approval_not_found`, `approval_resolved` (with `outcome`), `unsupported_approval_version`
+  - `account_locked`, `number_required`, `invalid_number`, `approval_handle_unknown`
+  - retryable: `rate_limited`, `approval_not_ready`, `keychain_unavailable`, ...
+- For qr_login, let the user pick from `enrolledIdentifiers()` when more than one account is
+  enrolled.
+- **Unregister before signing out or clearing keys** (`unregisterPushToken()`): it is signed with
+  the device key. `push_not_registered` means nothing was registered from this install. Use
+  `unregisterPushToken({identifier, appId})` to unregister without a local record.
+- The legacy v4 push APIs (`setApnsDeviceToken`, `setFcmToken`, `setPushDeviceToken`,
+  `handlePushNotification`, `approvePushRequest`, `declinePushRequest`) are deprecated and warn
+  once.
+- The SDK takes the payloads your push library delivers. It has no Firebase or APNs
+  dependency.
+
 ## QR Approvals and Web Login Helpers
 
 The package also exposes helpers for QR approval and legacy web-login scans:
@@ -412,7 +525,9 @@ For protocol QR payloads, you can approve directly from React Native:
 import { approveV6Qr, routeWebLoginScan } from '@hawcx/react-native-sdk';
 
 const route = routeWebLoginScan(scanValue);
-if (route.kind === 'protocol_qr') {
+if (route.kind === 'approval_v2') {
+  // approvals v2: scanApproval(route.raw) -> approver (see above)
+} else if (route.kind === 'protocol_qr') {
   const result = await approveV6Qr(route.payload.raw, identifier, {
     rememberDevice: true,
   });
@@ -428,9 +543,10 @@ including:
 
 - `authenticate`, `submitOtp`, `useHawcxAuth`
 - `useHawcxWebLogin`
-- `setPushDeviceToken`
+- `setPushDeviceToken` (deprecated)
 - `notifyUserAuthenticated`
-- `handlePushNotification`, `approvePushRequest`, `declinePushRequest`
+- `handlePushNotification`, `approvePushRequest`, `declinePushRequest` (deprecated: use the
+  approvals v2 approver)
 
 Shared helpers such as `initialize` and `storeBackendOAuthTokens` remain available across
 the current package surface.
@@ -453,6 +569,21 @@ npm run android
 
 Use it to validate V6 auth flows against your environment before integrating into your
 own app.
+
+The example has an **Approver** card (`example/src/ApproverScreen.tsx`) with these debug inputs,
+so every approval path runs on a simulator or emulator without APNs or FCM:
+
+- paste a push payload
+- paste a QR
+- register or unregister a fake push token
+- list, revoke, and log out everywhere
+
+The sign-in card shows:
+
+- the approval number and `approvalId`
+- outcome messages and "Back to methods" for `select_method` errors
+- the locked screen
+- **Sign in with QR (no email)**
 
 ### Developing against local native SDK builds
 
