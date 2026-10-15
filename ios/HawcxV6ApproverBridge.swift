@@ -172,8 +172,26 @@ internal final class HawcxV6ApproverBridge {
         cache[handle] = nil
     }
 
-    func enrolledIdentifiers() -> [String] {
-        return sdk.crypto.enrolledIdentifiers()
+    /// Rejects with retryable `keychain_unavailable` while the Keychain can't
+    /// be read (device locked), like Android, instead of reporting [].
+    func enrolledIdentifiers() -> Result<[String], HawcxV1ApprovalError> {
+        do {
+            return .success(try sdk.crypto.enrolledIdentifiersOrThrow())
+        } catch let error as HawcxV1DeviceCryptoError {
+            return .failure(HawcxV1ApprovalError(
+                code: error.code,
+                message: error.message,
+                status: nil,
+                retryable: error.code == HawcxV1ErrorCode.keychainUnavailable
+            ))
+        } catch {
+            return .failure(HawcxV1ApprovalError(
+                code: HawcxV1ErrorCode.keychainUnavailable,
+                message: "Device keys can't be read right now. Unlock the device and try again.",
+                status: nil,
+                retryable: true
+            ))
+        }
     }
 
     // MARK: - v1 QR

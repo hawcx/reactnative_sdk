@@ -671,7 +671,12 @@ class HawcxReactNative: RCTEventEmitter {
     func v6EnrolledIdentifiers(_ resolve: @escaping RCTPromiseResolveBlock,
                                rejecter reject: @escaping RCTPromiseRejectBlock) {
         withApprover(reject: reject) { approver in
-            resolve(approver.enrolledIdentifiers())
+            switch approver.enrolledIdentifiers() {
+            case let .success(identifiers):
+                resolve(identifiers)
+            case let .failure(error):
+                self.rejectApprovalError(error, reject: reject)
+            }
         }
     }
 
