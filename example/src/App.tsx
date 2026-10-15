@@ -934,8 +934,13 @@ const App = () => {
               );
               appendLog(`redirect launched with ${launch.launchedWith}`);
             } catch (error) {
-              appendLog(`launchRedirect failed (${(error as { code?: string }).code ?? 'error'})`);
-              await openExternalUrl(currentPrompt.prompt.url);
+              const code = (error as { code?: string }).code;
+              appendLog(`launchRedirect failed (${code ?? 'error'})`);
+              // Only when no in-app browser could open it; a closed sheet
+              // (redirect_cancelled) or a bad callback stays closed.
+              if (code === 'no_browser' || code === 'redirect_failed') {
+                await openExternalUrl(currentPrompt.prompt.url);
+              }
             }
             break;
           case 'await_approval':
