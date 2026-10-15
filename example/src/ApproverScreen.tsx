@@ -1,5 +1,5 @@
 /* eslint-disable no-void */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import {
   approvalReferenceFromPush,
@@ -132,6 +132,18 @@ export const ApproverScreen = ({ incomingScan, defaultIdentifier }: ApproverScre
     setStatus(describeApproverError(toHawcxServiceError(error)));
   }, []);
 
+  // The handle on screen right now (read after awaits, where `approver` is stale).
+  const shownHandle = useRef<string | undefined>(undefined);
+  shownHandle.current = approver.request?.handle;
+
+  // A final result: the handle is gone natively, so clear the number and the
+  // buttons instead of leaving a request that can no longer be decided.
+  const finish = (text: string) => {
+    setNumberInput('');
+    void approver.reset().catch(() => undefined);
+    setStatus(text);
+  };
+
   const open = useCallback(
     async (reference: HawcxV6ApprovalReference) => {
       setStatus(null);
@@ -208,18 +220,26 @@ export const ApproverScreen = ({ incomingScan, defaultIdentifier }: ApproverScre
       return;
     }
     if (!(await confirmDeviceOwner('Approve sign-in?'))) return;
+    // Bound to the request the user confirmed: if a newer push replaced it
+    // while the dialog was open, don't decide anything (the hook also refuses).
+    if (shownHandle.current !== request.handle) {
+      setStatus('The request changed while you were confirming. Review it and confirm again.');
+      return;
+    }
     try {
-      const result = await approver.approve(number);
-      setStatus(describeApprovalResult(result));
+      const result = await approver.approve(request.handle, number);
+      finish(describeApprovalResult(result));
     } catch (error) {
       report(error);
     }
   };
 
   const deny = async () => {
+    const request = approver.request;
+    if (!request) return;
     try {
-      const result = await approver.deny();
-      setStatus(describeApprovalResult(result));
+      const result = await approver.deny(request.handle);
+      finish(describeApprovalResult(result));
     } catch (error) {
       report(error);
     }

@@ -1915,12 +1915,21 @@ export type HawcxApproverHookResult = {
     reference: HawcxV6ApprovalReference,
     identifier?: string,
   ) => Promise<HawcxV6ApprovalRequest>;
-  /** Approve with the number the user typed (when `request.numberRequired`). */
+  /**
+   * Approves the request with `handle`: pass the handle of the request the user
+   * saw and confirmed (capture `request.handle` before any confirm dialog).
+   * Rejects with `approval_handle_unknown`, without sending anything, when the
+   * current request is no longer that one (e.g. a newer push replaced it while
+   * the dialog was open). `numberChoice` is the number the user typed (when
+   * `request.numberRequired`).
+   */
   approve: (
+    handle: string,
     numberChoice?: number,
     options?: { rememberDevice?: boolean },
   ) => Promise<HawcxV6ApprovalResult>;
-  deny: () => Promise<HawcxV6ApprovalResult>;
+  /** Denies the request with `handle`; same handle check as `approve`. */
+  deny: (handle: string) => Promise<HawcxV6ApprovalResult>;
   /** Clears the hook and discards the native cache entry. */
   reset: () => Promise<void>;
 };
@@ -1955,6 +1964,14 @@ export function useHawcxApprover(): HawcxApproverHookResult {
     (reference: HawcxV6ApprovalReference, identifier?: string) =>
       run(async () => {
         setResult(undefined);
+        // The previous request is replaced: drop it now, so a decision for it
+        // can't be sent and its native cache entry doesn't wait for expiry.
+        const previous = requestRef.current;
+        requestRef.current = undefined;
+        setRequest(undefined);
+        if (previous) {
+          await discardApproval(previous.handle).catch(() => undefined);
+        }
         const fetched = await fetchApprovalContext(reference, identifier);
         requestRef.current = fetched;
         setRequest(fetched);
@@ -1964,13 +1981,26 @@ export function useHawcxApprover(): HawcxApproverHookResult {
   );
 
   const decide = useCallback(
-    (decision: HawcxV6ApprovalDecision, numberChoice?: number, rememberDevice?: boolean) =>
+    (
+      handle: string,
+      decision: HawcxV6ApprovalDecision,
+      numberChoice?: number,
+      rememberDevice?: boolean,
+    ) =>
       run(async () => {
         const current = requestRef.current;
         if (!current) {
           throw new HawcxServiceError({
             code: 'approval_handle_unknown',
             message: 'Fetch an approval first',
+          });
+        }
+        if (typeof handle !== 'string' || !handle || current.handle !== handle) {
+          // Bound to what the user confirmed: never decide a request that
+          // replaced it in the meantime.
+          throw new HawcxServiceError({
+            code: 'approval_handle_unknown',
+            message: 'The approval changed; show the current one and confirm again',
           });
         }
         const decided = await decideApproval(current.handle, decision, {
@@ -1984,12 +2014,12 @@ export function useHawcxApprover(): HawcxApproverHookResult {
   );
 
   const approve = useCallback(
-    (numberChoice?: number, options?: { rememberDevice?: boolean }) =>
-      decide('approve', numberChoice, options?.rememberDevice),
+    (handle: string, numberChoice?: number, options?: { rememberDevice?: boolean }) =>
+      decide(handle, 'approve', numberChoice, options?.rememberDevice),
     [decide],
   );
 
-  const deny = useCallback(() => decide('deny'), [decide]);
+  const deny = useCallback((handle: string) => decide(handle, 'deny'), [decide]);
 
   const reset = useCallback(async () => {
     const current = requestRef.current;
@@ -2002,6 +2032,18 @@ export function useHawcxApprover(): HawcxApproverHookResult {
       await discardApproval(current.handle);
     }
   }, []);
+
+  // Don't leave the fetched request in the native cache after the screen goes.
+  useEffect(
+    () => () => {
+      const current = requestRef.current;
+      requestRef.current = undefined;
+      if (current) {
+        discardApproval(current.handle).catch(() => undefined);
+      }
+    },
+    [],
+  );
 
   return { request, result, error, loading, fetch, approve, deny, reset };
 }

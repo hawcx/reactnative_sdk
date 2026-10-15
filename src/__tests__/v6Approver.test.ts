@@ -328,7 +328,7 @@ describe('useHawcxApprover', () => {
     });
     expect(ref.current!.request?.handle).toBe('h-1');
     await act(async () => {
-      await ref.current!.approve(42);
+      await ref.current!.approve('h-1', 42);
     });
     expect(native.v6DecideApproval).toHaveBeenCalledWith('h-1', 'approve', 42, false);
     expect(ref.current!.result).toEqual({ outcome: 'approved' });
@@ -344,7 +344,7 @@ describe('useHawcxApprover', () => {
       await ref.current!.fetch(reference);
     });
     await act(async () => {
-      await ref.current!.deny().catch(() => undefined);
+      await ref.current!.deny('h-1').catch(() => undefined);
     });
     expect(ref.current!.error).toMatchObject({ code: 'approval_not_ready', retryable: true });
     expect(ref.current!.request?.handle).toBe('h-1');
@@ -353,6 +353,92 @@ describe('useHawcxApprover', () => {
     });
     expect(native.v6DiscardApproval).toHaveBeenCalledWith('h-1');
     expect(ref.current!.request).toBeUndefined();
+  });
+  const requestB = {
+    ...nativeRequest,
+    handle: 'h-2',
+    reference: { ...reference, approvalId: 'appr_y' },
+  };
+
+  // The app shows A, the user opens the confirm dialog for A, a push for B
+  // replaces it, then the user confirms: nothing may be sent for B.
+  it.each([
+    ['without a number', { ...requestB, numberRequired: false }, undefined],
+    ['with a number', { ...requestB, numberRequired: true }, 42],
+  ])('refuses an approve confirmed for A after B replaced it (%s)', async (_label, b, num) => {
+    native.v6FetchApprovalContext.mockResolvedValueOnce(nativeRequest).mockResolvedValueOnce(b);
+    await act(async () => {
+      await ref.current!.fetch(reference);
+    });
+    const shown = ref.current!.request!.handle;
+    await act(async () => {
+      await ref.current!.fetch((b as typeof requestB).reference);
+    });
+    expect(ref.current!.request?.handle).toBe('h-2');
+    expect(native.v6DiscardApproval).toHaveBeenCalledWith('h-1');
+    let caught: unknown;
+    await act(async () => {
+      await ref.current!.approve(shown, num).catch((error) => {
+        caught = error;
+      });
+    });
+    expect(caught).toBeInstanceOf(HawcxServiceError);
+    expect(caught).toMatchObject({ code: 'approval_handle_unknown' });
+    expect(native.v6DecideApproval).not.toHaveBeenCalled();
+    // B is still there to be shown and confirmed on its own.
+    expect(ref.current!.request?.handle).toBe('h-2');
+  });
+
+  it('refuses a decision while a replacing fetch is still in flight', async () => {
+    native.v6FetchApprovalContext.mockResolvedValueOnce(nativeRequest);
+    await act(async () => {
+      await ref.current!.fetch(reference);
+    });
+    let resolveB: (value: unknown) => void = () => undefined;
+    native.v6FetchApprovalContext.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveB = resolve;
+      }),
+    );
+    let pendingFetch: Promise<unknown> | undefined;
+    await act(async () => {
+      pendingFetch = ref.current!.fetch(requestB.reference);
+    });
+    await act(async () => {
+      await expect(ref.current!.deny('h-1')).rejects.toMatchObject({
+        code: 'approval_handle_unknown',
+      });
+    });
+    await act(async () => {
+      resolveB(requestB);
+      await pendingFetch;
+    });
+    expect(native.v6DecideApproval).not.toHaveBeenCalled();
+  });
+
+  it('refuses a decision without the handle the user saw', async () => {
+    native.v6FetchApprovalContext.mockResolvedValueOnce(nativeRequest);
+    await act(async () => {
+      await ref.current!.fetch(reference);
+    });
+    await act(async () => {
+      await expect(
+        (ref.current!.approve as unknown as (n: number) => Promise<unknown>)(42),
+      ).rejects.toMatchObject({ code: 'approval_handle_unknown' });
+    });
+    expect(native.v6DecideApproval).not.toHaveBeenCalled();
+  });
+
+  it('discards the fetched request on unmount', async () => {
+    native.v6FetchApprovalContext.mockResolvedValueOnce(nativeRequest);
+    await act(async () => {
+      await ref.current!.fetch(reference);
+    });
+    await act(async () => {
+      renderer?.unmount();
+      renderer = undefined;
+    });
+    expect(native.v6DiscardApproval).toHaveBeenCalledWith('h-1');
   });
 });
 
