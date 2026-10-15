@@ -19,6 +19,8 @@ import {
 import {
   approveV6Qr,
   getLastLoggedInUser,
+  hawcxV6Client,
+  isHawcxV6ApprovalOutcome,
   initialize,
   isHawcxMagicLinkUrl,
   notifyUserAuthenticated,
@@ -39,6 +41,7 @@ import {
   EXAMPLE_DEFAULT_IDENTIFIER,
   EXAMPLE_REDIRECT_SCHEMES,
 } from './hawcx.config';
+import { ApproverScreen } from './ApproverScreen';
 
 const COLORS = {
   bg: '#09111f',
@@ -82,6 +85,8 @@ const STATUS_COPY: Record<string, string> = {
   enter_totp: 'Enter the authenticator code',
   redirect: 'Continue in the browser',
   await_approval: 'Waiting for approval',
+  locked: 'Too many attempts',
+  unknown: 'Update the app to continue',
   completed: 'Authorization code received',
   error: 'Resolve the error and continue',
 };
@@ -384,6 +389,32 @@ const describeMagicLinkOutcome = (outcome?: HawcxV6MagicLinkRedirectOutcome) => 
   }
 };
 
+/** Requester-side text for approval outcomes and push start limits. */
+const describeRequesterError = (code: string): string | null => {
+  switch (code) {
+    case 'approval_denied':
+      return 'Sign-in denied on your other device.';
+    case 'approval_wrong_number':
+      return 'The wrong number was picked on your other device. Start again.';
+    case 'approval_superseded':
+      return 'A newer sign-in request replaced this one.';
+    case 'approval_blocked':
+      return 'This sign-in was blocked.';
+    case 'push_rate_limited':
+      return 'Too many push requests. Pick another method or wait.';
+    case 'push_unavailable':
+      return 'No device can receive a push right now. Pick another method.';
+    case 'qr_login_not_allowed':
+      return 'QR sign-in is not enabled for this project.';
+    case 'sdk_outdated':
+      return 'This app version is no longer supported. Update the app.';
+    case 'rate_limited':
+      return 'Too many requests. Wait a moment and try again.';
+    default:
+      return null;
+  }
+};
+
 const summarizeRedirectUrl = (rawUrl: string) => {
   try {
     const parsed = new URL(rawUrl);
@@ -418,6 +449,7 @@ const App = () => {
   const [pendingRedirectUrl, setPendingRedirectUrl] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [pendingMethodId, setPendingMethodId] = useState<string | null>(null);
+  const [approverScan, setApproverScan] = useState<{ raw: string; nonce: number } | undefined>();
 
   const v6 = useHawcxV6Auth(undefined, { flowType: 'signin' });
   const web = useHawcxWebLogin();
@@ -838,6 +870,28 @@ const App = () => {
     );
   }, [appendLog, identifier, requireReady, runPendingAction, v6]);
 
+  const startQrSignIn = useCallback(async () => {
+    if (!requireReady()) {
+      return;
+    }
+    await runPendingAction(
+      'start',
+      async () => {
+        setBackendStatus(null);
+        setBackendError(null);
+        handledCompletionRef.current = null;
+        appendLog('starting anonymous QR sign-in');
+        await v6.startQrLogin();
+      },
+      { waitForTransition: true },
+    );
+  }, [appendLog, requireReady, runPendingAction, v6]);
+
+  const backToMethods = useCallback(async () => {
+    const shown = await v6.backToMethodSelection();
+    appendLog(shown ? 'back to method selection' : 'no method list to go back to');
+  }, [appendLog, v6]);
+
   const openExternalUrl = useCallback(
     (url: string) => {
       Linking.openURL(url)
@@ -872,7 +926,17 @@ const App = () => {
             await v6.submitTotp(codeInput.trim());
             break;
           case 'redirect':
-            await openExternalUrl(currentPrompt.prompt.url);
+            // Auth session (iOS) / Custom Tabs (Android); a plain browser if that fails.
+            try {
+              const launch = await hawcxV6Client.launchRedirect(
+                currentPrompt.prompt.url,
+                currentPrompt.prompt.returnScheme,
+              );
+              appendLog(`redirect launched with ${launch.launchedWith}`);
+            } catch (error) {
+              appendLog(`launchRedirect failed (${(error as { code?: string }).code ?? 'error'})`);
+              await openExternalUrl(currentPrompt.prompt.url);
+            }
             break;
           case 'await_approval':
             await v6.poll();
@@ -998,6 +1062,12 @@ const App = () => {
         setWebError(
           'Unsupported scan payload. Provide a protocol QR JSON payload or a legacy 7-digit PIN URL.',
         );
+        return;
+      }
+
+      if (route.kind === 'approval_v2') {
+        setApproverScan({ raw: route.raw, nonce: Date.now() });
+        setWebStatus('Approvals v2 QR: opened in the approver card below.');
         return;
       }
 
@@ -1260,7 +1330,47 @@ const App = () => {
                 loading={startButtonLoading}
                 onPress={() => void startFlow()}
               />
+              <ActionButton
+                testID="v6-qr-login-button"
+                variant="secondary"
+                label="Sign in with QR (no email)"
+                loadingLabel="Starting…"
+                disabled={!isReady || isFlowBusy}
+                loading={false}
+                onPress={() => void startQrSignIn()}
+              />
             </>
+          ) : null}
+
+          {v6.state.notice ? (
+            <View style={styles.warningBanner}>
+              <Text style={styles.warningBannerTitle}>Notice: {v6.state.notice.code}</Text>
+              <Text style={styles.warningBannerBody}>{v6.state.notice.message}</Text>
+            </View>
+          ) : null}
+
+          {currentPrompt?.prompt.type === 'locked' ? (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorBannerTitle}>Too many attempts</Text>
+              <Text style={styles.errorBannerBody}>
+                Try again after {formatDateTime(currentPrompt.prompt.lockedUntil) ?? 'a while'} (
+                {currentPrompt.prompt.retryAfterSeconds}s). Nothing is retried automatically.
+              </Text>
+              <ActionButton
+                variant="secondaryTiny"
+                label="Start over"
+                loadingLabel="Resetting…"
+                disabled={isFlowBusy}
+                loading={pendingAction === 'reset_flow'}
+                onPress={() => void resetFlow()}
+              />
+            </View>
+          ) : null}
+
+          {currentPrompt?.prompt.type === 'unknown' ? (
+            <Text style={[styles.statusLine, styles.warningText]}>
+              This step ({currentPrompt.prompt.rawType}) needs a newer app. Start over.
+            </Text>
           ) : null}
 
           {currentPrompt && currentIdentifier ? (
@@ -1402,7 +1512,12 @@ const App = () => {
                 >
                   <Text style={styles.secondaryTinyButtonText}>Open Authenticator App</Text>
                 </TouchableOpacity>
-                {setupTotpPrompt.period ? (
+                {setupTotpPrompt.backupCodes?.length ? (
+                <Text style={styles.monoBlock}>
+                  Backup codes (shown once): {setupTotpPrompt.backupCodes.join('  ')}
+                </Text>
+              ) : null}
+              {setupTotpPrompt.period ? (
                   <Text style={styles.statusLine}>Refreshes every {setupTotpPrompt.period}s</Text>
                 ) : null}
               </View>
@@ -1485,6 +1600,19 @@ const App = () => {
 
           {currentPrompt?.prompt.type === 'await_approval' ? (
             <>
+              <Text style={styles.currentStepTitle}>
+                {currentPrompt.prompt.mode === 'push' ? 'Check your phone' : 'Scan with your phone'}
+              </Text>
+              {currentPrompt.prompt.number !== undefined ? (
+                <Text testID="v6-approval-number" style={styles.approvalNumber}>
+                  {currentPrompt.prompt.number}
+                </Text>
+              ) : null}
+              {currentPrompt.prompt.approvalId ? (
+                <Text selectable style={styles.statusLine}>
+                  approvalId: {currentPrompt.prompt.approvalId}
+                </Text>
+              ) : null}
               <Text style={styles.statusLine}>
                 Expires: {formatDateTime(currentPrompt.prompt.expiresAt) ?? 'Unknown'}
               </Text>
@@ -1532,6 +1660,35 @@ const App = () => {
               </Text>
               {v6.state.error.traceId ? (
                 <Text style={styles.errorBannerMeta}>Trace ID: {v6.state.error.traceId}</Text>
+              ) : null}
+              {describeRequesterError(v6.state.error.code) ? (
+                <Text style={styles.errorBannerBody}>
+                  {describeRequesterError(v6.state.error.code)}
+                </Text>
+              ) : null}
+              {v6.state.error.details?.retryAfterSeconds !== undefined ? (
+                <Text style={styles.errorBannerMeta}>
+                  Retry after {v6.state.error.details.retryAfterSeconds}s
+                </Text>
+              ) : null}
+              {v6.state.error.action === 'select_method' ? (
+                <ActionButton
+                  variant="secondaryTiny"
+                  label="Back to methods"
+                  loadingLabel="…"
+                  disabled={isFlowBusy}
+                  loading={false}
+                  onPress={() => void backToMethods()}
+                />
+              ) : isHawcxV6ApprovalOutcome(v6.state.error.code) ? (
+                <ActionButton
+                  variant="secondaryTiny"
+                  label="Start again"
+                  loadingLabel="Resetting…"
+                  disabled={isFlowBusy}
+                  loading={pendingAction === 'reset_flow'}
+                  onPress={() => void resetFlow()}
+                />
               ) : null}
               {v6.state.error.details?.errors?.length ? (
                 <View style={styles.errorList}>
@@ -1583,6 +1740,9 @@ const App = () => {
               {v6.state.completed.traceId ? (
                 <Text style={styles.successBannerBody}>Trace ID: {v6.state.completed.traceId}</Text>
               ) : null}
+              <Text style={styles.successBannerBody}>
+                Session token: {v6.state.completed.hasSessionToken ? 'held natively (device APIs on)' : 'none'}
+              </Text>
               <Text style={styles.successBannerBody}>
                 Expires:{' '}
                 {formatDateTime(v6.state.completed.expiresAt) ?? v6.state.completed.expiresAt}
@@ -1672,6 +1832,11 @@ const App = () => {
           <Text style={styles.statusLine}>Legacy web session state: {web.state.status}</Text>
         </View>
 
+        <ApproverScreen
+          incomingScan={approverScan}
+          defaultIdentifier={preferredUserId ?? identifier.trim()}
+        />
+
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={styles.cardHeaderCopy}>
@@ -1712,6 +1877,13 @@ const MetaItem = ({ label, value }: { label: string; value?: string }) => (
 );
 
 const styles = StyleSheet.create({
+  approvalNumber: {
+    fontSize: 56,
+    fontWeight: '800',
+    textAlign: 'center',
+    color: COLORS.accent,
+    marginVertical: 8,
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.bg,
