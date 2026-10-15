@@ -401,23 +401,27 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
         }
 
         runOnUiThread {
-            bridge.approveQr(
-                rawPayload = sanitizedPayload,
-                identifier = sanitizedIdentifier,
-                rememberDevice = rememberDevice
-            ) { result ->
-                result.onSuccess { outcome ->
-                    promise.resolve(
-                        Arguments.createMap().apply {
-                            putString("outcome", outcome.outcome)
-                            putString("payloadType", outcome.payloadType)
-                            outcome.userId?.takeIf { it.isNotBlank() }?.let { putString("userId", it) }
-                        }
-                    )
-                }.onFailure { error ->
-                    promise.rejectApproval(error)
+            // The bridge may have been torn down (onHostDestroy / re-initialize)
+            // before this runs: reject instead of throwing on the main thread.
+            runCatching {
+                bridge.approveQr(
+                    rawPayload = sanitizedPayload,
+                    identifier = sanitizedIdentifier,
+                    rememberDevice = rememberDevice
+                ) { result ->
+                    result.onSuccess { outcome ->
+                        promise.resolve(
+                            Arguments.createMap().apply {
+                                putString("outcome", outcome.outcome)
+                                putString("payloadType", outcome.payloadType)
+                                outcome.userId?.takeIf { it.isNotBlank() }?.let { putString("userId", it) }
+                            }
+                        )
+                    }.onFailure { error ->
+                        promise.rejectApproval(error)
+                    }
                 }
-            }
+            }.onFailure { promise.rejectApproval(it) }
         }
     }
 
