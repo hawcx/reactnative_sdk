@@ -1,10 +1,14 @@
 package com.hawcx.reactnative.v6
 
+import android.content.Context
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.hawcx.internal.HawcxSDK
+import com.hawcx.protocol.v1.HawcxV1ApprovalError
+import com.hawcx.protocol.v1.HawcxV1DeviceSummary
 import com.hawcx.protocol.v1.HawcxV1ErrorDetails
 import com.hawcx.protocol.v1.HawcxV1FieldError
 import com.hawcx.protocol.v1.HawcxV1FlowUpdate
@@ -15,6 +19,7 @@ import com.hawcx.protocol.v1.HawcxV1OAuthCallbackParser
 import com.hawcx.protocol.v1.HawcxV1PromptContext
 import com.hawcx.protocol.v1.HawcxV1QrApprovalOutcome
 import com.hawcx.protocol.v1.HawcxV1QrPayloadParser
+import com.hawcx.protocol.v1.HawcxV1RedirectLaunchResult
 import com.hawcx.protocol.v1.HawcxV1RiskInfo
 import com.hawcx.protocol.v1.HawcxV1RiskLocation
 import com.hawcx.protocol.v1.HawcxV1SDK
@@ -24,15 +29,30 @@ import com.hawcx.reactnative.HawcxEventDispatcher
 import com.hawcx.reactnative.HawcxReactNativeLogger
 
 internal data class HawcxV6StartOptions(
+    /** Empty for [qrLogin]. */
     val identifier: String,
     val flowType: HawcxV1FlowType = HawcxV1FlowType.SIGNIN,
     val startToken: String? = null,
     val inviteCode: String? = null,
-    val codeChallenge: String? = null
+    val codeChallenge: String? = null,
+    val scope: String? = null,
+    val samlReqId: String? = null,
+    /** `method: "qr_login"`: anonymous QR sign-in (no identifier). */
+    val qrLogin: Boolean = false
 ) {
     companion object {
         fun from(options: ReadableMap): HawcxV6StartOptions {
-            val identifier = options.getString("identifier")?.trim().orEmpty()
+            val identifier = options.getOptionalString("identifier").orEmpty()
+            val method = options.getOptionalString("method")
+            if (method != null) {
+                require(method == "qr_login") { "method must be qr_login when set" }
+                require(identifier.isEmpty()) { "identifier must be omitted for qr_login" }
+                return HawcxV6StartOptions(
+                    identifier = "",
+                    codeChallenge = options.getOptionalString("codeChallenge"),
+                    qrLogin = true
+                )
+            }
             require(identifier.isNotEmpty()) { "identifier is required" }
 
             val flowType = when (options.getString("flowType")?.trim().orEmpty().ifBlank { "signin" }) {
@@ -49,7 +69,9 @@ internal data class HawcxV6StartOptions(
                 flowType = flowType,
                 startToken = options.getOptionalString("startToken"),
                 inviteCode = options.getOptionalString("inviteCode"),
-                codeChallenge = options.getOptionalString("codeChallenge")
+                codeChallenge = options.getOptionalString("codeChallenge"),
+                scope = options.getOptionalString("scope"),
+                samlReqId = options.getOptionalString("samlReqId")
             )
         }
     }
@@ -122,8 +144,20 @@ internal class HawcxV6Bridge(
         )
 
         sdk.flow.onUpdate = { update ->
-            val event = HawcxV6FlowEventCodec.encode(update)
+            // The session token stays native; JS only learns that one exists.
+            val hasSessionToken = update is HawcxV1FlowUpdate.Completed &&
+                !sdk.flow.sessionToken.isNullOrEmpty()
+            val event = HawcxV6FlowEventCodec.encode(update, hasSessionToken)
             eventDispatcher.emitV6FlowEvent(event.type, event.payload)
+        }
+        sdk.flow.onNotice = { notice ->
+            eventDispatcher.emitV6FlowEvent(
+                "notice",
+                Arguments.createMap().apply {
+                    putString("code", notice.code)
+                    putString("message", notice.message)
+                }
+            )
         }
 
         this.sdk = sdk
@@ -131,13 +165,100 @@ internal class HawcxV6Bridge(
 
     fun start(options: HawcxV6StartOptions) {
         val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
-        sdk.start(
-            flowType = options.flowType,
-            identifier = options.identifier,
-            startToken = options.startToken,
-            inviteCode = options.inviteCode,
-            codeChallenge = options.codeChallenge
+        when {
+            options.qrLogin -> sdk.startQrLogin(codeChallenge = options.codeChallenge)
+            options.scope != null || options.samlReqId != null -> sdk.start(
+                flowType = options.flowType,
+                identifier = options.identifier,
+                startToken = options.startToken,
+                inviteCode = options.inviteCode,
+                codeChallenge = options.codeChallenge,
+                scope = options.scope,
+                samlReqId = options.samlReqId
+            )
+            else -> sdk.start(
+                flowType = options.flowType,
+                identifier = options.identifier,
+                startToken = options.startToken,
+                inviteCode = options.inviteCode,
+                codeChallenge = options.codeChallenge
+            )
+        }
+    }
+
+    /** Re-emits the last method list without a request; false when none was shown. */
+    fun backToMethodSelection(): Boolean {
+        val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
+        return sdk.flow.backToMethodSelection()
+    }
+
+    /** The last completed flow's session token (a secret; never logged here). */
+    fun currentSessionToken(): String? = sdk?.flow?.sessionToken
+
+    /** [explicit], else the flow's token; `session_required` when neither exists. */
+    private fun bearer(explicit: String?): Result<String> {
+        explicit?.takeIf { it.isNotEmpty() }?.let { return Result.success(it) }
+        sdk?.flow?.sessionToken?.takeIf { it.isNotEmpty() }?.let { return Result.success(it) }
+        return Result.failure(
+            HawcxV1ApprovalError(
+                code = "session_required",
+                message = "Sign in first: no session token is available",
+                status = null,
+                retryable = false
+            )
         )
+    }
+
+    /** Completion runs on an OkHttp thread. */
+    fun listDevices(bearerToken: String?, completion: (Result<WritableArray>) -> Unit) {
+        val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
+        bearer(bearerToken).fold(
+            onSuccess = { token ->
+                sdk.account.listDevices(token) { result ->
+                    completion(result.map { devices ->
+                        Arguments.createArray().apply {
+                            devices.forEach { pushMap(HawcxV6DeviceCodec.encode(it)) }
+                        }
+                    })
+                }
+            },
+            onFailure = { completion(Result.failure(it)) }
+        )
+    }
+
+    fun revokeDevice(bearerToken: String?, deviceId: String, reason: String?, completion: (Result<Unit>) -> Unit) {
+        val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
+        bearer(bearerToken).fold(
+            onSuccess = { token -> sdk.account.revokeDevice(token, deviceId, reason, completion) },
+            onFailure = { completion(Result.failure(it)) }
+        )
+    }
+
+    fun logoutEverywhere(bearerToken: String?, completion: (Result<Int>) -> Unit) {
+        val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
+        bearer(bearerToken).fold(
+            onSuccess = { token -> sdk.account.logoutEverywhere(token, completion) },
+            onFailure = { completion(Result.failure(it)) }
+        )
+    }
+
+    /**
+     * Opens a `redirect` step in Custom Tabs (browser fallback). The callback
+     * returns through the host's intent filter (`v6HandleRedirectUrl`).
+     * [returnScheme] is unused on Android (iOS needs it for its auth session).
+     */
+    fun launchRedirect(context: Context, url: String): Result<String> {
+        val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
+        return when (sdk.redirectLauncher.launch(context, url)) {
+            HawcxV1RedirectLaunchResult.CUSTOM_TAB -> Result.success("custom_tab")
+            HawcxV1RedirectLaunchResult.BROWSER -> Result.success("browser")
+            HawcxV1RedirectLaunchResult.NO_BROWSER -> Result.failure(
+                HawcxV1ApprovalError(code = "no_browser", message = "No browser can open the sign-in page", status = null, retryable = false)
+            )
+            HawcxV1RedirectLaunchResult.INVALID_URL -> Result.failure(
+                HawcxV1ApprovalError(code = "invalid_url", message = "url must be an http(s) URL", status = null, retryable = false)
+            )
+        }
     }
 
     fun selectMethod(methodId: String) {
@@ -254,6 +375,7 @@ internal class HawcxV6Bridge(
     fun dispose(resetFlow: Boolean) {
         val current = sdk ?: return
         current.flow.onUpdate = null
+        current.flow.onNotice = null
         if (resetFlow) {
             runCatching { current.reset() }
                 .onFailure { error ->
@@ -288,13 +410,45 @@ private object HawcxV6MagicLinkOutcomeCodec {
         }
 }
 
+/** [HawcxV1DeviceSummary] -> JS `HawcxV6DeviceSummary`. */
+internal object HawcxV6DeviceCodec {
+    fun encode(device: HawcxV1DeviceSummary): WritableMap = Arguments.createMap().apply {
+        putString("deviceId", device.deviceId)
+        putString("h2index", device.h2index)
+        putBoolean("revoked", device.revoked)
+        device.createdAt?.let { putString("createdAt", it) }
+        device.revokedAt?.let { putString("revokedAt", it) }
+        device.deviceInfo?.let { putMap("deviceInfo", Arguments.makeNativeMap(it)) }
+    }
+}
+
+/**
+ * Rejects with the error's code; userInfo carries
+ * `{status, retryable, retryAfterSeconds, outcome, decidedByThisDevice}` (the
+ * same keys the iOS bridge sends). No secrets are in these errors.
+ */
+internal fun Promise.rejectApproval(error: Throwable) {
+    if (error is HawcxV1ApprovalError) {
+        val userInfo = Arguments.createMap().apply {
+            putBoolean("retryable", error.retryable)
+            error.status?.let { putInt("status", it) }
+            error.retryAfterSeconds?.let { putInt("retryAfterSeconds", it) }
+            error.outcome?.let { putString("outcome", it) }
+            error.decidedByThisDevice?.let { putBoolean("decidedByThisDevice", it) }
+        }
+        reject(error.code, error.message, userInfo)
+    } else {
+        reject("hawcx.sdk", error.message ?: "Unexpected error", error)
+    }
+}
+
 private data class HawcxV6EventEnvelope(
     val type: String,
     val payload: WritableMap? = null
 )
 
 private object HawcxV6FlowEventCodec {
-    fun encode(update: HawcxV1FlowUpdate): HawcxV6EventEnvelope {
+    fun encode(update: HawcxV1FlowUpdate, hasSessionToken: Boolean = false): HawcxV6EventEnvelope {
         return when (update) {
             is HawcxV1FlowUpdate.Idle -> HawcxV6EventEnvelope(type = "idle")
             is HawcxV1FlowUpdate.Loading -> HawcxV6EventEnvelope(
@@ -317,6 +471,7 @@ private object HawcxV6FlowEventCodec {
                     putString("expiresAt", update.expiresAt)
                     update.codeVerifier?.let { putString("codeVerifier", it) }
                     putString("traceId", update.meta.traceId)
+                    putBoolean("hasSessionToken", hasSessionToken)
                 }
             )
 
@@ -347,11 +502,17 @@ private object HawcxV6FlowEventCodec {
             context.risk?.let { putMap("risk", encodeRiskInfo(it)) }
             context.codeChannel?.takeIf { it.isNotBlank() }?.let { putString("codeChannel", it) }
             context.pollPath?.takeIf { it.isNotBlank() }?.let { putString("pollPath", it) }
-            putMap("prompt", encodePrompt(prompt))
+            context.notice?.let { notice ->
+                putMap("notice", Arguments.createMap().apply {
+                    putString("code", notice.code)
+                    putString("message", notice.message)
+                })
+            }
+            putMap("prompt", encodePrompt(prompt, context))
         }
     }
 
-    private fun encodePrompt(prompt: HawcxV1UserPrompt): WritableMap {
+    private fun encodePrompt(prompt: HawcxV1UserPrompt, context: HawcxV1PromptContext): WritableMap {
         return Arguments.createMap().apply {
             when (prompt) {
                 is HawcxV1UserPrompt.SelectMethod -> {
@@ -376,6 +537,9 @@ private object HawcxV6FlowEventCodec {
                     putString("secret", prompt.secret)
                     putString("otpauthUrl", prompt.otpauthUrl)
                     prompt.period?.let { putInt("period", it) }
+                    context.backupCodes?.takeIf { it.isNotEmpty() }?.let { codes ->
+                        putArray("backupCodes", Arguments.createArray().apply { codes.forEach { pushString(it) } })
+                    }
                 }
                 is HawcxV1UserPrompt.SetupSms -> {
                     putString("type", "setup_sms")
@@ -391,6 +555,20 @@ private object HawcxV6FlowEventCodec {
                     prompt.qrData?.takeIf { it.isNotBlank() }?.let { putString("qrData", it) }
                     putString("expiresAt", prompt.expiresAt)
                     putInt("pollInterval", prompt.pollInterval)
+                    context.approval?.let { approval ->
+                        approval.mode?.takeIf { it.isNotBlank() }?.let { putString("mode", it) }
+                        approval.approvalId?.takeIf { it.isNotBlank() }?.let { putString("approvalId", it) }
+                        approval.number?.let { putInt("number", it) }
+                    }
+                }
+                is HawcxV1UserPrompt.Locked -> {
+                    putString("type", "locked")
+                    putInt("retryAfterSeconds", prompt.retryAfterSeconds)
+                    putString("lockedUntil", prompt.lockedUntil)
+                }
+                else -> {
+                    putString("type", "unknown")
+                    prompt::class.simpleName?.let { putString("rawType", it) }
                 }
             }
         }
@@ -436,6 +614,8 @@ private object HawcxV6FlowEventCodec {
             details.errors?.takeIf { it.isNotEmpty() }?.let {
                 putArray("errors", it.toWritableArray(::encodeFieldError))
             }
+            details.outcome?.takeIf { it.isNotBlank() }?.let { putString("outcome", it) }
+            details.decidedByThisDevice?.let { putBoolean("decidedByThisDevice", it) }
         }
     }
 

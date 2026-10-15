@@ -1,4 +1,6 @@
 import type {
+  HawcxV6ApprovalDisplay,
+  HawcxV6ApprovalOutcomeCode,
   HawcxV6AuthState,
   HawcxV6CompletedPayload,
   HawcxV6ErrorPayload,
@@ -8,6 +10,28 @@ import type {
   HawcxV6PromptPayload,
   HawcxV6ResendAvailability,
 } from './v6Types';
+
+export const HAWCX_V6_APPROVAL_OUTCOME_CODES: readonly HawcxV6ApprovalOutcomeCode[] = [
+  'approval_denied',
+  'approval_wrong_number',
+  'approval_superseded',
+  'approval_blocked',
+];
+
+/** True for the error codes that end an `await_approval` (see `HawcxV6ApprovalOutcomeCode`). */
+export const isHawcxV6ApprovalOutcome = (code: string): code is HawcxV6ApprovalOutcomeCode =>
+  (HAWCX_V6_APPROVAL_OUTCOME_CODES as readonly string[]).includes(code);
+
+const approvalDisplayOf = (prompt: HawcxV6PromptPayload): HawcxV6ApprovalDisplay | undefined => {
+  if (prompt.prompt.type !== 'await_approval') {
+    return undefined;
+  }
+  const { mode, approvalId, number } = prompt.prompt;
+  if (mode === undefined && approvalId === undefined && number === undefined) {
+    return undefined;
+  }
+  return { mode, approvalId, number };
+};
 
 const DEFAULT_FLOW_TYPE: HawcxV6FlowType = 'signin';
 
@@ -147,6 +171,16 @@ const reducePromptState = (
     awaitingApproval: prompt.prompt.type === 'await_approval',
     magicLinkPolling: isMagicLinkPollingPrompt(prompt),
     magicLinkRedirect: previous.magicLinkRedirect,
+    locked:
+      prompt.prompt.type === 'locked'
+        ? {
+            retryAfterSeconds: prompt.prompt.retryAfterSeconds,
+            lockedUntil: prompt.prompt.lockedUntil,
+          }
+        : undefined,
+    notice: prompt.notice ?? previous.notice,
+    approval: approvalDisplayOf(prompt),
+    approvalOutcome: undefined,
   };
 };
 
@@ -169,6 +203,7 @@ const reduceCompletedState = (
   awaitingApproval: false,
   magicLinkPolling: false,
   magicLinkRedirect: previous.magicLinkRedirect,
+  notice: previous.notice,
 });
 
 const reduceErrorState = (
@@ -193,6 +228,9 @@ const reduceErrorState = (
   awaitingApproval: false,
   magicLinkPolling: false,
   magicLinkRedirect: previous.magicLinkRedirect,
+  notice: previous.notice,
+  approval: previous.approval,
+  approvalOutcome: isHawcxV6ApprovalOutcome(error.code) ? error.code : undefined,
 });
 
 export const reduceHawcxV6FlowEvent = (
@@ -224,6 +262,8 @@ export const reduceHawcxV6FlowEvent = (
       return reduceCompletedState(event.payload, previous);
     case 'error':
       return reduceErrorState(event.payload, previous);
+    case 'notice':
+      return { ...previous, notice: event.payload };
     default:
       return previous;
   }

@@ -5,7 +5,9 @@ import type {
   HawcxV6ErrorDetails,
   HawcxV6ErrorPayload,
   HawcxV6FlowEvent,
+  HawcxV6LockedPrompt,
   HawcxV6Method,
+  HawcxV6Notice,
   HawcxV6PromptBase,
   HawcxV6PromptPayload,
   HawcxV6RedirectPrompt,
@@ -33,6 +35,26 @@ const asNumber = (value: unknown): number | undefined =>
 
 const asBoolean = (value: unknown): boolean | undefined =>
   typeof value === 'boolean' ? value : undefined;
+
+const asInteger = (value: unknown): number | undefined =>
+  typeof value === 'number' && Number.isInteger(value) ? value : undefined;
+
+const asStringArray = (value: unknown): string[] | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const items = value.map(asString).filter((item): item is string => Boolean(item));
+  return items.length > 0 ? items : undefined;
+};
+
+export const normalizeV6Notice = (value: unknown): HawcxV6Notice | undefined => {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const code = asString(value.code);
+  const message = asString(value.message);
+  return code && message ? { code, message } : undefined;
+};
 
 const asRecordArray = (value: unknown): Record<string, unknown>[] =>
   Array.isArray(value) ? value.filter(isRecord) : [];
@@ -123,19 +145,30 @@ const normalizeErrorDetails = (value: unknown): HawcxV6ErrorDetails | undefined 
     retryAt: asString(value.retryAt),
     attemptsRemaining: asNumber(value.attemptsRemaining),
     errors: errors.length > 0 ? errors : undefined,
+    outcome: asString(value.outcome),
+    decidedByThisDevice: asBoolean(value.decidedByThisDevice),
   };
 
   if (
     details.retryAfterSeconds === undefined &&
     details.retryAt === undefined &&
     details.attemptsRemaining === undefined &&
-    details.errors === undefined
+    details.errors === undefined &&
+    details.outcome === undefined &&
+    details.decidedByThisDevice === undefined
   ) {
     return undefined;
   }
 
   return details;
 };
+
+/** `{key: value}` when value is defined, else `{}` (keeps absent keys absent). */
+const optional = <K extends string, V>(key: K, value: V | undefined): { [P in K]?: V } =>
+  (value === undefined ? {} : { [key]: value }) as { [P in K]?: V };
+
+const approvalMode = (value: unknown): 'push' | 'qr' | undefined =>
+  value === 'push' || value === 'qr' ? value : undefined;
 
 const normalizePromptBase = (value: Record<string, unknown>): HawcxV6PromptBase | null => {
   const session = asString(value.session);
@@ -145,6 +178,7 @@ const normalizePromptBase = (value: Record<string, unknown>): HawcxV6PromptBase 
     return null;
   }
 
+  const notice = normalizeV6Notice(value.notice);
   const step =
     normalizeStep(value.step) ??
     normalizeStep({
@@ -160,6 +194,7 @@ const normalizePromptBase = (value: Record<string, unknown>): HawcxV6PromptBase 
     risk: normalizeRisk(value.risk),
     codeChannel: asString(value.codeChannel),
     pollPath: asString(value.pollPath),
+    ...(notice ? { notice } : {}),
   };
 };
 
@@ -232,6 +267,7 @@ const normalizePromptPayload = (value: unknown): HawcxV6PromptPayload | null => 
           secret,
           otpauthUrl,
           period: asNumber(rawPrompt?.period ?? value.period),
+          ...optional('backupCodes', asStringArray(rawPrompt?.backupCodes ?? value.backupCodes)),
         },
       };
       return payload;
@@ -276,7 +312,22 @@ const normalizePromptPayload = (value: unknown): HawcxV6PromptPayload | null => 
           qrData: asString(rawPrompt?.qrData ?? value.qrData),
           expiresAt: promptExpiresAt,
           pollInterval,
+          ...optional('mode', approvalMode(rawPrompt?.mode ?? value.mode)),
+          ...optional('approvalId', asString(rawPrompt?.approvalId ?? value.approvalId)),
+          ...optional('number', asInteger(rawPrompt?.number ?? value.number)),
         },
+      };
+      return payload;
+    }
+    case 'locked': {
+      const retryAfterSeconds = asNumber(rawPrompt?.retryAfterSeconds ?? value.retryAfterSeconds);
+      const lockedUntil = asString(rawPrompt?.lockedUntil ?? value.lockedUntil);
+      if (retryAfterSeconds === undefined || !lockedUntil) {
+        return null;
+      }
+      const payload: HawcxV6LockedPrompt = {
+        ...base,
+        prompt: { type: 'locked', retryAfterSeconds, lockedUntil },
       };
       return payload;
     }
@@ -312,6 +363,7 @@ const normalizeCompletedPayload = (value: unknown): HawcxV6CompletedPayload | nu
     expiresAt,
     codeVerifier: asString(value.codeVerifier),
     traceId,
+    ...optional('hasSessionToken', asBoolean(value.hasSessionToken)),
   };
 };
 
@@ -369,6 +421,10 @@ export const normalizeV6FlowEvent = (value: unknown): HawcxV6FlowEvent | null =>
     case 'error': {
       const payload = normalizeErrorPayload(value.payload);
       return payload ? { type: 'error', payload } : null;
+    }
+    case 'notice': {
+      const payload = normalizeV6Notice(value.payload);
+      return payload ? { type: 'notice', payload } : null;
     }
     default:
       return null;

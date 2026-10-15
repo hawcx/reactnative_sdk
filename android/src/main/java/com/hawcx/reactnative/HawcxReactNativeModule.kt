@@ -14,6 +14,7 @@ import com.hawcx.internal.HawcxSDK
 import com.hawcx.reactnative.v6.HawcxV6Bridge
 import com.hawcx.reactnative.v6.HawcxV6InitializeOptions
 import com.hawcx.reactnative.v6.HawcxV6StartOptions
+import com.hawcx.reactnative.v6.rejectApproval
 import com.hawcx.utils.AuthV5Callback
 
 internal const val AUTH_EVENT_NAME = "hawcx.auth.event"
@@ -459,6 +460,101 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
             }.onFailure { error ->
                 promise.reject(CODE_SDK, error.message, error)
             }
+        }
+    }
+
+    @ReactMethod
+    fun v6BackToMethodSelection(promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        runOnUiThread {
+            runCatching { bridge.backToMethodSelection() }
+                .onSuccess { promise.resolve(it) }
+                .onFailure { error -> promise.reject(CODE_SDK, error.message, error) }
+        }
+    }
+
+    /** Resolves the last completed flow's session token or null. Never logged. */
+    @ReactMethod
+    fun v6GetSessionToken(promise: Promise) {
+        promise.resolve(hawcxV6Bridge?.currentSessionToken())
+    }
+
+    @ReactMethod
+    fun v6ListDevices(sessionToken: String?, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        runCatching {
+            bridge.listDevices(sessionToken?.trim()?.ifEmpty { null }) { result ->
+                result.onSuccess { promise.resolve(it) }.onFailure { promise.rejectApproval(it) }
+            }
+        }.onFailure { error -> promise.reject(CODE_SDK, error.message, error) }
+    }
+
+    @ReactMethod
+    fun v6RevokeDevice(sessionToken: String?, deviceId: String?, reason: String?, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        val sanitizedDevice = deviceId?.trim().orEmpty()
+        if (sanitizedDevice.isEmpty()) {
+            promise.reject(CODE_INPUT, "deviceId is required")
+            return
+        }
+        runCatching {
+            bridge.revokeDevice(
+                sessionToken?.trim()?.ifEmpty { null },
+                sanitizedDevice,
+                reason?.trim()?.ifEmpty { null }
+            ) { result ->
+                result.onSuccess { promise.resolve(null) }.onFailure { promise.rejectApproval(it) }
+            }
+        }.onFailure { error -> promise.reject(CODE_SDK, error.message, error) }
+    }
+
+    @ReactMethod
+    fun v6LogoutEverywhere(sessionToken: String?, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        runCatching {
+            bridge.logoutEverywhere(sessionToken?.trim()?.ifEmpty { null }) { result ->
+                result.onSuccess { count ->
+                    promise.resolve(Arguments.createMap().apply { putInt("sessionsEnded", count) })
+                }.onFailure { promise.rejectApproval(it) }
+            }
+        }.onFailure { error -> promise.reject(CODE_SDK, error.message, error) }
+    }
+
+    /** Custom Tabs launch; [returnScheme] only matters on iOS. */
+    @ReactMethod
+    fun v6LaunchRedirect(url: String?, returnScheme: String?, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        val sanitizedUrl = url?.trim().orEmpty()
+        if (sanitizedUrl.isEmpty()) {
+            promise.reject(CODE_INPUT, "url is required")
+            return
+        }
+        runOnUiThread {
+            val context = reactApplicationContext.currentActivity ?: applicationContext
+            runCatching { bridge.launchRedirect(context, sanitizedUrl) }
+                .fold(
+                    onSuccess = { result ->
+                        result.onSuccess { launchedWith ->
+                            promise.resolve(Arguments.createMap().apply { putString("launchedWith", launchedWith) })
+                        }.onFailure { promise.rejectApproval(it) }
+                    },
+                    onFailure = { error -> promise.reject(CODE_SDK, error.message, error) }
+                )
         }
     }
 

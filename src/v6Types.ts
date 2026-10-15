@@ -10,6 +10,7 @@ export type HawcxV6AuthStatus =
   | 'enter_totp'
   | 'redirect'
   | 'await_approval'
+  | 'locked'
   | 'unknown'
   | 'completed'
   | 'error';
@@ -44,10 +45,40 @@ export type HawcxV6FieldError = {
 };
 
 export type HawcxV6ErrorDetails = {
+  /** From the step or the `Retry-After` header (425, 429, gateway 429 `rate_limited`). */
   retryAfterSeconds?: number;
   retryAt?: string;
   attemptsRemaining?: number;
   errors?: HawcxV6FieldError[];
+  /** `approval_resolved`: approved, denied, expired, wrong_number, superseded or blocked. */
+  outcome?: string;
+  /** `approval_resolved`: whether this device made the decision. */
+  decidedByThisDevice?: boolean;
+};
+
+/**
+ * A non-fatal notice riding along with a step, e.g. `device_revoked`, or
+ * `unauthorized_device` after the native SDK cleared this device's revoked
+ * keys and restarted the flow once.
+ */
+export type HawcxV6Notice = {
+  code: string;
+  message: string;
+};
+
+/** Requester outcomes that end an `await_approval` (they arrive as error events). */
+export type HawcxV6ApprovalOutcomeCode =
+  | 'approval_denied'
+  | 'approval_wrong_number'
+  | 'approval_superseded'
+  | 'approval_blocked';
+
+/** Approvals v2 fields of an `await_approval` step (absent for v1 approvals). */
+export type HawcxV6ApprovalDisplay = {
+  mode?: 'push' | 'qr';
+  approvalId?: string;
+  /** Number-matching code (10-99) to show large; the user types it on the approving phone. */
+  number?: number;
 };
 
 export type HawcxV6PromptBase = {
@@ -66,6 +97,8 @@ export type HawcxV6PromptBase = {
    * is in the background.
    */
   pollPath?: string;
+  /** Top-level notice that came with this step (see `HawcxV6Notice`). */
+  notice?: HawcxV6Notice;
 };
 
 export type HawcxV6SelectMethodPrompt = HawcxV6PromptBase & {
@@ -105,6 +138,8 @@ export type HawcxV6SetupTotpPrompt = HawcxV6PromptBase & {
     secret: string;
     otpauthUrl: string;
     period?: number;
+    /** Recovery codes (`XXXX-XXXX`) to show once. Secret: never log them. */
+    backupCodes?: string[];
   };
 };
 
@@ -129,6 +164,18 @@ export type HawcxV6AwaitApprovalPrompt = HawcxV6PromptBase & {
     qrData?: string;
     expiresAt: string;
     pollInterval: number;
+  } & HawcxV6ApprovalDisplay;
+};
+
+/**
+ * Too many failed attempts. Show the wait; nothing is polled or retried. Start
+ * again after `lockedUntil`.
+ */
+export type HawcxV6LockedPrompt = HawcxV6PromptBase & {
+  prompt: {
+    type: 'locked';
+    retryAfterSeconds: number;
+    lockedUntil: string;
   };
 };
 
@@ -152,6 +199,7 @@ export type HawcxV6PromptPayload =
   | HawcxV6SetupSmsPrompt
   | HawcxV6RedirectPrompt
   | HawcxV6AwaitApprovalPrompt
+  | HawcxV6LockedPrompt
   | HawcxV6UnknownPrompt;
 
 export type HawcxV6CompletedPayload = {
@@ -160,6 +208,12 @@ export type HawcxV6CompletedPayload = {
   expiresAt: string;
   codeVerifier?: string;
   traceId?: string;
+  /**
+   * The flow returned a session token (the bearer for the device APIs). The
+   * token itself stays native: pass `null` to `listDevices` / `revokeDevice` /
+   * `logoutEverywhere`, or read it with `getSessionToken()`.
+   */
+  hasSessionToken?: boolean;
 };
 
 export type HawcxV6ErrorAction =
@@ -187,7 +241,8 @@ export type HawcxV6FlowEvent =
   | { type: 'loading'; payload: { session?: string } }
   | { type: 'prompt'; payload: HawcxV6PromptPayload }
   | { type: 'completed'; payload: HawcxV6CompletedPayload }
-  | { type: 'error'; payload: HawcxV6ErrorPayload };
+  | { type: 'error'; payload: HawcxV6ErrorPayload }
+  | { type: 'notice'; payload: HawcxV6Notice };
 
 export type HawcxV6ResendAvailability = {
   canResend: boolean;
@@ -219,14 +274,52 @@ export type HawcxV6AuthState = {
   magicLinkPolling: boolean;
   /** Last result of `completeMagicLinkRedirect` (cleared on a new start/reset). */
   magicLinkRedirect?: HawcxV6MagicLinkRedirectOutcome;
+  /** Set while the `locked` step shows. */
+  locked?: { retryAfterSeconds: number; lockedUntil: string };
+  /** Last notice of this flow (cleared by a new start / reset). */
+  notice?: HawcxV6Notice;
+  /** Approvals v2 display of the current or last `await_approval`. */
+  approval?: HawcxV6ApprovalDisplay;
+  /** Set on an error event whose code ends an approval. */
+  approvalOutcome?: HawcxV6ApprovalOutcomeCode;
 };
 
 export type HawcxV6StartOptions = {
-  identifier: string;
+  /** Required, except with `method: 'qr_login'` (which must omit it). */
+  identifier?: string;
   flowType?: HawcxV6FlowType;
   startToken?: string;
   inviteCode?: string;
   codeChallenge?: string;
+  /** OIDC scope the relying party requests. */
+  scope?: string;
+  /** Internal hosted-login surfaces: `samlreq_<lowercase hex>` (validated natively). */
+  samlReqId?: string;
+  /**
+   * `qr_login`: anonymous QR sign-in (signin, no identifier). Show the
+   * `await_approval` step's `qrData` as a QR code for a signed-in phone.
+   */
+  method?: 'qr_login';
+};
+
+/** One of the signed-in user's devices (`POST /v1/users/me/devices/list`). */
+export type HawcxV6DeviceSummary = {
+  deviceId: string;
+  h2index: string;
+  createdAt?: string;
+  revoked: boolean;
+  revokedAt?: string;
+  deviceInfo?: Record<string, unknown>;
+};
+
+/**
+ * How `launchRedirect` opened the URL. `auth_session` (iOS): the
+ * ASWebAuthenticationSession finished and its callback was handed to the flow.
+ * `custom_tab` / `browser` (Android): the page is open; the callback comes back
+ * through the app's intent filter, so pass it to `handleRedirectUrl`.
+ */
+export type HawcxV6RedirectLaunch = {
+  launchedWith: 'auth_session' | 'custom_tab' | 'browser';
 };
 
 /**

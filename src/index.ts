@@ -16,18 +16,29 @@ import {
   applyHawcxV6MagicLinkRedirect,
   refreshHawcxV6AuthState,
   reduceHawcxV6FlowEvent,
+  HAWCX_V6_APPROVAL_OUTCOME_CODES,
+  isHawcxV6ApprovalOutcome,
 } from './v6State';
+import { HawcxServiceError, toHawcxServiceError, withServiceErrors } from './v6Errors';
 import type {
   HawcxV6AuthState,
+  HawcxV6DeviceSummary,
   HawcxV6FlowEvent,
   HawcxV6FlowType,
   HawcxV6MagicLinkRedirectOutcome,
+  HawcxV6RedirectLaunch,
   HawcxV6StartOptions,
 } from './v6Types';
 import { routeWebLoginScan, type HawcxV6QrApprovalResult } from './v6WebLogin';
 
 export type {
+  HawcxV6ApprovalDisplay,
+  HawcxV6ApprovalOutcomeCode,
   HawcxV6AwaitApprovalPrompt,
+  HawcxV6DeviceSummary,
+  HawcxV6LockedPrompt,
+  HawcxV6Notice,
+  HawcxV6RedirectLaunch,
   HawcxV6AuthState,
   HawcxV6AuthStatus,
   HawcxV6CompletedPayload,
@@ -151,6 +162,27 @@ export type PushEvent =
   | { type: 'push_login_request'; payload: PushLoginPayload }
   | { type: 'push_error'; payload: AuthErrorPayload };
 
+export { HawcxServiceError, toHawcxServiceError };
+export { HAWCX_V6_APPROVAL_OUTCOME_CODES, isHawcxV6ApprovalOutcome };
+
+/**
+ * Error codes the flow can report (error events) that apps commonly branch on.
+ * Not exhaustive: unknown codes pass through as strings.
+ */
+export const HawcxV6ErrorCodes = {
+  sdkOutdated: 'sdk_outdated',
+  rateLimited: 'rate_limited',
+  accountLocked: 'account_locked',
+  unauthorizedDevice: 'unauthorized_device',
+  approvalDenied: 'approval_denied',
+  approvalWrongNumber: 'approval_wrong_number',
+  approvalSuperseded: 'approval_superseded',
+  approvalBlocked: 'approval_blocked',
+  pushRateLimited: 'push_rate_limited',
+  pushUnavailable: 'push_unavailable',
+  qrLoginNotAllowed: 'qr_login_not_allowed',
+} as const;
+
 export type HawcxV6QrApprovalOptions = {
   rememberDevice?: boolean;
 };
@@ -173,6 +205,14 @@ export type HawcxV6AuthHookResult = {
   reset: () => Promise<void>;
   handleRedirectUrl: (url: string) => Promise<void>;
   completeMagicLinkRedirect: (url: string) => Promise<HawcxV6MagicLinkRedirectOutcome>;
+  /**
+   * Shows the last method list again without a request (e.g. after an error
+   * whose action is `select_method`, like `push_rate_limited`). Resolves false
+   * when no method list was shown in this flow.
+   */
+  backToMethodSelection: () => Promise<boolean>;
+  /** Anonymous QR sign-in (`startQrLogin` on the client). */
+  startQrLogin: (options?: { codeChallenge?: string }) => Promise<void>;
   canResend: boolean;
   resendAvailability: HawcxV6AuthState['resend'];
   secondsUntilResend?: number;
@@ -200,6 +240,16 @@ type NativeBridge = {
   ): Promise<Record<string, unknown>>;
   v6HandleRedirectUrl(url: string): Promise<void>;
   v6CompleteMagicLinkRedirect(url: string): Promise<Record<string, unknown>>;
+  v6BackToMethodSelection(): Promise<boolean>;
+  v6GetSessionToken(): Promise<string | null>;
+  v6ListDevices(sessionToken: string | null): Promise<unknown>;
+  v6RevokeDevice(
+    sessionToken: string | null,
+    deviceId: string,
+    reason: string | null,
+  ): Promise<void>;
+  v6LogoutEverywhere(sessionToken: string | null): Promise<Record<string, unknown>>;
+  v6LaunchRedirect(url: string, returnScheme: string | null): Promise<Record<string, unknown>>;
   storeBackendOAuthTokens(
     userId: string,
     accessToken: string,
@@ -443,16 +493,187 @@ export function submitOtp(otp: string): Promise<void> {
   }
 }
 
+const trimmedOrUndefined = (value?: string): string | undefined => value?.trim() || undefined;
+
+/** Drops undefined values so the native side sees absent keys. */
+const compact = <T extends Record<string, unknown>>(value: T): T =>
+  Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as T;
+
+const buildV6StartOptions = (options: HawcxV6StartOptions): HawcxV6StartOptions => {
+  if (options.method === 'qr_login') {
+    if (options.identifier?.trim()) {
+      throw new Error('identifier must be omitted for qr_login');
+    }
+    if (options.flowType && options.flowType !== 'signin') {
+      throw new Error('qr_login is a signin flow');
+    }
+    if (options.scope || options.samlReqId || options.startToken || options.inviteCode) {
+      throw new Error(
+        'scope, samlReqId, startToken and inviteCode are not supported with qr_login',
+      );
+    }
+    return compact({
+      method: 'qr_login',
+      flowType: 'signin',
+      codeChallenge: trimmedOrUndefined(options.codeChallenge),
+    });
+  }
+  const identifier = ensureNonEmpty(options.identifier ?? '', 'identifier');
+  return compact({
+    ...options,
+    identifier,
+    flowType: normalizeHawcxV6FlowType(options.flowType),
+    startToken: trimmedOrUndefined(options.startToken),
+    inviteCode: trimmedOrUndefined(options.inviteCode),
+    codeChallenge: trimmedOrUndefined(options.codeChallenge),
+    scope: trimmedOrUndefined(options.scope),
+    samlReqId: trimmedOrUndefined(options.samlReqId),
+  });
+};
+
 export function startV6Flow(options: HawcxV6StartOptions): Promise<void> {
   try {
-    const identifier = ensureNonEmpty(options.identifier, 'identifier');
-    return HawcxReactNative.v6Start({
-      ...options,
-      identifier,
-      flowType: normalizeHawcxV6FlowType(options.flowType),
-      startToken: options.startToken?.trim() || undefined,
-      inviteCode: options.inviteCode?.trim() || undefined,
-      codeChallenge: options.codeChallenge?.trim() || undefined,
+    return HawcxReactNative.v6Start(buildV6StartOptions(options));
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+/**
+ * Anonymous QR sign-in: a signin with no identifier. The flow emits an
+ * `await_approval` step whose `qrData` the app shows as a QR code; a signed-in
+ * phone scans it and picks the account. The tenant must allow `qr_login`
+ * (otherwise an error event `qr_login_not_allowed`).
+ */
+export function startV6QrLogin(options: { codeChallenge?: string } = {}): Promise<void> {
+  return startV6Flow({ method: 'qr_login', codeChallenge: options.codeChallenge });
+}
+
+/** See `HawcxV6AuthHookResult.backToMethodSelection`. */
+export function v6BackToMethodSelection(): Promise<boolean> {
+  return HawcxReactNative.v6BackToMethodSelection().then((value) => value === true);
+}
+
+/**
+ * The session token (JWT) of the last completed flow, or null. It is a secret
+ * bearer credential: never log it. The SDK keeps it native and never puts it on
+ * a flow event; the device APIs below use it when passed `null`. Cleared by a
+ * new start and reset; not persisted across app launches.
+ */
+export function v6GetSessionToken(): Promise<string | null> {
+  return HawcxReactNative.v6GetSessionToken().then((value) =>
+    typeof value === 'string' && value.length > 0 ? value : null,
+  );
+}
+
+const normalizeSessionTokenArg = (sessionToken?: string | null): string | null =>
+  sessionToken?.trim() || null;
+
+const normalizeDeviceSummary = (value: unknown): HawcxV6DeviceSummary | undefined => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return undefined;
+  }
+  const record = value as Record<string, unknown>;
+  const str = (item: unknown) => (typeof item === 'string' && item ? item : undefined);
+  const deviceId = str(record.deviceId);
+  const h2index = str(record.h2index);
+  if (!deviceId || !h2index) {
+    return undefined;
+  }
+  const deviceInfo =
+    typeof record.deviceInfo === 'object' &&
+    record.deviceInfo !== null &&
+    !Array.isArray(record.deviceInfo)
+      ? (record.deviceInfo as Record<string, unknown>)
+      : undefined;
+  return {
+    deviceId,
+    h2index,
+    createdAt: str(record.createdAt),
+    revoked: record.revoked === true,
+    revokedAt: str(record.revokedAt),
+    deviceInfo,
+  };
+};
+
+/**
+ * Lists the signed-in user's devices. `sessionToken`: the bearer, or `null`
+ * to use the last completed flow's token (kept native). Rejects with
+ * `HawcxServiceError` (`session_required`, `session_expired`, `rate_limited`, ...).
+ */
+export function v6ListDevices(sessionToken?: string | null): Promise<HawcxV6DeviceSummary[]> {
+  return withServiceErrors(() =>
+    HawcxReactNative.v6ListDevices(normalizeSessionTokenArg(sessionToken)),
+  ).then((value) =>
+    Array.isArray(value)
+      ? value
+          .map(normalizeDeviceSummary)
+          .filter((item): item is HawcxV6DeviceSummary => Boolean(item))
+      : [],
+  );
+}
+
+/**
+ * Revokes one of the user's devices (`cannot_revoke_current_device` for this
+ * one). `sessionToken` as in `v6ListDevices`.
+ */
+export function v6RevokeDevice(
+  sessionToken: string | null | undefined,
+  deviceId: string,
+  reason?: string,
+): Promise<void> {
+  try {
+    const id = ensureNonEmpty(deviceId, 'deviceId');
+    return withServiceErrors(() =>
+      HawcxReactNative.v6RevokeDevice(
+        normalizeSessionTokenArg(sessionToken),
+        id,
+        reason?.trim() || null,
+      ),
+    ).then(() => undefined);
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+/** Ends every session of the user, including this one. `sessionToken` as in `v6ListDevices`. */
+export function v6LogoutEverywhere(
+  sessionToken?: string | null,
+): Promise<{ sessionsEnded: number }> {
+  return withServiceErrors(() =>
+    HawcxReactNative.v6LogoutEverywhere(normalizeSessionTokenArg(sessionToken)),
+  ).then((value) => ({
+    sessionsEnded: typeof value?.sessionsEnded === 'number' ? value.sessionsEnded : 0,
+  }));
+}
+
+/**
+ * Opens a `redirect` step's URL (social / external IdP, hosted login). iOS:
+ * ASWebAuthenticationSession with `returnScheme` (required there), whose
+ * callback is handed to the flow before this resolves. Android: Custom Tabs
+ * (browser fallback); resolves once the page is open, and the callback comes
+ * back through the app's intent filter: pass it to `v6HandleRedirectUrl`.
+ * Rejects with `HawcxServiceError` (`redirect_cancelled`, `invalid_callback`,
+ * `invalid_url`, `no_browser`, `redirect_failed`).
+ */
+export function v6LaunchRedirect(
+  url: string,
+  returnScheme?: string,
+): Promise<HawcxV6RedirectLaunch> {
+  try {
+    const target = ensureNonEmpty(url, 'url');
+    return withServiceErrors(() =>
+      HawcxReactNative.v6LaunchRedirect(target, returnScheme?.trim() || null),
+    ).then((value) => {
+      const launchedWith = value?.launchedWith;
+      if (
+        launchedWith === 'auth_session' ||
+        launchedWith === 'custom_tab' ||
+        launchedWith === 'browser'
+      ) {
+        return { launchedWith };
+      }
+      throw new Error('Invalid V6 redirect launch response from native bridge');
     });
   } catch (error) {
     return Promise.reject(error);
@@ -1129,6 +1350,45 @@ export class HawcxV6Client {
     return completeHawcxMagicLinkRedirect(url);
   }
 
+  /** See `startV6QrLogin`. */
+  startQrLogin(options?: { codeChallenge?: string }): Promise<void> {
+    return startV6QrLogin(options);
+  }
+
+  /** See `v6BackToMethodSelection`. */
+  backToMethodSelection(): Promise<boolean> {
+    return v6BackToMethodSelection();
+  }
+
+  /** See `v6GetSessionToken` (a secret: never log it). */
+  getSessionToken(): Promise<string | null> {
+    return v6GetSessionToken();
+  }
+
+  /** See `v6ListDevices`. */
+  listDevices(sessionToken?: string | null): Promise<HawcxV6DeviceSummary[]> {
+    return v6ListDevices(sessionToken);
+  }
+
+  /** See `v6RevokeDevice`. */
+  revokeDevice(
+    sessionToken: string | null | undefined,
+    deviceId: string,
+    reason?: string,
+  ): Promise<void> {
+    return v6RevokeDevice(sessionToken, deviceId, reason);
+  }
+
+  /** See `v6LogoutEverywhere`. */
+  logoutEverywhere(sessionToken?: string | null): Promise<{ sessionsEnded: number }> {
+    return v6LogoutEverywhere(sessionToken);
+  }
+
+  /** See `v6LaunchRedirect`. */
+  launchRedirect(url: string, returnScheme?: string): Promise<HawcxV6RedirectLaunch> {
+    return v6LaunchRedirect(url, returnScheme);
+  }
+
   addFlowListener(handler: (event: HawcxV6FlowEvent) => void): EmitterSubscription {
     return addV6FlowListener(handler);
   }
@@ -1215,7 +1475,11 @@ export function useHawcxV6Auth(
 
   const start = useCallback(
     (startOptions: HawcxV6StartOptions) => {
-      const identifier = ensureNonEmpty(startOptions.identifier, 'identifier');
+      if (startOptions.method === 'qr_login') {
+        setState((previous) => createIdentifierHawcxV6AuthState({ previous, flowType: 'signin' }));
+        return client.start(startOptions);
+      }
+      const identifier = ensureNonEmpty(startOptions.identifier ?? '', 'identifier');
       const flowType = normalizeHawcxV6FlowType(startOptions.flowType ?? options.flowType);
 
       setState((previous) =>
@@ -1234,6 +1498,14 @@ export function useHawcxV6Auth(
     },
     [client, options.flowType],
   );
+
+  const startQrLogin = useCallback(
+    (qrOptions: { codeChallenge?: string } = {}) =>
+      start({ method: 'qr_login', codeChallenge: qrOptions.codeChallenge }),
+    [start],
+  );
+
+  const backToMethodSelection = useCallback(() => client.backToMethodSelection(), [client]);
 
   const selectMethod = useCallback((methodId: string) => client.selectMethod(methodId), [client]);
 
@@ -1355,6 +1627,8 @@ export function useHawcxV6Auth(
     reset,
     handleRedirectUrl,
     completeMagicLinkRedirect,
+    backToMethodSelection,
+    startQrLogin,
     canResend: state.resend.canResend,
     resendAvailability: state.resend,
     secondsUntilResend: state.resend.secondsUntilResend,

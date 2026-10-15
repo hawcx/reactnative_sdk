@@ -1,3 +1,4 @@
+import AuthenticationServices
 import Foundation
 import HawcxFramework
 
@@ -7,15 +8,46 @@ internal let HAWCX_V6_FLOW_EVENT_NAME = "hawcx.v6.flow.event"
 
 internal struct HawcxV6StartOptions {
     let flowType: HawcxV1FlowType
+    /// Empty for `qrLogin`.
     let identifier: String
     let startToken: String?
     let inviteCode: String?
     let codeChallenge: String?
+    let scope: String?
+    let samlReqId: String?
+    /// `method: "qr_login"`: anonymous QR sign-in (no identifier).
+    let qrLogin: Bool
 
     static func from(options: NSDictionary) throws -> HawcxV6StartOptions {
         let identifier = (options["identifier"] as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .nilIfEmpty
+        let method = (options["method"] as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nilIfEmpty
+        let codeChallenge = (options["codeChallenge"] as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nilIfEmpty
+
+        if let method {
+            guard method == "qr_login" else {
+                throw HawcxV6BridgeError.invalidInput("method must be qr_login when set")
+            }
+            guard identifier == nil else {
+                throw HawcxV6BridgeError.invalidInput("identifier must be omitted for qr_login")
+            }
+            return HawcxV6StartOptions(
+                flowType: .signin,
+                identifier: "",
+                startToken: nil,
+                inviteCode: nil,
+                codeChallenge: codeChallenge,
+                scope: nil,
+                samlReqId: nil,
+                qrLogin: true
+            )
+        }
+
         guard let identifier else {
             throw HawcxV6BridgeError.invalidInput("identifier is required")
         }
@@ -36,9 +68,14 @@ internal struct HawcxV6StartOptions {
             inviteCode: (options["inviteCode"] as? String)?
                 .trimmingCharacters(in: .whitespacesAndNewlines)
                 .nilIfEmpty,
-            codeChallenge: (options["codeChallenge"] as? String)?
+            codeChallenge: codeChallenge,
+            scope: (options["scope"] as? String)?
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-                .nilIfEmpty
+                .nilIfEmpty,
+            samlReqId: (options["samlReqId"] as? String)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .nilIfEmpty,
+            qrLogin: false
         )
     }
 }
@@ -103,8 +140,16 @@ internal final class HawcxV6Bridge {
             magicLinkLandingURL: options.magicLinkLandingURL
         )
 
-        sdk.flow.onUpdate = { [weak self] update in
-            self?.emitter?.emitV6FlowEvent(HawcxV6FlowEventCodec.encode(update: update))
+        sdk.flow.onUpdate = { [weak self, weak sdk] update in
+            var hasSessionToken = false
+            if case .completed = update {
+                // The token stays native; JS only learns that one exists.
+                hasSessionToken = sdk?.flow.sessionToken?.isEmpty == false
+            }
+            self?.emitter?.emitV6FlowEvent(HawcxV6FlowEventCodec.encode(update: update, hasSessionToken: hasSessionToken))
+        }
+        sdk.flow.onNotice = { [weak self] notice in
+            self?.emitter?.emitV6FlowEvent(HawcxV6FlowEventCodec.encode(notice: notice))
         }
 
         self.sdk = sdk
@@ -114,13 +159,156 @@ internal final class HawcxV6Bridge {
         guard let sdk else {
             throw HawcxV6BridgeError.notInitialized
         }
-        sdk.start(
-            flowType: options.flowType,
-            identifier: options.identifier,
-            startToken: options.startToken,
-            inviteCode: options.inviteCode,
-            codeChallenge: options.codeChallenge
-        )
+        if options.qrLogin {
+            sdk.startQrLogin(codeChallenge: options.codeChallenge)
+        } else if options.scope != nil || options.samlReqId != nil {
+            sdk.start(
+                flowType: options.flowType,
+                identifier: options.identifier,
+                startToken: options.startToken,
+                inviteCode: options.inviteCode,
+                codeChallenge: options.codeChallenge,
+                scope: options.scope,
+                samlReqId: options.samlReqId
+            )
+        } else {
+            sdk.start(
+                flowType: options.flowType,
+                identifier: options.identifier,
+                startToken: options.startToken,
+                inviteCode: options.inviteCode,
+                codeChallenge: options.codeChallenge
+            )
+        }
+    }
+
+    /// Re-emits the last method list without a request; false when none was shown.
+    func backToMethodSelection() throws -> Bool {
+        guard let sdk else {
+            throw HawcxV6BridgeError.notInitialized
+        }
+        return sdk.flow.backToMethodSelection()
+    }
+
+    /// The last completed flow's session token (a secret; never logged here).
+    func currentSessionToken() -> String? {
+        return sdk?.flow.sessionToken
+    }
+
+    /// `explicit`, else the flow's token; `session_required` when neither exists.
+    private func bearer(_ explicit: String?) -> Result<String, HawcxV1ApprovalError> {
+        if let explicit, !explicit.isEmpty {
+            return .success(explicit)
+        }
+        if let stored = sdk?.flow.sessionToken, !stored.isEmpty {
+            return .success(stored)
+        }
+        return .failure(HawcxV1ApprovalError(
+            code: "session_required",
+            message: "Sign in first: no session token is available",
+            status: nil,
+            retryable: false
+        ))
+    }
+
+    func listDevices(
+        bearerToken: String?,
+        completion: @escaping (Result<[[String: Any]], HawcxV1ApprovalError>) -> Void
+    ) throws {
+        guard let sdk else {
+            throw HawcxV6BridgeError.notInitialized
+        }
+        switch bearer(bearerToken) {
+        case let .failure(error):
+            completion(.failure(error))
+        case let .success(token):
+            sdk.account.listDevices(sessionToken: token) { result in
+                completion(result.map { $0.map(HawcxV6DeviceCodec.encode) })
+            }
+        }
+    }
+
+    func revokeDevice(
+        bearerToken: String?,
+        deviceId: String,
+        reason: String?,
+        completion: @escaping (Result<Void, HawcxV1ApprovalError>) -> Void
+    ) throws {
+        guard let sdk else {
+            throw HawcxV6BridgeError.notInitialized
+        }
+        switch bearer(bearerToken) {
+        case let .failure(error):
+            completion(.failure(error))
+        case let .success(token):
+            sdk.account.revokeDevice(sessionToken: token, deviceId: deviceId, reason: reason, completion: completion)
+        }
+    }
+
+    func logoutEverywhere(
+        bearerToken: String?,
+        completion: @escaping (Result<Int, HawcxV1ApprovalError>) -> Void
+    ) throws {
+        guard let sdk else {
+            throw HawcxV6BridgeError.notInitialized
+        }
+        switch bearer(bearerToken) {
+        case let .failure(error):
+            completion(.failure(error))
+        case let .success(token):
+            sdk.account.logoutEverywhere(sessionToken: token, completion: completion)
+        }
+    }
+
+    private var redirectSession: HawcxV1OAuthRedirectSession?
+
+    /// ASWebAuthenticationSession for a `redirect` step; the callback goes to
+    /// the flow (`oauthCallback`) before `completion` succeeds. Main thread.
+    func launchRedirect(
+        url urlString: String,
+        returnScheme: String?,
+        anchor: @escaping () -> ASPresentationAnchor,
+        completion: @escaping (Result<Void, HawcxV1ApprovalError>) -> Void
+    ) throws {
+        guard let sdk else {
+            throw HawcxV6BridgeError.notInitialized
+        }
+        guard let url = URL(string: urlString), let scheme = url.scheme?.lowercased(),
+              scheme == "https" || scheme == "http" else {
+            completion(.failure(Self.redirectError("invalid_url", "url must be an http(s) URL")))
+            return
+        }
+        guard let returnScheme, !returnScheme.isEmpty else {
+            completion(.failure(Self.redirectError("invalid_callback", "returnScheme is required on iOS")))
+            return
+        }
+        redirectSession?.cancel()
+        let session = HawcxV1OAuthRedirectSession(presentationAnchorProvider: anchor)
+        redirectSession = session
+        session.start(url: url, callbackScheme: returnScheme) { [weak self, weak sdk] result in
+            DispatchQueue.main.async {
+                self?.redirectSession = nil
+                switch result {
+                case let .success(callbackURL):
+                    guard let callback = HawcxV1OAuthCallbackParser.parse(callbackURL), let sdk else {
+                        completion(.failure(Self.redirectError("invalid_callback", "The callback URL has no code and state")))
+                        return
+                    }
+                    sdk.flow.oauthCallback(code: callback.code, state: callback.state)
+                    completion(.success(()))
+                case .failure(.cancelled):
+                    completion(.failure(Self.redirectError("redirect_cancelled", "The sign-in window was closed")))
+                case .failure(.invalidCallback):
+                    completion(.failure(Self.redirectError("invalid_callback", "The callback URL was not received")))
+                case let .failure(.failed(message)):
+                    completion(.failure(Self.redirectError("redirect_failed", message)))
+                }
+            }
+        }
+    }
+
+    private static func redirectError(_ code: String, _ message: String) -> HawcxV1ApprovalError {
+        HawcxV1ApprovalError(code: code, message: message, status: nil, retryable: false)
     }
 
     func selectMethod(_ methodId: String) throws {
@@ -247,8 +435,11 @@ internal final class HawcxV6Bridge {
     }
 
     func dispose(resetFlow: Bool) {
+        redirectSession?.cancel()
+        redirectSession = nil
         guard let sdk else { return }
         sdk.flow.onUpdate = nil
+        sdk.flow.onNotice = nil
         if resetFlow {
             sdk.reset()
         }
@@ -288,8 +479,42 @@ internal enum HawcxV6MagicLinkOutcomeCodec {
     }
 }
 
+/// `HawcxV1DeviceSummary` -> JS `HawcxV6DeviceSummary`.
+internal enum HawcxV6DeviceCodec {
+    static func encode(_ device: HawcxV1DeviceSummary) -> [String: Any] {
+        var payload: [String: Any] = [
+            "deviceId": device.deviceId,
+            "h2index": device.h2index,
+            "revoked": device.revoked
+        ]
+        if let createdAt = device.createdAt { payload["createdAt"] = createdAt }
+        if let revokedAt = device.revokedAt { payload["revokedAt"] = revokedAt }
+        if let info = device.deviceInfo { payload["deviceInfo"] = info.mapValues(json) }
+        return payload
+    }
+
+    static func json(_ value: HawcxV1JSONValue) -> Any {
+        switch value {
+        case let .string(text): return text
+        case let .number(number): return number
+        case let .bool(flag): return flag
+        case let .object(object): return object.mapValues(json)
+        case let .array(items): return items.map(json)
+        case .null: return NSNull()
+        @unknown default: return NSNull()
+        }
+    }
+}
+
 internal enum HawcxV6FlowEventCodec {
-    static func encode(update: HawcxV1FlowUpdate) -> [String: Any] {
+    static func encode(notice: HawcxV1Notice) -> [String: Any] {
+        return [
+            "type": "notice",
+            "payload": ["code": notice.code, "message": notice.message]
+        ]
+    }
+
+    static func encode(update: HawcxV1FlowUpdate, hasSessionToken: Bool = false) -> [String: Any] {
         switch update {
         case .idle:
             return ["type": "idle"]
@@ -319,6 +544,7 @@ internal enum HawcxV6FlowEventCodec {
             if let codeVerifier, !codeVerifier.isEmpty {
                 payload["codeVerifier"] = codeVerifier
             }
+            payload["hasSessionToken"] = hasSessionToken
             return [
                 "type": "completed",
                 "payload": payload
@@ -365,6 +591,9 @@ internal enum HawcxV6FlowEventCodec {
         }
         if let pollPath = context.pollPath, !pollPath.isEmpty {
             payload["pollPath"] = pollPath
+        }
+        if let notice = context.notice {
+            payload["notice"] = ["code": notice.code, "message": notice.message]
         }
         return payload
     }
@@ -418,6 +647,9 @@ internal enum HawcxV6FlowEventCodec {
             if let period {
                 payload["period"] = period
             }
+            if let backupCodes = context.backupCodes, !backupCodes.isEmpty {
+                payload["backupCodes"] = backupCodes
+            }
             return payload
         case let .setupSms(existingPhone):
             var payload: [String: Any] = [
@@ -445,7 +677,18 @@ internal enum HawcxV6FlowEventCodec {
             if let qrData, !qrData.isEmpty {
                 payload["qrData"] = qrData
             }
+            if let approval = context.approval {
+                if let mode = approval.mode, !mode.isEmpty { payload["mode"] = mode }
+                if let approvalId = approval.approvalId, !approvalId.isEmpty { payload["approvalId"] = approvalId }
+                if let number = approval.number { payload["number"] = number }
+            }
             return payload
+        case let .locked(retryAfterSeconds, lockedUntil):
+            return [
+                "type": "locked",
+                "retryAfterSeconds": retryAfterSeconds,
+                "lockedUntil": lockedUntil
+            ]
         @unknown default:
             return encodeUnknownPrompt(prompt)
         }
@@ -523,6 +766,12 @@ internal enum HawcxV6FlowEventCodec {
         }
         if let errors = details.errors, !errors.isEmpty {
             payload["errors"] = errors.map { ["field": $0.field, "message": $0.message] }
+        }
+        if let outcome = details.outcome, !outcome.isEmpty {
+            payload["outcome"] = outcome
+        }
+        if let decidedByThisDevice = details.decidedByThisDevice {
+            payload["decidedByThisDevice"] = decidedByThisDevice
         }
         return payload
     }

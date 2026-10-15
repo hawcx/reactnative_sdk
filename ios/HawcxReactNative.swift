@@ -1,3 +1,4 @@
+import AuthenticationServices
 import Foundation
 import HawcxFramework
 
@@ -411,6 +412,163 @@ class HawcxReactNative: RCTEventEmitter {
                 self.rejectV6Error(error, reject: reject)
             }
         }
+    }
+
+    @objc
+    func v6BackToMethodSelection(_ resolve: @escaping RCTPromiseResolveBlock,
+                                 rejecter reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                resolve(try bridge.backToMethodSelection())
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    /// Resolves the last completed flow's session token or nil. Never logged.
+    @objc
+    func v6GetSessionToken(_ resolve: @escaping RCTPromiseResolveBlock,
+                           rejecter reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.main.async {
+            resolve(self.hawcxV6Bridge?.currentSessionToken())
+        }
+    }
+
+    @objc
+    func v6ListDevices(_ sessionToken: Any?,
+                       resolver resolve: @escaping RCTPromiseResolveBlock,
+                       rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let bearer = HawcxReactNative.optionalString(sessionToken)
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                try bridge.listDevices(bearerToken: bearer) { result in
+                    DispatchQueue.main.async {
+                        switch result {
+                        case let .success(devices): resolve(devices)
+                        case let .failure(error): self.rejectApprovalError(error, reject: reject)
+                        }
+                    }
+                }
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
+    func v6RevokeDevice(_ sessionToken: Any?,
+                        deviceId: NSString,
+                        reason: Any?,
+                        resolver resolve: @escaping RCTPromiseResolveBlock,
+                        rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let bearer = HawcxReactNative.optionalString(sessionToken)
+        let trimmedDevice = deviceId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedDevice.isEmpty else {
+            reject("hawcx.input", "deviceId is required", nil)
+            return
+        }
+        let trimmedReason = HawcxReactNative.optionalString(reason)
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                try bridge.revokeDevice(bearerToken: bearer, deviceId: trimmedDevice, reason: trimmedReason) { result in
+                    DispatchQueue.main.async {
+                        switch result {
+                        case .success: resolve(nil)
+                        case let .failure(error): self.rejectApprovalError(error, reject: reject)
+                        }
+                    }
+                }
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
+    func v6LogoutEverywhere(_ sessionToken: Any?,
+                            resolver resolve: @escaping RCTPromiseResolveBlock,
+                            rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let bearer = HawcxReactNative.optionalString(sessionToken)
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                try bridge.logoutEverywhere(bearerToken: bearer) { result in
+                    DispatchQueue.main.async {
+                        switch result {
+                        case let .success(count): resolve(["sessionsEnded": count])
+                        case let .failure(error): self.rejectApprovalError(error, reject: reject)
+                        }
+                    }
+                }
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    @objc
+    func v6LaunchRedirect(_ url: NSString,
+                          returnScheme: Any?,
+                          resolver resolve: @escaping RCTPromiseResolveBlock,
+                          rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let trimmed = url.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            reject("hawcx.input", "url is required", nil)
+            return
+        }
+        let scheme = HawcxReactNative.optionalString(returnScheme)
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                try bridge.launchRedirect(
+                    url: trimmed,
+                    returnScheme: scheme,
+                    anchor: { RCTKeyWindow() ?? ASPresentationAnchor() }
+                ) { result in
+                    switch result {
+                    case .success: resolve(["launchedWith": "auth_session"])
+                    case let .failure(error): self.rejectApprovalError(error, reject: reject)
+                    }
+                }
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    /// Rejects with the error's code; `userInfo` carries
+    /// `{status, retryable, retryAfterSeconds, outcome, decidedByThisDevice}`
+    /// (the same keys the Android bridge sends). No secrets are in these errors.
+    func rejectApprovalError(_ error: HawcxV1ApprovalError, reject: @escaping RCTPromiseRejectBlock) {
+        var userInfo: [String: Any] = [
+            NSLocalizedDescriptionKey: error.message,
+            "retryable": error.retryable
+        ]
+        if let status = error.status { userInfo["status"] = status }
+        if let retryAfterSeconds = error.retryAfterSeconds { userInfo["retryAfterSeconds"] = retryAfterSeconds }
+        if let outcome = error.outcome { userInfo["outcome"] = outcome }
+        if let decided = error.decidedByThisDevice { userInfo["decidedByThisDevice"] = decided }
+        reject(error.code, error.message, NSError(domain: "com.hawcx.reactnative.approvals", code: error.status ?? 0, userInfo: userInfo))
+    }
+
+    static func optionalString(_ value: Any?) -> String? {
+        guard let text = value as? String else { return nil }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     @objc
