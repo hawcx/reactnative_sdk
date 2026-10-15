@@ -446,7 +446,21 @@ internal enum HawcxV6FlowEventCodec {
                 payload["qrData"] = qrData
             }
             return payload
+        @unknown default:
+            return encodeUnknownPrompt(prompt)
         }
+    }
+
+    /// A prompt this bridge doesn't map yet: `{type: "unknown", rawType}` where
+    /// `rawType` is the case name (`String(describing:)` up to the first `(`;
+    /// the framework's descriptions redact associated values).
+    private static func encodeUnknownPrompt(_ prompt: HawcxV1UserPrompt) -> [String: Any] {
+        let caseName = String(describing: prompt).split(separator: "(").first.map(String.init) ?? ""
+        var payload: [String: Any] = ["type": "unknown"]
+        if !caseName.isEmpty {
+            payload["rawType"] = caseName
+        }
+        return payload
     }
 
     private static func encodeMethod(_ method: HawcxV1Method) -> [String: Any] {

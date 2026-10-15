@@ -51,6 +51,7 @@ export type {
   HawcxV6SetupTotpPrompt,
   HawcxV6StartOptions,
   HawcxV6StepInfo,
+  HawcxV6UnknownPrompt,
 } from './v6Types';
 export type {
   HawcxV6QrApprovalResult,

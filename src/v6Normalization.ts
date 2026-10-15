@@ -14,6 +14,7 @@ import type {
   HawcxV6SetupSmsPrompt,
   HawcxV6SetupTotpPrompt,
   HawcxV6StepInfo,
+  HawcxV6UnknownPrompt,
 } from './v6Types';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -35,6 +36,13 @@ const asBoolean = (value: unknown): boolean | undefined =>
 
 const asRecordArray = (value: unknown): Record<string, unknown>[] =>
   Array.isArray(value) ? value.filter(isRecord) : [];
+
+/** `awaitApproval` / `AwaitApproval` / `await-approval` -> `await_approval`. */
+const toSnakeCase = (value: string): string =>
+  value
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[\s-]+/g, '_')
+    .toLowerCase();
 
 const normalizeStep = (value: unknown): HawcxV6StepInfo | undefined => {
   if (!isRecord(value)) {
@@ -272,8 +280,18 @@ const normalizePromptPayload = (value: unknown): HawcxV6PromptPayload | null => 
       };
       return payload;
     }
-    default:
-      return null;
+    default: {
+      // A step this version doesn't model: surface it instead of dropping it.
+      const rawType =
+        promptType === 'unknown'
+          ? asString(rawPrompt?.rawType ?? value.rawType) ?? 'unknown'
+          : promptType;
+      const payload: HawcxV6UnknownPrompt = {
+        ...base,
+        prompt: { type: 'unknown', rawType: toSnakeCase(rawType) },
+      };
+      return payload;
+    }
   }
 };
 

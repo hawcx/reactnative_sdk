@@ -10,6 +10,7 @@ export type HawcxV6AuthStatus =
   | 'enter_totp'
   | 'redirect'
   | 'await_approval'
+  | 'unknown'
   | 'completed'
   | 'error';
 
@@ -131,6 +132,18 @@ export type HawcxV6AwaitApprovalPrompt = HawcxV6PromptBase & {
   };
 };
 
+/**
+ * A step this SDK version doesn't model (a newer server, or a native prompt the
+ * bridge doesn't map yet). `rawType` is the server step type in snake_case.
+ * Show a generic "update the app" or restart screen; never auto-retry.
+ */
+export type HawcxV6UnknownPrompt = HawcxV6PromptBase & {
+  prompt: {
+    type: 'unknown';
+    rawType: string;
+  };
+};
+
 export type HawcxV6PromptPayload =
   | HawcxV6SelectMethodPrompt
   | HawcxV6EnterCodePrompt
@@ -138,7 +151,8 @@ export type HawcxV6PromptPayload =
   | HawcxV6SetupTotpPrompt
   | HawcxV6SetupSmsPrompt
   | HawcxV6RedirectPrompt
-  | HawcxV6AwaitApprovalPrompt;
+  | HawcxV6AwaitApprovalPrompt
+  | HawcxV6UnknownPrompt;
 
 export type HawcxV6CompletedPayload = {
   session: string;

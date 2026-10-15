@@ -27,7 +27,7 @@ version = project.findProperty('HAWCX_REACT_NATIVE_ANDROID_VERSION') ?: '1.1.5'
 // Local native-SDK testing only: -Phawcx.useMavenLocal=true together with
 // -PHAWCX_ANDROID_SDK_VERSION=<x.y.z-SNAPSHOT> resolves api.hawcx from ~/.m2.
 def hawcxUseMavenLocal = (project.findProperty('hawcx.useMavenLocal') ?: 'false').toString().toBoolean()
-def hawcxAndroidSdkVersion = project.findProperty('HAWCX_ANDROID_SDK_VERSION') ?: '6.1.0'
+def hawcxAndroidSdkVersion = project.findProperty('HAWCX_ANDROID_SDK_VERSION') ?: '6.2.0'
 
 repositories {
     if (hawcxUseMavenLocal) {
