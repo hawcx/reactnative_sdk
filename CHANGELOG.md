@@ -24,6 +24,7 @@
 - `HawcxV6Completed.sessionToken` / `state.sessionToken` from the plan and spec were deliberately not shipped: the session token stays native (`completed.hasSessionToken`, `getSessionToken()`).
 
 ### Added and changed
+- Approvals v2: the native SDKs sign `rememberDevice` into the decision and never send the requester session; `decideApproval` sends `rememberDevice=false` on deny. Requires iOS/Android 6.2.0 built after 2026-10-21.
 - Magic link: the `enter_code` prompt carries `pollInterval` on the magic-link code screen and the native SDKs poll in the background (`state.magicLinkPolling`), so a link confirmed on another device completes the flow.
 - Magic link: `initialize({ magicLinkLandingUrl })` and `completeMagicLinkRedirect(url)` (also on `HawcxV6Client` and `useHawcxV6Auth`) finish a same-device link from a Universal Link / App Link with typed outcomes `not_magic_link | resumed | handed_off | failed{code, message, retryable}`; `isHawcxMagicLinkUrl(url, landingUrl?)` routes incoming URLs.
 - Polling: the native SDKs follow the poll-route contract (advertised `pollPath`, 2s→5s→10s schedule, `Retry-After`, 429 keeps the flow, paused in the background). Prompts expose `pollPath`; `pausePolling()` / `resumePolling()` (also `v6PausePolling` / `v6ResumePolling`, `HawcxV6Client`, `useHawcxV6Auth`) give manual control. No JS poll loop.

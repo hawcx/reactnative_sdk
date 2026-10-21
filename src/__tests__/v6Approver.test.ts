@@ -279,6 +279,16 @@ describe('context and decisions', () => {
     expect(native.v6DecideApproval).toHaveBeenLastCalledWith('h-1', 'deny', null, false);
   });
 
+  it('sends rememberDevice only with an approve (it is signed by the native SDK)', async () => {
+    native.v6DecideApproval.mockResolvedValueOnce({ outcome: 'approved' });
+    await decideApproval('h-1', 'approve', { numberChoice: 42, rememberDevice: true });
+    expect(native.v6DecideApproval).toHaveBeenLastCalledWith('h-1', 'approve', 42, true);
+
+    native.v6DecideApproval.mockResolvedValueOnce({ outcome: 'denied' });
+    await decideApproval('h-1', 'deny', { rememberDevice: true });
+    expect(native.v6DecideApproval).toHaveBeenLastCalledWith('h-1', 'deny', null, false);
+  });
+
   it('maps resolved results', async () => {
     native.v6DecideApproval.mockResolvedValueOnce({
       outcome: 'resolved',
@@ -362,6 +372,24 @@ describe('useHawcxApprover', () => {
     expect(native.v6DecideApproval).toHaveBeenCalledWith('h-1', 'approve', 42, false);
     expect(ref.current!.result).toEqual({ outcome: 'approved' });
     expect(ref.current!.error).toBeUndefined();
+  });
+
+  it('passes rememberDevice on approve and never on deny', async () => {
+    native.v6FetchApprovalContext.mockResolvedValueOnce(nativeRequest);
+    native.v6DecideApproval.mockResolvedValueOnce({ outcome: 'approved' });
+    await act(async () => {
+      await ref.current!.fetch(reference);
+    });
+    await act(async () => {
+      await ref.current!.approve('h-1', 42, { rememberDevice: true });
+    });
+    expect(native.v6DecideApproval).toHaveBeenLastCalledWith('h-1', 'approve', 42, true);
+
+    native.v6DecideApproval.mockResolvedValueOnce({ outcome: 'denied' });
+    await act(async () => {
+      await ref.current!.deny('h-1');
+    });
+    expect(native.v6DecideApproval).toHaveBeenLastCalledWith('h-1', 'deny', null, false);
   });
 
   it('keeps the error and the request on a failed decision, and resets', async () => {

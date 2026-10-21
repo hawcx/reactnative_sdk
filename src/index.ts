@@ -1008,6 +1008,11 @@ export function fetchApprovalContext(
  * `approved`, `denied`, `wrong_number`, or `resolved` (already over). Rejects
  * with `number_required`, `invalid_number`, `approval_expired`,
  * `approval_handle_unknown`, or a retryable server error.
+ *
+ * `rememberDevice` (approve only) asks the server to remember the requester's
+ * browser. The native SDK signs it into the decision, so it can't be changed
+ * in transit; a deny always sends `false`. The phone never sees or sends the
+ * requester's session.
  */
 export function decideApproval(
   handle: string,
@@ -1031,7 +1036,9 @@ export function decideApproval(
         key,
         decision,
         numberChoice,
-        options.rememberDevice ?? false,
+        // A deny never asks to remember the requester's browser; the native
+        // SDK signs this flag into the decision (hx_auth#296 revision).
+        decision === 'approve' ? options.rememberDevice ?? false : false,
       ),
     ).then(normalizeApprovalResult);
   } catch (error) {
@@ -1949,14 +1956,15 @@ export type HawcxApproverHookResult = {
    * Rejects with `approval_handle_unknown`, without sending anything, when the
    * current request is no longer that one (e.g. a newer push replaced it while
    * the dialog was open). `numberChoice` is the number the user typed (when
-   * `request.numberRequired`).
+   * `request.numberRequired`). `options.rememberDevice` is signed into the
+   * decision by the native SDK.
    */
   approve: (
     handle: string,
     numberChoice?: number,
     options?: { rememberDevice?: boolean },
   ) => Promise<HawcxV6ApprovalResult>;
-  /** Denies the request with `handle`; same handle check as `approve`. */
+  /** Denies the request with `handle`; same handle check as `approve`. Never sends `rememberDevice`. */
   deny: (handle: string) => Promise<HawcxV6ApprovalResult>;
   /** Clears the hook and discards the native cache entry. */
   reset: () => Promise<void>;
