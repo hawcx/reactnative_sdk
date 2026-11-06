@@ -473,10 +473,10 @@ approvals), call `forgetDevice(identifier)` (also `hawcxV6Client.forgetDevice`).
 sign-in runs without device trust and enrolls again. It does not revoke the server's device
 row or end sessions (use `revokeDevice` / `logoutEverywhere`). Call
 `unregisterPushToken(identifier)` first: the unregister is signed with these keys. The
-legacy `forgetTrustedDevice(userId)` clears V4/V5 data only and never these keys. The
-boolean differs by platform: on iOS, true when a record was removed and false when none
-was stored; on Android, true once no record remains (also when none was stored) and false
-when it could not be deleted.
+legacy `forgetTrustedDevice(userId)` clears V4/V5 data only and never these keys. It is
+idempotent and resolves the same on both platforms: true once no record remains for the
+identifier (removed now, or none was stored), false when it could not be removed or
+confirmed gone (for example the iOS Keychain is unavailable while the device is locked).
 
 `getSessionToken()` returns the token if your backend needs it. It is a secret bearer
 credential: the SDK never logs it, and you must not either. Native code clears it on a new

@@ -47638,2058 +47638,2058 @@
   },
   "ConstValues": [
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "IntegerLiteral",
       "offset": 946,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 2366,
       "length": 10,
       "value": "\"qr_login\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 6320,
       "length": 16,
       "value": "\"account_manage\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "IntegerLiteral",
       "offset": 6666,
       "length": 1,
       "value": "1"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 23367,
       "length": 11,
       "value": "\"step_info\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "IntegerLiteral",
       "offset": 29389,
       "length": 1,
       "value": "8"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 30318,
       "length": 17,
       "value": "\"approval_denied\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 30359,
       "length": 23,
       "value": "\"approval_wrong_number\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 30405,
       "length": 21,
       "value": "\"approval_superseded\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 30446,
       "length": 18,
       "value": "\"approval_blocked\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 30492,
       "length": 19,
       "value": "\"push_rate_limited\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 30539,
       "length": 18,
       "value": "\"push_unavailable\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 31064,
       "length": 12,
       "value": "\"risk_score\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 33534,
       "length": 21,
       "value": "\"retry_after_seconds\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 33594,
       "length": 19,
       "value": "\"retryAfterSeconds\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 33747,
       "length": 24,
       "value": "\"decided_by_this_device\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 33812,
       "length": 21,
       "value": "\"decidedByThisDevice\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 38521,
       "length": 14,
       "value": "\"sdk_outdated\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 38572,
       "length": 14,
       "value": "\"rate_limited\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 38625,
       "length": 16,
       "value": "\"account_locked\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 38685,
       "length": 21,
       "value": "\"unauthorized_device\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 38746,
       "length": 18,
       "value": "\"device_not_found\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 38805,
       "length": 18,
       "value": "\"replayed_request\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 38929,
       "length": 17,
       "value": "\"approval_denied\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 38991,
       "length": 23,
       "value": "\"approval_wrong_number\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39058,
       "length": 21,
       "value": "\"approval_superseded\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39120,
       "length": 18,
       "value": "\"approval_blocked\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39179,
       "length": 19,
       "value": "\"push_rate_limited\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39239,
       "length": 18,
       "value": "\"push_unavailable\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39300,
       "length": 22,
       "value": "\"qr_login_not_allowed\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39402,
       "length": 20,
       "value": "\"approval_not_found\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39461,
       "length": 17,
       "value": "\"approval_not_v2\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39520,
       "length": 19,
       "value": "\"approval_resolved\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39589,
       "length": 28,
       "value": "\"approval_identity_mismatch\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39659,
       "length": 20,
       "value": "\"approval_not_ready\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39725,
       "length": 24,
       "value": "\"approval_proof_invalid\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39799,
       "length": 28,
       "value": "\"approval_store_unavailable\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39875,
       "length": 26,
       "value": "\"replay_guard_unavailable\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 39947,
       "length": 24,
       "value": "\"rate_limit_unavailable\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 40075,
       "length": 30,
       "value": "\"unsupported_approval_version\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 40146,
       "length": 18,
       "value": "\"approval_expired\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 40204,
       "length": 17,
       "value": "\"number_required\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 40260,
       "length": 16,
       "value": "\"invalid_number\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 40320,
       "length": 21,
       "value": "\"identifier_required\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 40384,
       "length": 21,
       "value": "\"device_not_enrolled\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 40446,
       "length": 18,
       "value": "\"project_mismatch\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 40504,
       "length": 17,
       "value": "\"invalid_context\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 40566,
       "length": 22,
       "value": "\"invalid_registration\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 40867,
       "length": 21,
       "value": "\"push_not_registered\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 41021,
       "length": 22,
       "value": "\"keychain_unavailable\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 41233,
       "length": 26,
       "value": "\"approval_outcome_unknown\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 41385,
       "length": 16,
       "value": "\"code_not_found\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 41442,
       "length": 19,
       "value": "\"too_many_attempts\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 41504,
       "length": 21,
       "value": "\"invalid_code_format\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Types.swift",
       "kind": "StringLiteral",
       "offset": 41569,
       "length": 21,
       "value": "\"service_unavailable\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "Array",
       "offset": 252,
       "length": 178,
       "value": "[\"device_not_found\", \"decryption_failed\", \"invalid_challenge\", \"invalid_signature\", \"info_mismatch\", \"info_string_mismatch\"]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "StringLiteral",
       "offset": 1518,
       "length": 12,
       "value": "\"@hawcx\/ios\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "StringLiteral",
       "offset": 1587,
       "length": 5,
       "value": "\"ios\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "IntegerLiteral",
       "offset": 1625,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "IntegerLiteral",
       "offset": 1704,
       "length": 2,
       "value": "15"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "IntegerLiteral",
       "offset": 1740,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "FloatLiteral",
       "offset": 1789,
       "length": 3,
       "value": "0.5"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "BooleanLiteral",
       "offset": 1824,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "StringLiteral",
       "offset": 3174,
       "length": 12,
       "value": "\"@hawcx\/ios\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "StringLiteral",
       "offset": 3243,
       "length": 5,
       "value": "\"ios\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "IntegerLiteral",
       "offset": 3281,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "IntegerLiteral",
       "offset": 3360,
       "length": 2,
       "value": "15"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "IntegerLiteral",
       "offset": 3396,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "FloatLiteral",
       "offset": 3445,
       "length": 3,
       "value": "0.5"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "BooleanLiteral",
       "offset": 3480,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "StringLiteral",
       "offset": 4946,
       "length": 21,
       "value": "\"X-Hawcx-SDK-Version\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "StringLiteral",
       "offset": 5079,
       "length": 24,
       "value": "\"x-Hawcx-iosSdk-Version\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "StringLiteral",
       "offset": 5138,
       "length": 27,
       "value": "\"X-Hawcx-Approval-Protocol\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "StringLiteral",
       "offset": 5207,
       "length": 3,
       "value": "\"2\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "BooleanLiteral",
       "offset": 6952,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "StringLiteral",
       "offset": 18013,
       "length": 9,
       "value": "\"primary\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "IntegerLiteral",
       "offset": 24455,
       "length": 1,
       "value": "5"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "IntegerLiteral",
       "offset": 24579,
       "length": 2,
       "value": "10"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "BooleanLiteral",
       "offset": 35880,
       "length": 4,
       "value": "true"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "Array",
       "offset": 54105,
       "length": 232,
       "value": "[\"sessiontoken\", \"authcode\", \"codeverifier\", \"sk2\", \"signature\", \"keyset\", \"mapp\", \"phoneactiontoken\", \"phone_action_token\", \"token\", \"numberchoice\", \"backupcodes\", \"secret\", \"otpauthurl\", \"manualcode\"]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "Array",
       "offset": 54465,
       "length": 29,
       "value": "[\"approval_id\", \"approvalid\"]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "BooleanLiteral",
       "offset": 54758,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Client.swift",
       "kind": "BooleanLiteral",
       "offset": 60448,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/HawcxV1SDK.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/HawcxV1SDK.swift",
       "kind": "BooleanLiteral",
       "offset": 2223,
       "length": 4,
       "value": "true"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/HawcxV1SDK.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/HawcxV1SDK.swift",
       "kind": "BooleanLiteral",
       "offset": 3151,
       "length": 4,
       "value": "true"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/HawcxV1SDK.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/HawcxV1SDK.swift",
       "kind": "BooleanLiteral",
       "offset": 6343,
       "length": 4,
       "value": "true"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/HawcxV1SDK.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/HawcxV1SDK.swift",
       "kind": "StringLiteral",
-      "offset": 14484,
+      "offset": 15129,
       "length": 7,
       "value": "\"6.2.0\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/DeviceInfoBuilder.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/DeviceInfoBuilder.swift",
       "kind": "Dictionary",
       "offset": 632,
       "length": 3,
       "value": "[]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "StringLiteral",
       "offset": 573,
       "length": 20,
       "value": "\"ECDH P-256+Ed25519\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 1838,
       "length": 2,
       "value": "12"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 1879,
       "length": 2,
       "value": "16"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 1918,
       "length": 2,
       "value": "32"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 1963,
       "length": 2,
       "value": "32"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "StringLiteral",
       "offset": 2010,
       "length": 15,
       "value": "\"Symmetrickey0\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "StringLiteral",
       "offset": 2069,
       "length": 15,
       "value": "\"Symmetrickey1\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "StringLiteral",
       "offset": 2128,
       "length": 15,
       "value": "\"Symmetrickey2\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "StringLiteral",
       "offset": 2177,
       "length": 5,
       "value": "\"HDS\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 12019,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 12024,
       "length": 1,
       "value": "0"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 12086,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 12147,
       "length": 1,
       "value": "0"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 12160,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 12226,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 12413,
       "length": 2,
       "value": "16"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/DeviceCryptoStore.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/DeviceCryptoStore.swift",
       "kind": "BooleanLiteral",
       "offset": 7033,
       "length": 4,
       "value": "true"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/DeviceCryptoStore.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/DeviceCryptoStore.swift",
       "kind": "StringLiteral",
       "offset": 15807,
       "length": 18,
       "value": "\"hawcx.v1.device.\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/DeviceCryptoService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/DeviceCryptoService.swift",
       "kind": "StringLiteral",
       "offset": 782,
       "length": 71,
       "value": "\"Device keys can't be read right now. Unlock the device and try again.\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/DeviceCryptoService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/DeviceCryptoService.swift",
       "kind": "BooleanLiteral",
       "offset": 882,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
       "kind": "StringLiteral",
       "offset": 7380,
       "length": 25,
       "value": "\"com.hawcx.v1.flow.state\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
       "kind": "BooleanLiteral",
       "offset": 7942,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
       "kind": "Array",
       "offset": 8005,
       "length": 2,
       "value": "[]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
       "kind": "BooleanLiteral",
       "offset": 8524,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
       "kind": "BooleanLiteral",
       "offset": 8571,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
       "kind": "BooleanLiteral",
       "offset": 9543,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
       "kind": "BooleanLiteral",
       "offset": 9656,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
       "kind": "BooleanLiteral",
       "offset": 9753,
       "length": 4,
       "value": "true"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
       "kind": "BooleanLiteral",
       "offset": 21077,
       "length": 4,
       "value": "true"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/FlowController.swift",
       "kind": "Array",
       "offset": 36572,
       "length": 85,
       "value": "[\"magic_link_resume_invalid\", \"service_unavailable\", \"transport_error\"]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
       "kind": "StringLiteral",
       "offset": 229,
       "length": 9,
       "value": "\"qr_auth\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
       "kind": "StringLiteral",
       "offset": 258,
       "length": 10,
       "value": "\"qr_login\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
       "kind": "StringLiteral",
       "offset": 5934,
       "length": 11,
       "value": "\"cancelled\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
       "kind": "StringLiteral",
       "offset": 5956,
       "length": 28,
       "value": "\"The approval was cancelled\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
       "kind": "BooleanLiteral",
       "offset": 5997,
       "length": 4,
       "value": "true"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
       "kind": "BooleanLiteral",
       "offset": 6022,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
       "kind": "BooleanLiteral",
       "offset": 6831,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
       "kind": "BooleanLiteral",
       "offset": 7409,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
       "kind": "BooleanLiteral",
       "offset": 10258,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
       "kind": "StringLiteral",
       "offset": 24990,
       "length": 12,
       "value": "\"session_id\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
       "kind": "StringLiteral",
       "offset": 25133,
       "length": 17,
       "value": "\"remember_device\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/QrApproval.swift",
       "kind": "BooleanLiteral",
       "offset": 27621,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/MagicLink.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/MagicLink.swift",
       "kind": "StringLiteral",
       "offset": 3290,
       "length": 18,
       "value": "\"hawcx_magic_link\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/MagicLink.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/MagicLink.swift",
       "kind": "StringLiteral",
       "offset": 3339,
       "length": 15,
       "value": "\"hawcx_project\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Redaction.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Redaction.swift",
       "kind": "StringLiteral",
       "offset": 897,
       "length": 12,
       "value": "\"<redacted>\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Redaction.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Redaction.swift",
       "kind": "StringLiteral",
       "offset": 955,
       "length": 5,
       "value": "\"nil\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Redaction.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Redaction.swift",
       "kind": "BooleanLiteral",
       "offset": 2126,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "IntegerLiteral",
       "offset": 863,
       "length": 2,
       "value": "30"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "IntegerLiteral",
       "offset": 874,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "IntegerLiteral",
       "offset": 898,
       "length": 3,
       "value": "120"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "IntegerLiteral",
       "offset": 910,
       "length": 1,
       "value": "5"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "IntegerLiteral",
       "offset": 952,
       "length": 2,
       "value": "10"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "IntegerLiteral",
       "offset": 1089,
       "length": 2,
       "value": "24"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "IntegerLiteral",
       "offset": 1094,
       "length": 2,
       "value": "60"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "IntegerLiteral",
       "offset": 1099,
       "length": 2,
       "value": "60"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "IntegerLiteral",
       "offset": 1508,
       "length": 1,
       "value": "0"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "StringLiteral",
       "offset": 4181,
       "length": 19,
       "value": "\"poll_too_frequent\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "IntegerLiteral",
       "offset": 8438,
       "length": 1,
       "value": "0"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "IntegerLiteral",
       "offset": 8473,
       "length": 1,
       "value": "0"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "BooleanLiteral",
       "offset": 8509,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "BooleanLiteral",
       "offset": 8547,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "BooleanLiteral",
       "offset": 8586,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/Poller.swift",
       "kind": "BooleanLiteral",
       "offset": 8627,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
       "kind": "StringLiteral",
       "offset": 1161,
       "length": 11,
       "value": "\"device_id\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
       "kind": "StringLiteral",
       "offset": 1219,
       "length": 12,
       "value": "\"created_at\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
       "kind": "StringLiteral",
       "offset": 1278,
       "length": 12,
       "value": "\"revoked_at\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
       "kind": "StringLiteral",
       "offset": 1317,
       "length": 13,
       "value": "\"device_info\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
       "kind": "StringLiteral",
       "offset": 3021,
       "length": 6,
       "value": "\"list\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
       "kind": "Dictionary",
       "offset": 3063,
       "length": 3,
       "value": "[]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
       "kind": "StringLiteral",
       "offset": 4044,
       "length": 16,
       "value": "\"sessions_ended\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
       "kind": "StringLiteral",
       "offset": 4086,
       "length": 19,
       "value": "\"logout-everywhere\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/AccountService.swift",
       "kind": "Dictionary",
       "offset": 4141,
       "length": 3,
       "value": "[]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "StringLiteral",
       "offset": 675,
       "length": 6,
       "value": "\"apns\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "StringLiteral",
       "offset": 716,
       "length": 5,
       "value": "\"ios\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "StringLiteral",
       "offset": 3454,
       "length": 12,
       "value": "\"registered\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "StringLiteral",
       "offset": 3480,
       "length": 21,
       "value": "\"orphanedIdentifiers\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "StringLiteral",
       "offset": 3667,
       "length": 15,
       "value": "\"push_approval\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "StringLiteral",
       "offset": 3701,
       "length": 9,
       "value": "\"qr_auth\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "StringLiteral",
       "offset": 3730,
       "length": 10,
       "value": "\"qr_login\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "StringLiteral",
       "offset": 10588,
       "length": 24,
       "value": "\"com.hawcx.v1.approvals\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "Array",
       "offset": 11512,
       "length": 2,
       "value": "[]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "BooleanLiteral",
       "offset": 11554,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "Dictionary",
       "offset": 11635,
       "length": 3,
       "value": "[]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "BooleanLiteral",
       "offset": 13453,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "BooleanLiteral",
       "offset": 13989,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "Array",
       "offset": 31508,
       "length": 24,
       "value": "[\"push_token_not_found\"]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "StringLiteral",
       "offset": 31676,
       "length": 16,
       "value": "\"HAWCX_APPROVAL\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "BooleanLiteral",
       "offset": 40352,
       "length": 4,
       "value": "true"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "Array",
       "offset": 42881,
       "length": 82,
       "value": "[\"session\", \"session_id\", \"sessionid\", \"nonce\", \"identifier\", \"userid\", \"qr_data\"]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "Array",
       "offset": 46862,
       "length": 66,
       "value": "[\"session_expired\", \"session_not_found\", \"auth_session_not_found\"]"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "IntegerLiteral",
       "offset": 47035,
       "length": 1,
       "value": "5"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "IntegerLiteral",
       "offset": 47129,
       "length": 2,
       "value": "10"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/ApprovalService.swift",
       "kind": "BooleanLiteral",
       "offset": 49959,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/HawcxProtocolV1\/OAuth.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/HawcxProtocolV1\/OAuth.swift",
       "kind": "BooleanLiteral",
       "offset": 1866,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 4776,
       "length": 12,
       "value": "\"request_id\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 4835,
       "length": 12,
       "value": "\"ip_address\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 4874,
       "length": 9,
       "value": "\"browser\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 5476,
       "length": 14,
       "value": "\"access_token\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 5519,
       "length": 15,
       "value": "\"refresh_token\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 7916,
       "length": 12,
       "value": "\"api_status\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 8249,
       "length": 11,
       "value": "\"expire_at\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 8286,
       "length": 12,
       "value": "\"created_at\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 8343,
       "length": 11,
       "value": "\"web_token\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 8385,
       "length": 17,
       "value": "\"session_details\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 8425,
       "length": 9,
       "value": "\"web_pin\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 8625,
       "length": 12,
       "value": "\"api_status\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 8874,
       "length": 12,
       "value": "\"api_status\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 9521,
       "length": 18,
       "value": "\"platform_version\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 9835,
       "length": 11,
       "value": "\"cpu_cores\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 9897,
       "length": 17,
       "value": "\"graphics_vendor\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 9943,
       "length": 15,
       "value": "\"touch_support\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 10579,
       "length": 12,
       "value": "\"user_agent\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 10619,
       "length": 14,
       "value": "\"browser_name\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 10664,
       "length": 17,
       "value": "\"browser_version\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 10717,
       "length": 23,
       "value": "\"browser_major_version\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 10816,
       "length": 12,
       "value": "\"mime_types\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 10862,
       "length": 20,
       "value": "\"canvas_fingerprint\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 10915,
       "length": 19,
       "value": "\"webgl_fingerprint\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 10962,
       "length": 14,
       "value": "\"webgl_vendor\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 11006,
       "length": 16,
       "value": "\"webgl_renderer\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 11343,
       "length": 12,
       "value": "\"fp_version\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 11384,
       "length": 15,
       "value": "\"hardware_info\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 11430,
       "length": 17,
       "value": "\"browser_signals\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 11479,
       "length": 18,
       "value": "\"platform_details\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 11892,
       "length": 11,
       "value": "\"device_id\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 11930,
       "length": 13,
       "value": "\"device_info\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 11969,
       "length": 12,
       "value": "\"ip_details\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 14921,
       "length": 4,
       "value": "\"id\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 14951,
       "length": 14,
       "value": "\"browser_name\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 14986,
       "length": 12,
       "value": "\"os_version\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 15012,
       "length": 12,
       "value": "\"login_time\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 16491,
       "length": 12,
       "value": "\"ip_details\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 16529,
       "length": 20,
       "value": "\"session_login_time\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/models\/response\/Responses.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/models\/response\/Responses.swift",
       "kind": "StringLiteral",
       "offset": 16563,
       "length": 12,
       "value": "\"os_details\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/KeystoreManager.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/KeystoreManager.swift",
       "kind": "StringLiteral",
       "offset": 408,
       "length": 24,
       "value": "\"com.hawcx.sdk.keychain\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/KeystoreManager.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/KeystoreManager.swift",
       "kind": "StringLiteral",
       "offset": 444,
       "length": 17,
       "value": "\"KeychainManager\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/auth\/HawcxAuthV4.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/auth\/HawcxAuthV4.swift",
       "kind": "BooleanLiteral",
       "offset": 1901,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/auth\/HawcxAuthV5.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/auth\/HawcxAuthV5.swift",
       "kind": "BooleanLiteral",
       "offset": 1596,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/auth\/HawcxAuthV5.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/auth\/HawcxAuthV5.swift",
       "kind": "BooleanLiteral",
       "offset": 1639,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/SDKLogger.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/SDKLogger.swift",
       "kind": "BooleanLiteral",
       "offset": 323,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 321,
       "length": 15,
       "value": "\"NETWORK_ERROR\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 361,
       "length": 15,
       "value": "\"UNKNOWN_ERROR\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 401,
       "length": 15,
       "value": "\"INVALID_INPUT\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 447,
       "length": 22,
       "value": "\"KEYCHAIN_SAVE_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 499,
       "length": 21,
       "value": "\"CLIENT_CRYPTO_ERROR\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 591,
       "length": 22,
       "value": "\"INTERNAL_STATE_ERROR\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 695,
       "length": 18,
       "value": "\"AUTH_INIT_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 773,
       "length": 25,
       "value": "\"OTP_VERIFICATION_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 862,
       "length": 30,
       "value": "\"MISSING_DEVICE_TOKEN_SESSION\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 1022,
       "length": 28,
       "value": "\"DEVICE_VERIFICATION_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 1117,
       "length": 32,
       "value": "\"MISSING_ER1R2_FOR_REGISTRATION\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 1253,
       "length": 28,
       "value": "\"CIPHER_VERIFICATION_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 1342,
       "length": 26,
       "value": "\"MISSING_CRYPTO_FOR_LOGIN\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 1450,
       "length": 33,
       "value": "\"MISSING_PERSISTENT_DEVICE_TOKEN\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 1593,
       "length": 29,
       "value": "\"OAUTH_CONFIGURATION_MISSING\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 1654,
       "length": 23,
       "value": "\"OAUTH_EXCHANGE_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 1718,
       "length": 33,
       "value": "\"OAUTH_TOKEN_VERIFICATION_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 1814,
       "length": 19,
       "value": "\"FINGERPRINT_ERROR\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 1908,
       "length": 15,
       "value": "\"UNKNOWN_ERROR\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 1946,
       "length": 13,
       "value": "\"INVALID_PIN\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 1985,
       "length": 16,
       "value": "\"FAILED_APPROVE\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 2026,
       "length": 15,
       "value": "\"NETWORK_ERROR\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 5530,
       "length": 15,
       "value": "\"NETWORK_ERROR\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 5570,
       "length": 15,
       "value": "\"UNKNOWN_ERROR\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 5610,
       "length": 15,
       "value": "\"INVALID_INPUT\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 5656,
       "length": 22,
       "value": "\"INTERNAL_STATE_ERROR\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 5705,
       "length": 18,
       "value": "\"AUTH_INIT_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 5757,
       "length": 25,
       "value": "\"OTP_VERIFICATION_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 5819,
       "length": 28,
       "value": "\"DEVICE_VERIFICATION_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 5880,
       "length": 24,
       "value": "\"LOGIN_INTEGRITY_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 5928,
       "length": 14,
       "value": "\"CRYPTO_ERROR\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 5973,
       "length": 22,
       "value": "\"SECURE_STORAGE_ERROR\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 6034,
       "length": 30,
       "value": "\"MISSING_REGISTRATION_CONTEXT\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 6095,
       "length": 22,
       "value": "\"TOKEN_STORAGE_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 6155,
       "length": 29,
       "value": "\"OAUTH_CONFIGURATION_MISSING\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 6216,
       "length": 23,
       "value": "\"OAUTH_EXCHANGE_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/AuthErrorHandler.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/AuthErrorHandler.swift",
       "kind": "StringLiteral",
       "offset": 6280,
       "length": 33,
       "value": "\"OAUTH_TOKEN_VERIFICATION_FAILED\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/network\/HTTPRequest.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/network\/HTTPRequest.swift",
       "kind": "StringLiteral",
       "offset": 194,
       "length": 15,
       "value": "\"com.hawcx.sdk\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/network\/HTTPRequest.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/network\/HTTPRequest.swift",
       "kind": "StringLiteral",
       "offset": 221,
       "length": 9,
       "value": "\"Network\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/network\/HTTPRequest.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/network\/HTTPRequest.swift",
       "kind": "StringLiteral",
       "offset": 305,
       "length": 10,
       "value": "\"Project0\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/HawcxSDK.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/HawcxSDK.swift",
       "kind": "StringLiteral",
       "offset": 438,
       "length": 25,
       "value": "\"hawcx_auth_login_result\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/HawcxSDK.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/HawcxSDK.swift",
       "kind": "BooleanLiteral",
       "offset": 890,
       "length": 5,
       "value": "false"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/HawcxSDK.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/HawcxSDK.swift",
       "kind": "StringLiteral",
       "offset": 1863,
       "length": 39,
       "value": "\"hawcx_sdk_last_registered_apns_token_\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5CredentialStore.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5CredentialStore.swift",
       "kind": "StringLiteral",
       "offset": 201,
       "length": 20,
       "value": "\"ECDH P-256+Ed25519\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 553,
       "length": 2,
       "value": "12"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 594,
       "length": 2,
       "value": "16"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 633,
       "length": 2,
       "value": "32"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 678,
       "length": 2,
       "value": "32"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 728,
       "length": 4,
       "value": "0x01"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "StringLiteral",
       "offset": 777,
       "length": 14,
       "value": "\"hawcx.v5.sk0\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "StringLiteral",
       "offset": 835,
       "length": 14,
       "value": "\"hawcx.v5.sk1\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "StringLiteral",
       "offset": 893,
       "length": 14,
       "value": "\"hawcx.v5.sk2\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "StringLiteral",
       "offset": 949,
       "length": 14,
       "value": "\"hawcx.v5.hds\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 8660,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 8665,
       "length": 1,
       "value": "0"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 8727,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 8788,
       "length": 1,
       "value": "0"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 8801,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 8867,
       "length": 1,
       "value": "2"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/V5Crypto.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/V5Crypto.swift",
       "kind": "IntegerLiteral",
       "offset": 9054,
       "length": 2,
       "value": "16"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/HawcxFrameworkInternalUtils.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/HawcxFrameworkInternalUtils.swift",
       "kind": "IntegerLiteral",
       "offset": 653,
       "length": 2,
       "value": "12"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/HawcxFrameworkInternalUtils.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/HawcxFrameworkInternalUtils.swift",
       "kind": "IntegerLiteral",
       "offset": 732,
       "length": 2,
       "value": "16"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/internal\/HawcxUtils.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/internal\/HawcxUtils.swift",
       "kind": "IntegerLiteral",
       "offset": 2675,
       "length": 1,
       "value": "1"
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/utils\/SecureEnclaveHelper.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/utils\/SecureEnclaveHelper.swift",
       "kind": "StringLiteral",
       "offset": 1572,
       "length": 23,
       "value": "\"com.hawcx.sdk.default\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/auth\/WebLoginManager.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/auth\/WebLoginManager.swift",
       "kind": "StringLiteral",
       "offset": 515,
       "length": 16,
       "value": "\"sessionDetails\""
     },
     {
-      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/sdk-src\/HawcxFramework\/auth\/WebLoginManager.swift",
+      "filePath": "\/tmp\/claude-503\/-Users-sundar-Dev-hawcx\/5acfda94-eba6-4ae8-8964-b16d85ec6492\/scratchpad\/iossdk-export-7d47e89\/HawcxFramework\/auth\/WebLoginManager.swift",
       "kind": "StringLiteral",
       "offset": 609,
       "length": 11,

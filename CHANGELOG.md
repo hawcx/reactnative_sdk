@@ -19,7 +19,7 @@
 - `approvals_unavailable` is Android-only (the approvals service needs the device-key signer).
 - `enrolledIdentifiers()` rejects with retryable `keychain_unavailable` on both platforms while the device keys can't be read (iOS uses the native `enrolledIdentifiersOrThrow()`).
 - Unknown-step `rawType` is display-only: the native case name on iOS, the native prompt class name in wire form on Android.
-- `forgetDevice(identifier)` resolves true on iOS only when a record was removed (false: none was stored); on Android true once no record remains, also when none was stored (false: it could not be deleted).
+- `forgetDevice(identifier)` is idempotent and resolves the same on iOS and Android: true once no record remains (removed now or none was stored), false when it could not be removed or confirmed gone.
 
 ### Not shipped
 - `HawcxV6Completed.sessionToken` / `state.sessionToken` from the plan and spec were deliberately not shipped: the session token stays native (`completed.hasSessionToken`, `getSessionToken()`).

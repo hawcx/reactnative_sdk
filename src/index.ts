@@ -1051,9 +1051,10 @@ export function resolveApprovalCode(code: string): Promise<HawcxV6ScannedApprova
  * these keys. The legacy `forgetTrustedDevice` clears V4/V5 data only and never
  * these records.
  *
- * The boolean differs by platform. iOS: true when a record was removed, false
- * when none was stored. Android: true once no record remains (also when none
- * was stored), false when it could not be deleted (e.g. a Keystore failure).
+ * Idempotent, same on both platforms: true once no record remains for the
+ * identifier (removed now, or none was stored); false when it could not be
+ * removed or confirmed gone (e.g. a Keystore failure, or the iOS Keychain is
+ * unavailable while the device is locked).
  */
 export function forgetDevice(identifier: string): Promise<boolean> {
   try {
