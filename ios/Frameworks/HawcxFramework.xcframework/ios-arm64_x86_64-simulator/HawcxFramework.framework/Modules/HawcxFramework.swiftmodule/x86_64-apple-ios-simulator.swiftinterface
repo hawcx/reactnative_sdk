@@ -1,7 +1,7 @@
 // swift-interface-format-version: 1.0
-// swift-compiler-version: Apple Swift version 6.2 effective-5.10 (swiftlang-6.2.0.19.9 clang-1700.3.19.1)
-// swift-module-flags: -target x86_64-apple-ios17.5-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name HawcxFramework
-// swift-module-flags-ignorable:  -formal-cxx-interoperability-mode=off -interface-compiler-version 6.2
+// swift-compiler-version: Apple Swift version 6.3.3 effective-5.10 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)
+// swift-module-flags: -target x86_64-apple-ios17.5-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name HawcxFramework
+// swift-module-flags-ignorable:  -formal-cxx-interoperability-mode=off -interface-compiler-version 6.3.3
 import AuthenticationServices
 import CommonCrypto
 import CryptoKit
@@ -20,10 +20,15 @@ public struct HawcxV1Request : Swift.Encodable {
   public let protocolVersion: Swift.Int
   public let session: Swift.String?
   public let action: HawcxFramework.HawcxV1Action
-  #if compiler(>=5.3)
   public init(protocolVersion: Swift.Int = 2, session: Swift.String? = nil, action: HawcxFramework.HawcxV1Action)
-  #endif
   public func encode(to encoder: any Swift.Encoder) throws
+}
+public struct HawcxV1Notice : Swift.Decodable, Swift.Equatable {
+  public let code: Swift.String
+  public let message: Swift.String
+  public init(code: Swift.String, message: Swift.String)
+  public static func == (a: HawcxFramework.HawcxV1Notice, b: HawcxFramework.HawcxV1Notice) -> Swift.Bool
+  public init(from decoder: any Swift.Decoder) throws
 }
 public struct HawcxV1Response : Swift.Decodable {
   public let protocolVersion: Swift.Int
@@ -31,6 +36,7 @@ public struct HawcxV1Response : Swift.Decodable {
   public let prompt: HawcxFramework.HawcxV1Prompt
   public let meta: HawcxFramework.HawcxV1ResponseMeta
   public let promptMeta: HawcxFramework.HawcxV1PromptMetadata?
+  public let notice: HawcxFramework.HawcxV1Notice?
   public init(from decoder: any Swift.Decoder) throws
 }
 public struct HawcxV1ResponseMeta : Swift.Decodable, Swift.Equatable {
@@ -63,9 +69,7 @@ public enum HawcxV1FlowType : Swift.String, Swift.Codable {
   case signin
   case signup
   case accountManage
-  #if compiler(>=5.3)
   public init?(rawValue: Swift.String)
-  #endif
   public typealias RawValue = Swift.String
   public var rawValue: Swift.String {
     get
@@ -84,9 +88,7 @@ public struct HawcxV1DeviceInfo : Swift.Codable, Swift.Equatable {
   public let v: Swift.Int
   public let fingerprint: Swift.String
   public let signals: [Swift.String : HawcxFramework.HawcxV1JSONValue]?
-  #if compiler(>=5.3)
   public init(v: Swift.Int = 1, fingerprint: Swift.String, signals: [Swift.String : HawcxFramework.HawcxV1JSONValue]? = nil)
-  #endif
   public static func == (a: HawcxFramework.HawcxV1DeviceInfo, b: HawcxFramework.HawcxV1DeviceInfo) -> Swift.Bool
   public func encode(to encoder: any Swift.Encoder) throws
   public init(from decoder: any Swift.Decoder) throws
@@ -109,6 +111,7 @@ public enum HawcxV1Action : Swift.Encodable, Swift.Equatable {
   case requestChallenge(keyset: Swift.String, hindex: Swift.String, sk2: Swift.String)
   case submitSignature(keyId: Swift.String, signature: Swift.String, mapp: Swift.String)
   case oauthCallback(code: Swift.String, state: Swift.String)
+  case magicLinkResume(token: Swift.String)
   case resend
   case poll
   case cancel
@@ -129,6 +132,7 @@ public enum HawcxV1Prompt : Swift.Decodable, Swift.Equatable {
   case completed(authCode: Swift.String, expiresAt: Swift.String, codeVerifier: Swift.String?)
   case error(code: Swift.String, action: HawcxFramework.HawcxV1ErrorAction, message: Swift.String, retryable: Swift.Bool, details: HawcxFramework.HawcxV1ErrorDetails?)
   case unknown(type: Swift.String)
+  case locked(retryAfterSeconds: Swift.Int, lockedUntil: Swift.String)
   public var isInternal: Swift.Bool {
     get
   }
@@ -147,14 +151,45 @@ public struct HawcxV1PromptMetadata : Swift.Decodable, Swift.Equatable {
   public let stepInfo: HawcxFramework.HawcxV1StepInfo?
   public let risk: HawcxFramework.HawcxV1RiskInfo?
   public let codeChannel: Swift.String?
+  public let pollInterval: Swift.Int?
+  public let pollPath: Swift.String?
+  public var approval: HawcxFramework.HawcxV1ApprovalDisplay? {
+    get
+  }
+  public var identifier: Swift.String? {
+    get
+  }
   public var isEmpty: Swift.Bool {
     get
   }
-  #if compiler(>=5.3)
   public init(stepInfo: HawcxFramework.HawcxV1StepInfo?, risk: HawcxFramework.HawcxV1RiskInfo?, codeChannel: Swift.String?)
-  #endif
+  public init(stepInfo: HawcxFramework.HawcxV1StepInfo?, risk: HawcxFramework.HawcxV1RiskInfo?, codeChannel: Swift.String?, pollInterval: Swift.Int?)
+  public init(stepInfo: HawcxFramework.HawcxV1StepInfo?, risk: HawcxFramework.HawcxV1RiskInfo?, codeChannel: Swift.String?, pollInterval: Swift.Int?, pollPath: Swift.String?)
   public init(from decoder: any Swift.Decoder) throws
   public static func == (a: HawcxFramework.HawcxV1PromptMetadata, b: HawcxFramework.HawcxV1PromptMetadata) -> Swift.Bool
+}
+public struct HawcxV1ApprovalDisplay : Swift.Equatable {
+  public let mode: Swift.String?
+  public let approvalId: Swift.String?
+  public let number: Swift.Int?
+  public let qrPayloadVersion: Swift.Int?
+  public let manualCode: Swift.String?
+  public init(mode: Swift.String?, approvalId: Swift.String?, number: Swift.Int?, qrPayloadVersion: Swift.Int?)
+  public init(mode: Swift.String?, approvalId: Swift.String?, number: Swift.Int?, qrPayloadVersion: Swift.Int?, manualCode: Swift.String?)
+  public static func == (a: HawcxFramework.HawcxV1ApprovalDisplay, b: HawcxFramework.HawcxV1ApprovalDisplay) -> Swift.Bool
+}
+public enum HawcxV1ApprovalOutcomeCode : Swift.String {
+  case denied
+  case wrongNumber
+  case superseded
+  case blocked
+  case pushRateLimited
+  case pushUnavailable
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
 }
 public struct HawcxV1StepInfo : Swift.Decodable, Swift.Equatable {
   public let id: Swift.String
@@ -196,15 +231,67 @@ public struct HawcxV1ErrorDetails : Swift.Codable, Swift.Equatable {
   public let retryAt: Swift.String?
   public let attemptsRemaining: Swift.Int?
   public let errors: [HawcxFramework.HawcxV1FieldError]?
+  public let outcome: Swift.String?
+  public let decidedByThisDevice: Swift.Bool?
   public var isEmpty: Swift.Bool {
     get
   }
-  #if compiler(>=5.3)
   public init(retryAfterSeconds: Swift.Int? = nil, retryAt: Swift.String? = nil, attemptsRemaining: Swift.Int? = nil, errors: [HawcxFramework.HawcxV1FieldError]? = nil)
-  #endif
+  public init(retryAfterSeconds: Swift.Int? = nil, retryAt: Swift.String? = nil, attemptsRemaining: Swift.Int? = nil, errors: [HawcxFramework.HawcxV1FieldError]? = nil, outcome: Swift.String?, decidedByThisDevice: Swift.Bool?)
   public init(from decoder: any Swift.Decoder) throws
   public func encode(to encoder: any Swift.Encoder) throws
   public static func == (a: HawcxFramework.HawcxV1ErrorDetails, b: HawcxFramework.HawcxV1ErrorDetails) -> Swift.Bool
+}
+public struct HawcxV1ApprovalError : Swift.Error, Swift.Equatable {
+  public let code: Swift.String
+  public let message: Swift.String
+  public let status: Swift.Int?
+  public let retryable: Swift.Bool
+  public let retryAfterSeconds: Swift.Int?
+  public let outcome: Swift.String?
+  public let decidedByThisDevice: Swift.Bool?
+  public init(code: Swift.String, message: Swift.String, status: Swift.Int?, retryable: Swift.Bool, retryAfterSeconds: Swift.Int? = nil, outcome: Swift.String? = nil, decidedByThisDevice: Swift.Bool? = nil)
+  public static func == (a: HawcxFramework.HawcxV1ApprovalError, b: HawcxFramework.HawcxV1ApprovalError) -> Swift.Bool
+}
+public enum HawcxV1ErrorCode {
+  public static let sdkOutdated: Swift.String
+  public static let rateLimited: Swift.String
+  public static let accountLocked: Swift.String
+  public static let unauthorizedDevice: Swift.String
+  public static let deviceNotFound: Swift.String
+  public static let replayedRequest: Swift.String
+  public static let approvalDenied: Swift.String
+  public static let approvalWrongNumber: Swift.String
+  public static let approvalSuperseded: Swift.String
+  public static let approvalBlocked: Swift.String
+  public static let pushRateLimited: Swift.String
+  public static let pushUnavailable: Swift.String
+  public static let qrLoginNotAllowed: Swift.String
+  public static let approvalNotFound: Swift.String
+  public static let approvalNotV2: Swift.String
+  public static let approvalResolved: Swift.String
+  public static let approvalIdentityMismatch: Swift.String
+  public static let approvalNotReady: Swift.String
+  public static let approvalProofInvalid: Swift.String
+  public static let approvalStoreUnavailable: Swift.String
+  public static let replayGuardUnavailable: Swift.String
+  public static let rateLimitUnavailable: Swift.String
+  public static let unsupportedApprovalVersion: Swift.String
+  public static let approvalExpired: Swift.String
+  public static let numberRequired: Swift.String
+  public static let invalidNumber: Swift.String
+  public static let identifierRequired: Swift.String
+  public static let deviceNotEnrolled: Swift.String
+  public static let projectMismatch: Swift.String
+  public static let invalidContext: Swift.String
+  public static let invalidRegistration: Swift.String
+  public static let pushNotRegistered: Swift.String
+  public static let keychainUnavailable: Swift.String
+  public static let approvalOutcomeUnknown: Swift.String
+  public static let codeNotFound: Swift.String
+  public static let tooManyAttempts: Swift.String
+  public static let invalidCodeFormat: Swift.String
+  public static let serviceUnavailable: Swift.String
 }
 public struct HawcxV1FieldError : Swift.Codable, Swift.Equatable {
   public let field: Swift.String
@@ -246,13 +333,9 @@ public struct HawcxV1ClientConfig {
   public let deviceCredentialsInvalidator: ((Swift.String) -> Swift.Void)?
   public let deviceCredentialClearCodes: Swift.Set<Swift.String>
   public let deviceCryptoHandler: (any HawcxFramework.HawcxV1DeviceCryptoHandling)?
-  #if compiler(>=5.3)
   public init(configId: Swift.String, baseURL: Foundation.URL, sdkName: Swift.String = "@hawcx/ios", sdkVersion: Swift.String, platform: Swift.String = "ios", protocolVersion: Swift.Int = 2, relyingParty: Swift.String? = nil, timeoutSeconds: Foundation.TimeInterval = 15, retryMaxAttempts: Swift.Int = 2, retryBaseDelaySeconds: Foundation.TimeInterval = 0.5, autoRetryWait: Swift.Bool = false, deviceCredentialsProvider: ((Swift.String) -> HawcxFramework.HawcxV1DeviceCredentials?)? = nil, deviceCredentialsInvalidator: ((Swift.String) -> Swift.Void)? = nil, deviceCredentialClearCodes: Swift.Set<Swift.String> = HawcxV1ClientConfig.defaultDeviceCredentialClearCodes, deviceCryptoHandler: (any HawcxFramework.HawcxV1DeviceCryptoHandling)? = nil)
-  #endif
-  #if compiler(>=5.3)
   @available(*, deprecated, message: "Use init(configId:baseURL:...). For v1, configId should be your API key.")
   public init(projectId: Swift.String, apiKey: Swift.String? = nil, baseURL: Foundation.URL, sdkName: Swift.String = "@hawcx/ios", sdkVersion: Swift.String, platform: Swift.String = "ios", protocolVersion: Swift.Int = 2, relyingParty: Swift.String? = nil, timeoutSeconds: Foundation.TimeInterval = 15, retryMaxAttempts: Swift.Int = 2, retryBaseDelaySeconds: Foundation.TimeInterval = 0.5, autoRetryWait: Swift.Bool = false, deviceCredentialsProvider: ((Swift.String) -> HawcxFramework.HawcxV1DeviceCredentials?)? = nil, deviceCredentialsInvalidator: ((Swift.String) -> Swift.Void)? = nil, deviceCredentialClearCodes: Swift.Set<Swift.String> = HawcxV1ClientConfig.defaultDeviceCredentialClearCodes, deviceCryptoHandler: (any HawcxFramework.HawcxV1DeviceCryptoHandling)? = nil)
-  #endif
 }
 final public class HawcxProtocolV1Client {
   final public let config: HawcxFramework.HawcxV1ClientConfig
@@ -263,11 +346,14 @@ final public class HawcxProtocolV1Client {
     get
   }
   final public var onStateChange: ((HawcxFramework.HawcxV1FlowState) -> Swift.Void)?
+  final public var signedInIdentifier: Swift.String? {
+    get
+  }
   public init(config: HawcxFramework.HawcxV1ClientConfig, urlSession: Foundation.URLSession = .shared)
   final public func reset()
-  #if compiler(>=5.3)
   final public func start(flowType: HawcxFramework.HawcxV1FlowType, identifier: Swift.String, startToken: Swift.String? = nil, inviteCode: Swift.String? = nil, codeChallenge: Swift.String? = nil, device: HawcxFramework.HawcxV1DeviceInfo? = nil, deviceCredentials: HawcxFramework.HawcxV1DeviceCredentials? = nil, completion: @escaping (HawcxFramework.HawcxV1FlowState) -> Swift.Void)
-  #endif
+  final public func start(flowType: HawcxFramework.HawcxV1FlowType, identifier: Swift.String, startToken: Swift.String? = nil, inviteCode: Swift.String? = nil, codeChallenge: Swift.String? = nil, device: HawcxFramework.HawcxV1DeviceInfo? = nil, deviceCredentials: HawcxFramework.HawcxV1DeviceCredentials? = nil, scope: Swift.String?, samlReqId: Swift.String? = nil, completion: @escaping (HawcxFramework.HawcxV1FlowState) -> Swift.Void)
+  final public func startQrLogin(codeChallenge: Swift.String? = nil, device: HawcxFramework.HawcxV1DeviceInfo? = nil, completion: @escaping (HawcxFramework.HawcxV1FlowState) -> Swift.Void)
   final public func selectMethod(methodId: Swift.String, completion: @escaping (HawcxFramework.HawcxV1FlowState) -> Swift.Void)
   final public func submitCode(code: Swift.String, completion: @escaping (HawcxFramework.HawcxV1FlowState) -> Swift.Void)
   final public func submitTotp(code: Swift.String, completion: @escaping (HawcxFramework.HawcxV1FlowState) -> Swift.Void)
@@ -281,7 +367,7 @@ final public class HawcxProtocolV1Client {
   final public func send(action: HawcxFramework.HawcxV1Action, completion: @escaping (HawcxFramework.HawcxV1FlowState) -> Swift.Void)
   @objc deinit
 }
-final public class HawcxV1SDK {
+@_hasMissingDesignatedInitializers final public class HawcxV1SDK {
   final public let configId: Swift.String
   @available(*, deprecated, message: "Use configId. Kept for backward compatibility.")
   final public let projectId: Swift.String
@@ -290,17 +376,21 @@ final public class HawcxV1SDK {
   final public let crypto: HawcxFramework.HawcxV1DeviceCryptoService
   final public let client: HawcxFramework.HawcxProtocolV1Client
   final public let flow: HawcxFramework.HawcxV1FlowController
-  #if compiler(>=5.3)
-  public init(configId: Swift.String, baseURL: Foundation.URL, sdkVersion: Swift.String? = nil, relyingParty: Swift.String? = nil, autoPollApprovals: Swift.Bool = true, primaryMethodSelectionPolicy: HawcxFramework.HawcxV1PrimaryMethodSelectionPolicy = .manual)
-  #endif
-  #if compiler(>=5.3)
+  final public let magicLinkLandingURL: Foundation.URL?
+  final public let account: HawcxFramework.HawcxV1AccountService
+  final public let approvals: HawcxFramework.HawcxV1ApprovalService
+  convenience public init(configId: Swift.String, baseURL: Foundation.URL, sdkVersion: Swift.String? = nil, relyingParty: Swift.String? = nil, autoPollApprovals: Swift.Bool = true, primaryMethodSelectionPolicy: HawcxFramework.HawcxV1PrimaryMethodSelectionPolicy = .manual)
+  convenience public init(configId: Swift.String, baseURL: Foundation.URL, sdkVersion: Swift.String? = nil, relyingParty: Swift.String? = nil, autoPollApprovals: Swift.Bool = true, primaryMethodSelectionPolicy: HawcxFramework.HawcxV1PrimaryMethodSelectionPolicy = .manual, magicLinkLandingURL: Foundation.URL?)
   @available(*, deprecated, message: "Use init(configId:baseURL:...). For v1, configId should be your API key.")
   convenience public init(projectId: Swift.String, apiKey: Swift.String? = nil, baseURL: Foundation.URL, sdkVersion: Swift.String? = nil, relyingParty: Swift.String? = nil, autoPollApprovals: Swift.Bool = true, primaryMethodSelectionPolicy: HawcxFramework.HawcxV1PrimaryMethodSelectionPolicy = .manual)
-  #endif
-  #if compiler(>=5.3)
   final public func start(flowType: HawcxFramework.HawcxV1FlowType, identifier: Swift.String, startToken: Swift.String? = nil, inviteCode: Swift.String? = nil, codeChallenge: Swift.String? = nil)
-  #endif
+  final public func start(flowType: HawcxFramework.HawcxV1FlowType, identifier: Swift.String, startToken: Swift.String? = nil, inviteCode: Swift.String? = nil, codeChallenge: Swift.String? = nil, scope: Swift.String?, samlReqId: Swift.String? = nil)
+  final public func startQrLogin(codeChallenge: Swift.String? = nil)
   final public func reset()
+  @discardableResult
+  final public func forgetDevice(identifier: Swift.String) -> Swift.Bool
+  final public func completeMagicLinkRedirect(_ url: Foundation.URL, completion: @escaping (HawcxFramework.HawcxV1MagicLinkRedirectOutcome) -> Swift.Void)
+  public static let version: Swift.String
   @objc deinit
 }
 public enum HawcxV1ClientError : Swift.Error, Swift.Equatable {
@@ -319,12 +409,8 @@ public enum HawcxV1DeviceInfoError : Swift.Error, Swift.Equatable {
 }
 public struct HawcxV1DeviceInfoBuilder {
   public static func normalizedIdentifier(_ identifier: Swift.String) -> Swift.String
-  #if compiler(>=5.3)
   public static func build(identifier: Swift.String, sdkVersion: Swift.String? = nil, additionalSignals: [Swift.String : HawcxFramework.HawcxV1JSONValue] = [:]) throws -> HawcxFramework.HawcxV1DeviceInfo
-  #endif
-  #if compiler(>=5.3)
   public static func buildSignals(sdkVersion: Swift.String? = nil) -> [Swift.String : HawcxFramework.HawcxV1JSONValue]
-  #endif
 }
 public enum HawcxV1CryptoError : Swift.Error, Swift.Equatable {
   case randomGenerationFailed(Darwin.OSStatus)
@@ -341,9 +427,7 @@ public enum HawcxV1CryptoError : Swift.Error, Swift.Equatable {
 }
 public enum HawcxV1CryptoSuite {
   public static let algorithmP256: Swift.String
-  #if compiler(>=5.3)
   public static func canonicalAlgorithm(_ algorithm: Swift.String) -> Swift.String?
-  #endif
   public static func supports(_ algorithm: Swift.String) -> Swift.Bool
   public static func areCompatible(_ lhs: Swift.String, _ rhs: Swift.String) -> Swift.Bool
 }
@@ -353,17 +437,11 @@ public enum HawcxV1Crypto {
   public static func deriveSK1(sharedSecret: Foundation.Data, combinedPrs: Foundation.Data) -> Foundation.Data
   public static func deriveSK2(sharedSecret: Foundation.Data, salt1: Foundation.Data) -> Foundation.Data
   public static func deriveHDS(sharedSecret: Foundation.Data, salt2: Foundation.Data) -> Foundation.Data
-  #if compiler(>=5.3)
   public static func encryptCombinedPrs(privateKey: Foundation.Data, sk0: Foundation.Data, iv0: Foundation.Data? = nil) throws -> (combinedprs: Foundation.Data, iv0: Foundation.Data)
-  #endif
   public static func decryptCombinedPrs(_ combinedPrs: Foundation.Data, iv0: Foundation.Data, sk0: Foundation.Data) throws -> Foundation.Data
-  #if compiler(>=5.3)
   public static func encryptCombinedSalt(salt0: Foundation.Data, infoData: Foundation.Data, sk1: Foundation.Data, iv1: Foundation.Data? = nil) throws -> Foundation.Data
-  #endif
   public static func decryptCombinedSalt(_ combinedSalt: Foundation.Data, sk1: Foundation.Data, expectedInfo: Foundation.Data) throws -> Foundation.Data
-  #if compiler(>=5.3)
   public static func encryptKeyset(publicKey: Foundation.Data, combinedSalt: Foundation.Data, sk2: Foundation.Data, iv2: Foundation.Data? = nil) throws -> Foundation.Data
-  #endif
   public static func decryptKeyset(_ keyset: Foundation.Data, sk2: Foundation.Data) throws -> (publicKey: Foundation.Data, combinedSalt: Foundation.Data)
   public static func computeDFP(hds: Foundation.Data, bundleId: Swift.String, osType: Swift.String) -> Foundation.Data
   public static func computeHI(salt1: Foundation.Data, salt2: Foundation.Data, sk2: Foundation.Data, combinedPrs: Foundation.Data, aPeer: Foundation.Data, sharedSecret: Foundation.Data, userId: Swift.String, domain: Swift.String, dfp: Foundation.Data) -> Swift.String
@@ -406,25 +484,26 @@ public struct HawcxV1DeviceCryptoRecord : Swift.Codable, Swift.Equatable {
   public let combinedprs: Foundation.Data
   public let iv0: Foundation.Data
   public let wrapMetadata: HawcxFramework.HawcxV1WrapMetadata
+  public var serverProjectId: Swift.String? {
+    get
+  }
+  public var lastUsedAt: Swift.Double? {
+    get
+  }
   public static func == (a: HawcxFramework.HawcxV1DeviceCryptoRecord, b: HawcxFramework.HawcxV1DeviceCryptoRecord) -> Swift.Bool
   public func encode(to encoder: any Swift.Encoder) throws
   public init(from decoder: any Swift.Decoder) throws
 }
-final public class HawcxV1DeviceCryptoStore {
-  #if compiler(>=5.3)
-  public init(serviceName: Swift.String? = nil, useSecureEnclave: Swift.Bool = true)
-  #endif
+@_hasMissingDesignatedInitializers final public class HawcxV1DeviceCryptoStore {
+  convenience public init(serviceName: Swift.String? = nil, useSecureEnclave: Swift.Bool = true)
   final public func recordKey(identifier: Swift.String, projectId: Swift.String) -> Swift.String
   final public func save(record: HawcxFramework.HawcxV1DeviceCryptoRecord) throws
-  #if compiler(>=5.3)
   final public func load(identifier: Swift.String, projectId: Swift.String) throws -> HawcxFramework.HawcxV1DeviceCryptoRecord?
-  #endif
   final public func delete(identifier: Swift.String, projectId: Swift.String)
   final public func createSharedSecret(identifier: Swift.String, projectId: Swift.String) throws -> (secret: Foundation.Data, metadata: HawcxFramework.HawcxV1WrapMetadata, peerPublicKey: Foundation.Data)
   final public func sharedSecret(identifier: Swift.String, projectId: Swift.String, metadata: HawcxFramework.HawcxV1WrapMetadata) throws -> Foundation.Data
-  #if compiler(>=5.3)
   final public func deviceCredentials(identifier: Swift.String, projectId: Swift.String) -> HawcxFramework.HawcxV1DeviceCredentials?
-  #endif
+  final public func listRecords(projectId: Swift.String) -> [HawcxFramework.HawcxV1DeviceCryptoRecord]
   @objc deinit
 }
 public struct HawcxV1DeviceCryptoError : Swift.Error {
@@ -436,22 +515,19 @@ public struct HawcxV1DeviceCryptoError : Swift.Error {
 public protocol HawcxV1DeviceCryptoHandling {
   func handleSetupDevice(domain: Swift.String, algorithm: Swift.String, version: Swift.String, identifier: Swift.String) throws -> HawcxFramework.HawcxV1Action
   func handleDeviceChallenge(challenge: Swift.String, challengeEncoding: Swift.String, keyId: Swift.String, algorithm: Swift.String, domain: Swift.String, combinedsalt: Swift.String, responseEncoding: Swift.String, identifier: Swift.String) throws -> HawcxFramework.HawcxV1Action
-  #if compiler(>=5.3)
   func deviceCredentials(for identifier: Swift.String) -> HawcxFramework.HawcxV1DeviceCredentials?
-  #endif
   func clearRecord(for identifier: Swift.String)
 }
 final public class HawcxV1DeviceCryptoService : HawcxFramework.HawcxV1DeviceCryptoHandling {
   final public let projectId: Swift.String
   final public let store: HawcxFramework.HawcxV1DeviceCryptoStore
   public init(projectId: Swift.String, store: HawcxFramework.HawcxV1DeviceCryptoStore = HawcxV1DeviceCryptoStore())
-  #if compiler(>=5.3)
   final public func deviceCredentials(for identifier: Swift.String) -> HawcxFramework.HawcxV1DeviceCredentials?
-  #endif
   final public func clearRecord(for identifier: Swift.String)
-  #if compiler(>=5.3)
+  final public func enrolledIdentifiers() -> [Swift.String]
+  final public func enrolledIdentifiersOrThrow() throws -> [Swift.String]
+  final public func serverProjectId(for identifier: Swift.String) -> Swift.String?
   final public func makeDeviceCredentialsProvider() -> (Swift.String) -> HawcxFramework.HawcxV1DeviceCredentials?
-  #endif
   final public func makeDeviceCredentialsInvalidator() -> (Swift.String) -> Swift.Void
   final public func handleSetupDevice(domain: Swift.String, algorithm: Swift.String, version: Swift.String, identifier: Swift.String) throws -> HawcxFramework.HawcxV1Action
   final public func handleDeviceChallenge(challenge: Swift.String, challengeEncoding: Swift.String, keyId: Swift.String, algorithm: Swift.String, domain: Swift.String, combinedsalt: Swift.String, responseEncoding: Swift.String, identifier: Swift.String) throws -> HawcxFramework.HawcxV1Action
@@ -463,9 +539,17 @@ public struct HawcxV1PromptContext : Swift.Equatable {
   public let stepInfo: HawcxFramework.HawcxV1StepInfo?
   public let risk: HawcxFramework.HawcxV1RiskInfo?
   public let codeChannel: Swift.String?
-  #if compiler(>=5.3)
+  public let pollInterval: Swift.Int?
+  public let pollPath: Swift.String?
+  public let notice: HawcxFramework.HawcxV1Notice?
+  public let backupCodes: [Swift.String]?
+  public var approval: HawcxFramework.HawcxV1ApprovalDisplay? {
+    get
+  }
   public init(session: Swift.String, meta: HawcxFramework.HawcxV1ResponseMeta, stepInfo: HawcxFramework.HawcxV1StepInfo?, risk: HawcxFramework.HawcxV1RiskInfo?, codeChannel: Swift.String? = nil)
-  #endif
+  public init(session: Swift.String, meta: HawcxFramework.HawcxV1ResponseMeta, stepInfo: HawcxFramework.HawcxV1StepInfo?, risk: HawcxFramework.HawcxV1RiskInfo?, codeChannel: Swift.String?, pollInterval: Swift.Int?)
+  public init(session: Swift.String, meta: HawcxFramework.HawcxV1ResponseMeta, stepInfo: HawcxFramework.HawcxV1StepInfo?, risk: HawcxFramework.HawcxV1RiskInfo?, codeChannel: Swift.String?, pollInterval: Swift.Int?, pollPath: Swift.String?)
+  public init(session: Swift.String, meta: HawcxFramework.HawcxV1ResponseMeta, stepInfo: HawcxFramework.HawcxV1StepInfo?, risk: HawcxFramework.HawcxV1RiskInfo?, codeChannel: Swift.String?, pollInterval: Swift.Int?, pollPath: Swift.String?, notice: HawcxFramework.HawcxV1Notice?, backupCodes: [Swift.String]?)
   public init(session: Swift.String, meta: HawcxFramework.HawcxV1ResponseMeta)
   public static func == (a: HawcxFramework.HawcxV1PromptContext, b: HawcxFramework.HawcxV1PromptContext) -> Swift.Bool
 }
@@ -477,6 +561,7 @@ public enum HawcxV1UserPrompt : Swift.Equatable {
   case setupSms(existingPhone: Swift.String?)
   case redirect(url: Swift.String, returnScheme: Swift.String?)
   case awaitApproval(qrData: Swift.String?, expiresAt: Swift.String, pollInterval: Swift.Int)
+  case locked(retryAfterSeconds: Swift.Int, lockedUntil: Swift.String)
   public static func == (a: HawcxFramework.HawcxV1UserPrompt, b: HawcxFramework.HawcxV1UserPrompt) -> Swift.Bool
 }
 public enum HawcxV1FlowUpdate : Swift.Equatable {
@@ -487,17 +572,32 @@ public enum HawcxV1FlowUpdate : Swift.Equatable {
   case error(session: Swift.String?, code: Swift.String, action: HawcxFramework.HawcxV1ErrorAction?, message: Swift.String, retryable: Swift.Bool, details: HawcxFramework.HawcxV1ErrorDetails?, meta: HawcxFramework.HawcxV1ResponseMeta?)
   public static func == (a: HawcxFramework.HawcxV1FlowUpdate, b: HawcxFramework.HawcxV1FlowUpdate) -> Swift.Bool
 }
+extension HawcxFramework.HawcxV1FlowUpdate {
+  public var identifier: Swift.String? {
+    get
+  }
+}
 final public class HawcxV1FlowController {
   final public let client: HawcxFramework.HawcxProtocolV1Client
   final public let autoPollApprovals: Swift.Bool
   final public let primaryMethodSelectionPolicy: HawcxFramework.HawcxV1PrimaryMethodSelectionPolicy
   final public let callbackQueue: Dispatch.DispatchQueue
   final public var onUpdate: ((HawcxFramework.HawcxV1FlowUpdate) -> Swift.Void)?
+  final public var onNotice: ((HawcxFramework.HawcxV1Notice) -> Swift.Void)?
+  final public var sessionToken: Swift.String? {
+    get
+  }
+  final public var signedInIdentifier: Swift.String? {
+    get
+  }
   public init(client: HawcxFramework.HawcxProtocolV1Client, autoPollApprovals: Swift.Bool = true, primaryMethodSelectionPolicy: HawcxFramework.HawcxV1PrimaryMethodSelectionPolicy = .manual, callbackQueue: Dispatch.DispatchQueue = .main)
+  @objc deinit
   final public func reset()
-  #if compiler(>=5.3)
   final public func start(flowType: HawcxFramework.HawcxV1FlowType, identifier: Swift.String, startToken: Swift.String? = nil, inviteCode: Swift.String? = nil, codeChallenge: Swift.String? = nil, device: HawcxFramework.HawcxV1DeviceInfo? = nil)
-  #endif
+  final public func start(flowType: HawcxFramework.HawcxV1FlowType, identifier: Swift.String, startToken: Swift.String? = nil, inviteCode: Swift.String? = nil, codeChallenge: Swift.String? = nil, device: HawcxFramework.HawcxV1DeviceInfo? = nil, scope: Swift.String?, samlReqId: Swift.String? = nil)
+  final public func startQrLogin(codeChallenge: Swift.String? = nil, device: HawcxFramework.HawcxV1DeviceInfo? = nil)
+  @discardableResult
+  final public func backToMethodSelection() -> Swift.Bool
   final public func selectMethod(_ methodId: Swift.String)
   final public func submitCode(_ code: Swift.String)
   final public func submitTotp(_ code: Swift.String)
@@ -505,17 +605,16 @@ final public class HawcxV1FlowController {
   @discardableResult
   final public func resend() -> Swift.Bool
   final public func poll()
+  final public func pausePolling()
+  final public func resumePolling()
   final public func oauthCallback(code: Swift.String, state: Swift.String)
   final public func cancel()
   final public func canResend(now: Foundation.Date = Date()) -> Swift.Bool
-  @objc deinit
 }
 public enum HawcxV1QrPayloadType : Swift.String, Swift.Equatable {
   case qrAuth
   case qrLogin
-  #if compiler(>=5.3)
   public init?(rawValue: Swift.String)
-  #endif
   public typealias RawValue = Swift.String
   public var rawValue: Swift.String {
     get
@@ -533,15 +632,12 @@ public struct HawcxV1QrPayload : Swift.Equatable {
   public var isQrLogin: Swift.Bool {
     get
   }
-  #if compiler(>=5.3)
   public init(type: HawcxFramework.HawcxV1QrPayloadType, sessionId: Swift.String, nonce: Swift.String, phoneActionToken: Swift.String?, token: Swift.String?, projectId: Swift.String?, version: Swift.String?, raw: Swift.String)
-  #endif
   public static func == (a: HawcxFramework.HawcxV1QrPayload, b: HawcxFramework.HawcxV1QrPayload) -> Swift.Bool
 }
 public enum HawcxV1QrPayloadParser {
-  #if compiler(>=5.3)
   public static func parse(_ raw: Swift.String) -> HawcxFramework.HawcxV1QrPayload?
-  #endif
+  public static func parseApproval(_ raw: Swift.String, now: Foundation.Date = Date()) -> HawcxFramework.HawcxV1ScannedApproval?
 }
 public struct HawcxV1QrSignaturePayload : Swift.Equatable {
   public let signature: Swift.String
@@ -565,27 +661,479 @@ public struct HawcxV1QrApprovalError : Swift.Error, Swift.Equatable {
   public let retryable: Swift.Bool
   public let shouldClearRecord: Swift.Bool
   public let retryAfterSeconds: Swift.Int?
-  #if compiler(>=5.3)
   public init(code: Swift.String, message: Swift.String, retryable: Swift.Bool, shouldClearRecord: Swift.Bool, retryAfterSeconds: Swift.Int?)
-  #endif
   public static func == (a: HawcxFramework.HawcxV1QrApprovalError, b: HawcxFramework.HawcxV1QrApprovalError) -> Swift.Bool
 }
 final public class HawcxV1QrApprovalService {
   final public let config: HawcxFramework.HawcxV1ClientConfig
   public init(config: HawcxFramework.HawcxV1ClientConfig, signer: any HawcxFramework.HawcxV1QrSigning, urlSession: Foundation.URLSession = .shared)
-  #if compiler(>=5.3)
   final public func approve(payload: HawcxFramework.HawcxV1QrPayload, identifier: Swift.String, rememberDevice: Swift.Bool = false, completion: @escaping (Swift.Result<HawcxFramework.HawcxV1QrApprovalOutcome, HawcxFramework.HawcxV1QrApprovalError>) -> Swift.Void)
-  #endif
-  #if compiler(>=5.3)
   final public func approveQrAuth(payload: HawcxFramework.HawcxV1QrPayload, identifier: Swift.String, rememberDevice: Swift.Bool = false, completion: @escaping (Swift.Result<HawcxFramework.HawcxV1QrApprovalOutcome, HawcxFramework.HawcxV1QrApprovalError>) -> Swift.Void)
-  #endif
-  #if compiler(>=5.3)
   final public func approveQrLogin(payload: HawcxFramework.HawcxV1QrPayload, identifier: Swift.String, rememberDevice: Swift.Bool = false, completion: @escaping (Swift.Result<HawcxFramework.HawcxV1QrApprovalOutcome, HawcxFramework.HawcxV1QrApprovalError>) -> Swift.Void)
-  #endif
   @objc deinit
 }
 extension HawcxFramework.HawcxV1DeviceCryptoService : HawcxFramework.HawcxV1QrSigning {
   final public func signQrMessage(_ message: Swift.String, identifier: Swift.String) throws -> HawcxFramework.HawcxV1QrSignaturePayload
+}
+extension HawcxFramework.HawcxV1ApprovalService {
+  final public func approveV1(_ payload: HawcxFramework.HawcxV1QrPayload, identifier: Swift.String, rememberDevice: Swift.Bool = false, completion: @escaping (Swift.Result<HawcxFramework.HawcxV1QrApprovalOutcome, HawcxFramework.HawcxV1QrApprovalError>) -> Swift.Void)
+}
+public struct HawcxV1MagicLinkRedirect : Swift.Equatable {
+  public let token: Swift.String
+  public let projectId: Swift.String
+  public static func == (a: HawcxFramework.HawcxV1MagicLinkRedirect, b: HawcxFramework.HawcxV1MagicLinkRedirect) -> Swift.Bool
+}
+public enum HawcxV1MagicLinkRedirectParser {
+  public static func parse(_ url: Foundation.URL) -> HawcxFramework.HawcxV1MagicLinkRedirect?
+  public static func parse(_ url: Foundation.URL, landingURL: Foundation.URL?) -> HawcxFramework.HawcxV1MagicLinkRedirect?
+}
+public enum HawcxV1MagicLinkRedirectOutcome : Swift.Equatable {
+  case notMagicLink
+  case resumed
+  case handedOff
+  case failed(code: Swift.String, message: Swift.String, retryable: Swift.Bool)
+  public static func == (a: HawcxFramework.HawcxV1MagicLinkRedirectOutcome, b: HawcxFramework.HawcxV1MagicLinkRedirectOutcome) -> Swift.Bool
+}
+extension HawcxFramework.HawcxV1PromptContext : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1PromptMetadata : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1ApprovalDisplay : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1UserPrompt : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1Prompt : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1ResponseMeta : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1FlowUpdate : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1FlowState : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1Response : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1FlowSnapshot : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1Request : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1DeviceCredentials : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1Action : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1DeviceCryptoRecord : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1WrapMetadata : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1QrPayload : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1ScannedApproval : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1QrSignaturePayload : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1QrApprovalOutcome : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1ApprovalSignature : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1ApprovalRequest : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1PushRegistration : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1OAuthCallback : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1OAuthToken : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+extension HawcxFramework.HawcxV1MagicLinkRedirect : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+public struct HawcxV1DeviceSummary : Swift.Decodable, Swift.Equatable {
+  public let deviceId: Swift.String
+  public let h2index: Swift.String
+  public let createdAt: Swift.String?
+  public let revoked: Swift.Bool
+  public let revokedAt: Swift.String?
+  public let deviceInfo: [Swift.String : HawcxFramework.HawcxV1JSONValue]?
+  public init(deviceId: Swift.String, h2index: Swift.String, createdAt: Swift.String?, revoked: Swift.Bool, revokedAt: Swift.String?, deviceInfo: [Swift.String : HawcxFramework.HawcxV1JSONValue]?)
+  public init(from decoder: any Swift.Decoder) throws
+  public static func == (a: HawcxFramework.HawcxV1DeviceSummary, b: HawcxFramework.HawcxV1DeviceSummary) -> Swift.Bool
+}
+final public class HawcxV1AccountService {
+  final public let config: HawcxFramework.HawcxV1ClientConfig
+  public init(config: HawcxFramework.HawcxV1ClientConfig, urlSession: Foundation.URLSession = .shared, callbackQueue: Dispatch.DispatchQueue = .main)
+  final public func listDevices(sessionToken: Swift.String, completion: @escaping (Swift.Result<[HawcxFramework.HawcxV1DeviceSummary], HawcxFramework.HawcxV1ApprovalError>) -> Swift.Void)
+  final public func revokeDevice(sessionToken: Swift.String, deviceId: Swift.String, reason: Swift.String?, completion: @escaping (Swift.Result<Swift.Void, HawcxFramework.HawcxV1ApprovalError>) -> Swift.Void)
+  final public func logoutEverywhere(sessionToken: Swift.String, completion: @escaping (Swift.Result<Swift.Int, HawcxFramework.HawcxV1ApprovalError>) -> Swift.Void)
+  @objc deinit
+}
+public struct HawcxV1ApprovalSignature : Swift.Equatable {
+  public let signature: Swift.String
+  public let h2index: Swift.String
+  public let sk2: Swift.String
+  public init(signature: Swift.String, h2index: Swift.String, sk2: Swift.String)
+  public static func == (a: HawcxFramework.HawcxV1ApprovalSignature, b: HawcxFramework.HawcxV1ApprovalSignature) -> Swift.Bool
+}
+public protocol HawcxV1ApprovalSigning : AnyObject {
+  func signApprovalMessage(_ message: Swift.String, identifier: Swift.String) throws -> HawcxFramework.HawcxV1ApprovalSignature
+  func enrolledIdentifiers() -> [Swift.String]
+  func serverProjectId(for identifier: Swift.String) -> Swift.String?
+  func h2index(for identifier: Swift.String) throws -> Swift.String?
+  func clearRecord(for identifier: Swift.String)
+  func markRecordUsed(for identifier: Swift.String)
+}
+extension HawcxFramework.HawcxV1DeviceCryptoService : HawcxFramework.HawcxV1ApprovalSigning {
+  final public func h2index(for identifier: Swift.String) throws -> Swift.String?
+  final public func markRecordUsed(for identifier: Swift.String)
+  final public func signApprovalMessage(_ message: Swift.String, identifier: Swift.String) throws -> HawcxFramework.HawcxV1ApprovalSignature
+}
+public struct HawcxV1PushRegistration : Swift.Equatable {
+  public let provider: Swift.String
+  public let platform: Swift.String
+  public let appId: Swift.String
+  public let apnsEnv: Swift.String
+  public let token: Swift.String
+  public init(appId: Swift.String, apnsEnv: Swift.String, token: Swift.String)
+  public static func apns(deviceToken: Foundation.Data, appId: Swift.String? = nil, apnsEnv: Swift.String) -> HawcxFramework.HawcxV1PushRegistration
+  public static func == (a: HawcxFramework.HawcxV1PushRegistration, b: HawcxFramework.HawcxV1PushRegistration) -> Swift.Bool
+}
+public struct HawcxV1PushRegistrationReport : Swift.Equatable {
+  public let registered: Swift.Int
+  public let orphanedIdentifiers: [Swift.String]
+  public init(registered: Swift.Int, orphanedIdentifiers: [Swift.String])
+  public static func == (a: HawcxFramework.HawcxV1PushRegistrationReport, b: HawcxFramework.HawcxV1PushRegistrationReport) -> Swift.Bool
+}
+extension HawcxFramework.HawcxV1PushRegistrationReport : Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible, Swift.CustomReflectable {
+  public var description: Swift.String {
+    get
+  }
+  public var debugDescription: Swift.String {
+    get
+  }
+  public var customMirror: Swift.Mirror {
+    get
+  }
+}
+public enum HawcxV1ApprovalKind : Swift.String {
+  case push
+  case qrAuth
+  case qrLogin
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public struct HawcxV1ApprovalReference : Swift.Equatable {
+  public let kind: HawcxFramework.HawcxV1ApprovalKind
+  public let projectId: Swift.String
+  public let approvalId: Swift.String
+  public let expiresAt: Foundation.Date?
+  public init(kind: HawcxFramework.HawcxV1ApprovalKind, projectId: Swift.String, approvalId: Swift.String, expiresAt: Foundation.Date?)
+  public static func == (a: HawcxFramework.HawcxV1ApprovalReference, b: HawcxFramework.HawcxV1ApprovalReference) -> Swift.Bool
+}
+public enum HawcxV1ScannedApproval : Swift.Equatable {
+  case v2(HawcxFramework.HawcxV1ApprovalReference)
+  case v1(HawcxFramework.HawcxV1QrPayload)
+  public static func == (a: HawcxFramework.HawcxV1ScannedApproval, b: HawcxFramework.HawcxV1ScannedApproval) -> Swift.Bool
+}
+public enum HawcxV1ApprovalCodeError : Swift.Error, Swift.Equatable {
+  case codeNotFound
+  case tooManyAttempts(retryAfter: Swift.Int?)
+  case invalidCodeFormat
+  case serviceUnavailable(serverCode: Swift.String?)
+  case network(error: HawcxFramework.HawcxV1ApprovalError)
+  case unknown(error: HawcxFramework.HawcxV1ApprovalError)
+  public var code: Swift.String {
+    get
+  }
+  public var status: Swift.Int? {
+    get
+  }
+  public var retryable: Swift.Bool {
+    get
+  }
+  public var retryAfterSeconds: Swift.Int? {
+    get
+  }
+  public static func == (a: HawcxFramework.HawcxV1ApprovalCodeError, b: HawcxFramework.HawcxV1ApprovalCodeError) -> Swift.Bool
+}
+@_hasMissingDesignatedInitializers final public class HawcxV1ApprovalService {
+  final public let config: HawcxFramework.HawcxV1ClientConfig
+  convenience public init(config: HawcxFramework.HawcxV1ClientConfig, signer: any HawcxFramework.HawcxV1ApprovalSigning, session: Foundation.URLSession = .shared, callbackQueue: Dispatch.DispatchQueue = .main, now: @escaping () -> Foundation.Date = Date.init)
+  final public func registerPushToken(_ registration: HawcxFramework.HawcxV1PushRegistration, force: Swift.Bool = false, completion: @escaping (Swift.Result<Swift.Int, HawcxFramework.HawcxV1ApprovalError>) -> Swift.Void)
+  final public func registerPushTokenWithReport(_ registration: HawcxFramework.HawcxV1PushRegistration, force: Swift.Bool = false, completion: @escaping (Swift.Result<HawcxFramework.HawcxV1PushRegistrationReport, HawcxFramework.HawcxV1ApprovalError>) -> Swift.Void)
+  final public func unregisterPushToken(identifier: Swift.String? = nil, completion: @escaping (Swift.Result<Swift.Void, HawcxFramework.HawcxV1ApprovalError>) -> Swift.Void)
+  final public func unregisterPushToken(identifier: Swift.String, appId: Swift.String, completion: @escaping (Swift.Result<Swift.Void, HawcxFramework.HawcxV1ApprovalError>) -> Swift.Void)
+  public static let notificationCategory: Swift.String
+  final public func approvalReference(fromPush userInfo: [Swift.AnyHashable : Any]) -> HawcxFramework.HawcxV1ApprovalReference?
+  final public func scan(_ raw: Swift.String) -> HawcxFramework.HawcxV1ScannedApproval?
+  final public func resolveCode(_ code: Swift.String, completion: @escaping (Swift.Result<HawcxFramework.HawcxV1ScannedApproval, HawcxFramework.HawcxV1ApprovalCodeError>) -> Swift.Void)
+  @objc deinit
+}
+public struct HawcxV1ApprovalRequester : Swift.Equatable {
+  public let appName: Swift.String?
+  public let origin: Swift.String?
+  public let browser: Swift.String?
+  public let ip: Swift.String?
+  public let location: Swift.String?
+  public let requestedAt: Swift.String
+  public init(appName: Swift.String?, origin: Swift.String?, browser: Swift.String?, ip: Swift.String?, location: Swift.String?, requestedAt: Swift.String)
+  public static func == (a: HawcxFramework.HawcxV1ApprovalRequester, b: HawcxFramework.HawcxV1ApprovalRequester) -> Swift.Bool
+}
+public struct HawcxV1ApprovalRequest : Swift.Equatable {
+  public let reference: HawcxFramework.HawcxV1ApprovalReference
+  public let identifier: Swift.String
+  public let mode: Swift.String
+  public let requester: HawcxFramework.HawcxV1ApprovalRequester
+  public let numberRequired: Swift.Bool
+  public let expiresAt: Foundation.Date
+  public let locationMismatch: Swift.Bool?
+  public var isExpired: Swift.Bool {
+    get
+  }
+  public static func == (a: HawcxFramework.HawcxV1ApprovalRequest, b: HawcxFramework.HawcxV1ApprovalRequest) -> Swift.Bool
+}
+public enum HawcxV1ApprovalDecision : Swift.String {
+  case approve
+  case deny
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public enum HawcxV1ApprovalResult : Swift.Equatable {
+  case approved
+  case denied
+  case wrongNumber
+  case resolved(outcome: Swift.String, decidedByThisDevice: Swift.Bool)
+  public static func == (a: HawcxFramework.HawcxV1ApprovalResult, b: HawcxFramework.HawcxV1ApprovalResult) -> Swift.Bool
+}
+extension HawcxFramework.HawcxV1ApprovalService {
+  final public func fetchContext(_ reference: HawcxFramework.HawcxV1ApprovalReference, identifier: Swift.String? = nil, completion: @escaping (Swift.Result<HawcxFramework.HawcxV1ApprovalRequest, HawcxFramework.HawcxV1ApprovalError>) -> Swift.Void)
+  final public func decide(_ request: HawcxFramework.HawcxV1ApprovalRequest, _ decision: HawcxFramework.HawcxV1ApprovalDecision, numberChoice: Swift.Int? = nil, rememberDevice: Swift.Bool = false, completion: @escaping (Swift.Result<HawcxFramework.HawcxV1ApprovalResult, HawcxFramework.HawcxV1ApprovalError>) -> Swift.Void)
 }
 public struct HawcxV1OAuthCallback : Swift.Equatable {
   public let code: Swift.String
@@ -594,9 +1142,7 @@ public struct HawcxV1OAuthCallback : Swift.Equatable {
   public static func == (a: HawcxFramework.HawcxV1OAuthCallback, b: HawcxFramework.HawcxV1OAuthCallback) -> Swift.Bool
 }
 public enum HawcxV1OAuthCallbackParser {
-  #if compiler(>=5.3)
   public static func parse(_ url: Foundation.URL) -> HawcxFramework.HawcxV1OAuthCallback?
-  #endif
 }
 public enum HawcxV1OAuthRedirectError : Swift.Error, Swift.Equatable {
   case cancelled
@@ -606,9 +1152,7 @@ public enum HawcxV1OAuthRedirectError : Swift.Error, Swift.Equatable {
 }
 @objc @_Concurrency.MainActor @preconcurrency final public class HawcxV1OAuthRedirectSession : ObjectiveC.NSObject, AuthenticationServices.ASWebAuthenticationPresentationContextProviding {
   @_Concurrency.MainActor @preconcurrency public init(presentationAnchorProvider: @escaping () -> AuthenticationServices.ASPresentationAnchor)
-  #if compiler(>=5.3)
   @_Concurrency.MainActor @preconcurrency final public func start(url: Foundation.URL, callbackScheme: Swift.String?, prefersEphemeralSession: Swift.Bool = false, completion: @escaping (Swift.Result<Foundation.URL, HawcxFramework.HawcxV1OAuthRedirectError>) -> Swift.Void)
-  #endif
   @_Concurrency.MainActor @preconcurrency final public func cancel()
   @_Concurrency.MainActor @preconcurrency @objc final public func presentationAnchor(for session: AuthenticationServices.ASWebAuthenticationSession) -> AuthenticationServices.ASPresentationAnchor
   @objc deinit
@@ -629,9 +1173,7 @@ public enum HawcxV1OAuthExchangeError : Swift.Error, Swift.Equatable {
 }
 @_hasMissingDesignatedInitializers final public class HawcxV1OAuthExchangeService {
   public init(config: HawcxFramework.HawcxOAuthConfig, urlSession: Foundation.URLSession = .shared)
-  #if compiler(>=5.3)
   final public func exchange(authCode: Swift.String, codeVerifier: Swift.String? = nil, completion: @escaping (Swift.Result<HawcxFramework.HawcxV1OAuthToken, HawcxFramework.HawcxV1OAuthExchangeError>) -> Swift.Void)
-  #endif
   @objc deinit
 }
 public struct PushLoginRequestDetails : Swift.Codable {
@@ -691,26 +1233,18 @@ public struct SessionDetails : Swift.Codable {
   public let city: Swift.String?
   public let state: Swift.String?
   public let country: Swift.String?
-  #if compiler(>=5.3)
   public var derivedOsDetails: Swift.String? {
     get
   }
-  #endif
-  #if compiler(>=5.3)
   public var derivedBrowserWithVersion: Swift.String? {
     get
   }
-  #endif
-  #if compiler(>=5.3)
   public var derivedDeviceType: Swift.String? {
     get
   }
-  #endif
-  #if compiler(>=5.3)
   public var derivedLocation: Swift.String? {
     get
   }
-  #endif
   public func encode(to encoder: any Swift.Encoder) throws
   public init(from decoder: any Swift.Decoder) throws
 }
@@ -722,34 +1256,22 @@ public struct Device : Swift.Codable, Swift.Identifiable, Swift.Hashable {
   public let model: Swift.String?
   public let osVersion: Swift.String?
   public let loginTime: Swift.String?
-  #if compiler(>=5.3)
   public var osDetails: Swift.String? {
     get
   }
-  #endif
-  #if compiler(>=5.3)
   public var browserWithVersion: Swift.String? {
     get
   }
-  #endif
-  #if compiler(>=5.3)
   public var deviceType: Swift.String? {
     get
   }
-  #endif
-  #if compiler(>=5.3)
   public var sessionDetails: [HawcxFramework.Session]? {
     get
   }
-  #endif
   public static func == (lhs: HawcxFramework.Device, rhs: HawcxFramework.Device) -> Swift.Bool
   public func hash(into hasher: inout Swift.Hasher)
-  #if compiler(>=5.3)
   public init(id: Foundation.UUID = UUID(), devId: Swift.String?, platform: Swift.String? = nil, browserName: Swift.String? = nil, model: Swift.String? = nil, osVersion: Swift.String? = nil, loginTime: Swift.String? = nil)
-  #endif
-  #if compiler(>=5.3)
   public init(id: Foundation.UUID = UUID(), devId: Swift.String?, osDetails: Swift.String?, browserWithVersion: Swift.String?, deviceType: Swift.String?, sessionDetails: [HawcxFramework.Session]?)
-  #endif
   public typealias ID = Foundation.UUID
   public func encode(to encoder: any Swift.Encoder) throws
   public var hashValue: Swift.Int {
@@ -808,9 +1330,7 @@ public enum AuthV4ErrorCode : Swift.String, Swift.Error {
   case oauthExchangeFailed
   case oauthTokenVerificationFailed
   case fingerprintError
-  #if compiler(>=5.3)
   public init?(rawValue: Swift.String)
-  #endif
   public typealias RawValue = Swift.String
   public var rawValue: Swift.String {
     get
@@ -821,9 +1341,7 @@ public enum WebLoginErrorCode : Swift.String, Swift.Error {
   case invalidPin
   case failedApprove
   case networkError
-  #if compiler(>=5.3)
   public init?(rawValue: Swift.String)
-  #endif
   public typealias RawValue = Swift.String
   public var rawValue: Swift.String {
     get
@@ -831,9 +1349,7 @@ public enum WebLoginErrorCode : Swift.String, Swift.Error {
 }
 public protocol AuthV4Callback : AnyObject {
   func onOtpRequired()
-  #if compiler(>=5.3)
   func onAuthSuccess(accessToken: Swift.String?, refreshToken: Swift.String?, isLoginFlow: Swift.Bool)
-  #endif
   func onError(errorCode: HawcxFramework.AuthV4ErrorCode, errorMessage: Swift.String)
 }
 public enum AuthV5ErrorCode : Swift.String, Swift.Error {
@@ -852,9 +1368,7 @@ public enum AuthV5ErrorCode : Swift.String, Swift.Error {
   case oauthConfigurationMissing
   case oauthExchangeFailed
   case oauthTokenVerificationFailed
-  #if compiler(>=5.3)
   public init?(rawValue: Swift.String)
-  #endif
   public typealias RawValue = Swift.String
   public var rawValue: Swift.String {
     get
@@ -862,16 +1376,10 @@ public enum AuthV5ErrorCode : Swift.String, Swift.Error {
 }
 public protocol AuthV5Callback : AnyObject {
   func onOtpRequired()
-  #if compiler(>=5.3)
   func onAuthSuccess(accessToken: Swift.String?, refreshToken: Swift.String?, isLoginFlow: Swift.Bool)
-  #endif
   func onError(errorCode: HawcxFramework.AuthV5ErrorCode, errorMessage: Swift.String)
-  #if compiler(>=5.3)
   func onAuthorizationCode(code: Swift.String, expiresIn: Swift.Int?)
-  #endif
-  #if compiler(>=5.3)
   func onAdditionalVerificationRequired(sessionId: Swift.String, detail: Swift.String?)
-  #endif
 }
 public protocol HawcxPushAuthDelegate : AnyObject {
   func hawcx(didReceiveLoginRequest requestId: Swift.String, details: HawcxFramework.PushLoginRequestDetails)
@@ -879,9 +1387,7 @@ public protocol HawcxPushAuthDelegate : AnyObject {
 }
 public class HawcxSDK {
   weak public var pushAuthDelegate: (any HawcxFramework.HawcxPushAuthDelegate)?
-  #if compiler(>=5.3)
   public init(projectApiKey: Swift.String, baseURL: Swift.String, oauthConfig: HawcxFramework.HawcxOAuthConfig? = nil)
-  #endif
   public func authenticateV4(userid: Swift.String, callback: any HawcxFramework.AuthV4Callback)
   public func submitOtpV4(otp: Swift.String)
   public func authenticateV5(userid: Swift.String, callback: any HawcxFramework.AuthV5Callback)
@@ -889,20 +1395,18 @@ public class HawcxSDK {
   public func getDeviceDetails(callback: any HawcxFramework.DevSessionCallback)
   public func webLogin(pin: Swift.String, callback: any HawcxFramework.WebLoginCallback)
   public func webApprove(token: Swift.String, callback: any HawcxFramework.WebLoginCallback)
+  @available(*, deprecated, message: "Legacy v4 push. Use HawcxV1SDK.approvals (approvals v2): registerPushToken(.apns(deviceToken:apnsEnv:)).")
   public func setAPNsDeviceToken(_ tokenData: Foundation.Data)
   public func userDidAuthenticate()
+  @available(*, deprecated, message: "Legacy v4 push. Use HawcxV1SDK.approvals (approvals v2): approvalReference(fromPush:), then fetchContext(_:identifier:completion:).")
   public func handlePushNotification(userInfo: [Swift.AnyHashable : Any]) -> Swift.Bool
-  #if compiler(>=5.3)
+  @available(*, deprecated, message: "Legacy v4 push. Use HawcxV1SDK.approvals (approvals v2): decide(_:.approve, numberChoice:completion:).")
   public func approveLoginRequest(requestId: Swift.String, completion: @escaping ((any Swift.Error)?) -> Swift.Void)
-  #endif
-  #if compiler(>=5.3)
+  @available(*, deprecated, message: "Legacy v4 push. Use HawcxV1SDK.approvals (approvals v2): decide(_:.deny, completion:).")
   public func declineLoginRequest(requestId: Swift.String, completion: @escaping ((any Swift.Error)?) -> Swift.Void)
-  #endif
   public func getLastLoggedInUser() -> Swift.String
-  #if compiler(>=5.3)
   @discardableResult
   public func storeBackendOAuthTokens(accessToken: Swift.String, refreshToken: Swift.String?, forUser userId: Swift.String) -> Swift.Bool
-  #endif
   public func clearSessionTokens(forUser userid: Swift.String)
   public func clearUserKeychainData(forUser userid: Swift.String)
   public func clearLastLoggedInUser()
@@ -922,10 +1426,19 @@ extension HawcxFramework.HawcxV1FlowType : Swift.Equatable {}
 extension HawcxFramework.HawcxV1FlowType : Swift.Hashable {}
 extension HawcxFramework.HawcxV1FlowType : Swift.RawRepresentable {}
 extension HawcxFramework.HawcxV1PrimaryMethodSelectionPolicy : Swift.Hashable {}
+extension HawcxFramework.HawcxV1ApprovalOutcomeCode : Swift.Equatable {}
+extension HawcxFramework.HawcxV1ApprovalOutcomeCode : Swift.Hashable {}
+extension HawcxFramework.HawcxV1ApprovalOutcomeCode : Swift.RawRepresentable {}
 extension HawcxFramework.HawcxV1DeviceCryptoStoreError : Swift.Equatable {}
 extension HawcxFramework.HawcxV1DeviceCryptoStoreError : Swift.Hashable {}
 extension HawcxFramework.HawcxV1QrPayloadType : Swift.Hashable {}
 extension HawcxFramework.HawcxV1QrPayloadType : Swift.RawRepresentable {}
+extension HawcxFramework.HawcxV1ApprovalKind : Swift.Equatable {}
+extension HawcxFramework.HawcxV1ApprovalKind : Swift.Hashable {}
+extension HawcxFramework.HawcxV1ApprovalKind : Swift.RawRepresentable {}
+extension HawcxFramework.HawcxV1ApprovalDecision : Swift.Equatable {}
+extension HawcxFramework.HawcxV1ApprovalDecision : Swift.Hashable {}
+extension HawcxFramework.HawcxV1ApprovalDecision : Swift.RawRepresentable {}
 extension HawcxFramework.HawcxV1OAuthRedirectSession : Swift.Sendable {}
 extension HawcxFramework.SDKLogger.LogLevel : Swift.Equatable {}
 extension HawcxFramework.SDKLogger.LogLevel : Swift.Hashable {}
