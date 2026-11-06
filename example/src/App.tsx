@@ -35,6 +35,7 @@ import {
   type HawcxV6Method,
   type HawcxV6PromptPayload,
 } from '@hawcx/react-native-sdk';
+import QRCode from 'react-native-qrcode-svg';
 import {
   DEFAULT_HAWCX_CONFIG,
   EXAMPLE_DEFAULT_BACKEND_URL,
@@ -427,6 +428,9 @@ const summarizeRedirectUrl = (rawUrl: string) => {
   }
 };
 
+/** `48217093` -> `4821 7093`, easier to read out and type. */
+const formatManualCode = (code: string) => `${code.slice(0, 4)} ${code.slice(4)}`;
+
 const App = () => {
   const [activeConfig] = useState<HawcxInitializeConfig | null>(DEFAULT_HAWCX_CONFIG);
   const [initStatus, setInitStatus] = useState<'idle' | 'initializing' | 'ready' | 'error'>('idle');
@@ -450,6 +454,8 @@ const App = () => {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [pendingMethodId, setPendingMethodId] = useState<string | null>(null);
   const [approverScan, setApproverScan] = useState<{ raw: string; nonce: number } | undefined>();
+  // An anonymous QR sign-in: no identifier until the approving phone picks one.
+  const [qrSignIn, setQrSignIn] = useState(false);
 
   const v6 = useHawcxV6Auth(undefined, { flowType: 'signin' });
   const web = useHawcxWebLogin();
@@ -476,8 +482,10 @@ const App = () => {
 
   const isReady = initStatus === 'ready';
   const currentPrompt = v6.state.prompt;
-  const currentIdentifier = v6.state.identifier ?? identifier.trim();
-  const preferredUserId = savedUserId ?? currentIdentifier ?? null;
+  // A QR sign-in has no identifier until it completes (`completed.identifier`
+  // lands on `state.identifier`); never borrow the typed one for it.
+  const currentIdentifier = v6.state.identifier ?? (qrSignIn ? '' : identifier.trim());
+  const preferredUserId = savedUserId ?? (currentIdentifier || null);
   const redirectPrompt = currentPrompt?.prompt.type === 'redirect' ? currentPrompt.prompt : null;
   const v6TransitionKey = buildV6TransitionKey(v6.state);
   const redirectWarning =
@@ -860,6 +868,7 @@ const App = () => {
         handledCompletionRef.current = null;
         attemptedAutoSelectionKeysRef.current.clear();
         suppressedAutoSelectionKeyRef.current = null;
+        setQrSignIn(false);
         appendLog(`starting signin flow for ${trimmedIdentifier}`);
         await v6.start({
           identifier: trimmedIdentifier,
@@ -880,6 +889,7 @@ const App = () => {
         setBackendStatus(null);
         setBackendError(null);
         handledCompletionRef.current = null;
+        setQrSignIn(true);
         appendLog('starting anonymous QR sign-in');
         await v6.startQrLogin();
       },
@@ -1026,6 +1036,7 @@ const App = () => {
   const changeIdentifier = useCallback(async () => {
     await runPendingAction('change_identifier', async () => {
       await v6.changeIdentifier();
+      setQrSignIn(false);
       setCodeInput('');
       setPhoneInput('');
       setBackendStatus(null);
@@ -1039,6 +1050,7 @@ const App = () => {
   const resetFlow = useCallback(async () => {
     await runPendingAction('reset_flow', async () => {
       await v6.reset();
+      setQrSignIn(false);
       setBackendStatus(null);
       setBackendError(null);
       attemptedAutoSelectionKeysRef.current.clear();
@@ -1606,7 +1618,11 @@ const App = () => {
           {currentPrompt?.prompt.type === 'await_approval' ? (
             <>
               <Text style={styles.currentStepTitle}>
-                {currentPrompt.prompt.mode === 'push' ? 'Check your phone' : 'Scan with your phone'}
+                {currentPrompt.prompt.mode === 'push'
+                  ? 'Check your phone'
+                  : qrSignIn
+                    ? 'Sign in with QR: scan with your signed-in phone'
+                    : 'Scan with your phone'}
               </Text>
               {currentPrompt.prompt.number !== undefined ? (
                 <Text testID="v6-approval-number" style={styles.approvalNumber}>
@@ -1626,8 +1642,32 @@ const App = () => {
               </Text>
               {currentPrompt.prompt.qrData ? (
                 <>
-                  <Text style={styles.statusLine}>QR payload</Text>
-                  <Text style={styles.monoBlock}>{currentPrompt.prompt.qrData}</Text>
+                  <View testID="v6-qr-code" style={styles.qrPanel}>
+                    <QRCode
+                      value={currentPrompt.prompt.qrData}
+                      size={220}
+                      ecl="M"
+                      color="#000000"
+                      backgroundColor="#ffffff"
+                      quietZone={12}
+                    />
+                  </View>
+                  {currentPrompt.prompt.manualCode ? (
+                    <>
+                      <Text style={[styles.statusLine, styles.centeredText]}>
+                        Can't scan? On the phone, choose "Enter code instead" and type:
+                      </Text>
+                      <Text testID="v6-manual-code" selectable style={styles.manualCode}>
+                        {formatManualCode(currentPrompt.prompt.manualCode)}
+                      </Text>
+                    </>
+                  ) : null}
+                  <Text style={styles.statusLine}>
+                    QR payload (paste it into an Approver card on a simulator)
+                  </Text>
+                  <Text selectable style={styles.monoBlock}>
+                    {currentPrompt.prompt.qrData}
+                  </Text>
                 </>
               ) : null}
               {promptActionLabel ? (
@@ -1739,6 +1779,11 @@ const App = () => {
           {v6.state.status === 'completed' && v6.state.completed ? (
             <View style={styles.successBanner}>
               <Text style={styles.successBannerTitle}>Authorization code received</Text>
+              <Text testID="v6-signed-in-as" style={styles.successBannerBody}>
+                Signed in as:{' '}
+                {v6.state.completed.identifier ??
+                  (currentIdentifier || 'not named by the server')}
+              </Text>
               <Text style={styles.successBannerBody}>
                 Code: {summarizeValue(v6.state.completed.authCode, 8, 6)}
               </Text>
@@ -1882,6 +1927,25 @@ const MetaItem = ({ label, value }: { label: string; value?: string }) => (
 );
 
 const styles = StyleSheet.create({
+  qrPanel: {
+    alignSelf: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 8,
+    marginVertical: 8,
+  },
+  manualCode: {
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: 4,
+    textAlign: 'center',
+    color: COLORS.text,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginBottom: 8,
+  },
+  centeredText: {
+    textAlign: 'center',
+  },
   approvalNumber: {
     fontSize: 56,
     fontWeight: '800',

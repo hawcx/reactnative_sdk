@@ -14,6 +14,7 @@ import {
   type HawcxV6ApprovalReference,
   type HawcxV6ApprovalResult,
   type HawcxV6DeviceSummary,
+  type HawcxV6ScannedApproval,
   type HawcxServiceError,
 } from '@hawcx/react-native-sdk';
 
@@ -22,6 +23,7 @@ import {
  * path runs on a simulator / emulator without APNs or FCM:
  * - paste a push payload (APNs userInfo, FCM `{data: {hawcx}}`, or a bare `{hawcx}`)
  * - paste a QR (v2 opens the approver, v1 asks for confirmation first)
+ * - "Enter code instead": the 8-digit code shown under the requester's QR
  * - register a fake push token (forced) / unregister
  * - device list / revoke / log out everywhere (the last flow's session token, kept native)
  */
@@ -94,6 +96,16 @@ export const describeApproverError = (error: HawcxServiceError): string => {
       return 'Unlock the device and try again.';
     case 'rate_limited':
       return `Too many requests${error.retryAfterSeconds ? `; retry in ${error.retryAfterSeconds}s` : ''}.`;
+    case 'invalid_code_format':
+      return 'Enter the 8-digit code shown under the QR on the other screen.';
+    case 'code_not_found':
+      return 'No sign-in request has this code. Check it, or start again on the other screen.';
+    case 'too_many_attempts':
+      return `Too many attempts${error.retryAfterSeconds ? `; try again in ${error.retryAfterSeconds}s` : ''}.`;
+    case 'service_unavailable':
+      return 'Codes cannot be checked right now. Try again shortly.';
+    case 'transport_error':
+      return 'No connection. Check the network and try again.';
     default:
       return `${error.message} (${error.code})`;
   }
@@ -127,6 +139,8 @@ export const ApproverScreen = ({ incomingScan, defaultIdentifier }: ApproverScre
   const [pickFrom, setPickFrom] = useState<{ reference: HawcxV6ApprovalReference; ids: string[] } | null>(null);
   const [v1Pending, setV1Pending] = useState<V1Pending | null>(null);
   const [devices, setDevices] = useState<HawcxV6DeviceSummary[] | null>(null);
+  const [codeEntryOpen, setCodeEntryOpen] = useState(false);
+  const [codeInput, setCodeInput] = useState('');
 
   const report = useCallback((error: unknown) => {
     setStatus(describeApproverError(toHawcxServiceError(error)));
@@ -169,6 +183,21 @@ export const ApproverScreen = ({ incomingScan, defaultIdentifier }: ApproverScre
     [approver, report],
   );
 
+  /** A scan or a typed code: both continue the same way. `raw` is the QR text (v1 needs it). */
+  const continueWith = useCallback(
+    async (scanned: HawcxV6ScannedApproval, raw?: string) => {
+      if (scanned.version === 2) {
+        await open(scanned.reference);
+      } else if (raw) {
+        await approver.reset();
+        setV1Pending({ raw, payloadType: scanned.payloadType });
+      } else {
+        setStatus('This code belongs to an older QR code. Scan the QR instead.');
+      }
+    },
+    [approver, open],
+  );
+
   const handleScan = useCallback(
     async (raw: string) => {
       setStatus(null);
@@ -177,15 +206,27 @@ export const ApproverScreen = ({ incomingScan, defaultIdentifier }: ApproverScre
         setStatus('Not a Hawcx approval QR.');
         return;
       }
-      if (scanned.version === 2) {
-        await open(scanned.reference);
-      } else {
-        await approver.reset();
-        setV1Pending({ raw, payloadType: scanned.payloadType });
-      }
+      await continueWith(scanned, raw);
     },
-    [approver, open],
+    [continueWith],
   );
+
+  // "Enter code instead": the 8 digits under the requester's QR resolve to
+  // exactly what scanning that QR gives, then the same approve / deny screen.
+  const submitCode = async () => {
+    setStatus(null);
+    setV1Pending(null);
+    let scanned: HawcxV6ScannedApproval;
+    try {
+      scanned = await approver.resolveCode(codeInput);
+    } catch (error) {
+      report(error);
+      return;
+    }
+    setCodeEntryOpen(false);
+    setCodeInput('');
+    await continueWith(scanned);
+  };
 
   useEffect(() => {
     if (incomingScan?.raw) {
@@ -411,6 +452,42 @@ export const ApproverScreen = ({ incomingScan, defaultIdentifier }: ApproverScre
       />
       <Button label="Scan pasted QR" onPress={() => void handleScan(qrInput)} disabled={!qrInput.trim()} />
 
+      {codeEntryOpen ? (
+        <View style={styles.review}>
+          <Text style={styles.reviewTitle}>Enter code instead</Text>
+          <Text style={styles.subtitle}>
+            Type the 8-digit code shown under the QR on the screen you are signing in to.
+          </Text>
+          <TextInput
+            testID="approver-code-input"
+            style={[styles.input, styles.codeInput]}
+            placeholder="12345678"
+            keyboardType="number-pad"
+            autoFocus
+            maxLength={8}
+            value={codeInput}
+            // Digits only: a pasted "4821 7093" or "4821-7093" keeps its 8 digits.
+            onChangeText={(text) => setCodeInput(text.replace(/[^0-9]/g, '').slice(0, 8))}
+          />
+          <View style={styles.row}>
+            <Button
+              label="Continue"
+              onPress={() => void submitCode()}
+              disabled={approver.loading || codeInput.length !== 8}
+            />
+            <Button
+              label="Cancel"
+              onPress={() => {
+                setCodeEntryOpen(false);
+                setCodeInput('');
+              }}
+            />
+          </View>
+        </View>
+      ) : (
+        <Button label="Enter code instead" onPress={() => setCodeEntryOpen(true)} />
+      )}
+
       <Text style={styles.section}>
         Push token ({Platform.OS === 'ios' ? 'APNs, development' : 'FCM'}; fake for simulators)
       </Text>
@@ -486,6 +563,7 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   multiline: { minHeight: 64, textAlignVertical: 'top' },
+  codeInput: { fontSize: 24, letterSpacing: 6, textAlign: 'center' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   button: { backgroundColor: '#1d4ed8', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
   destructive: { backgroundColor: '#b91c1c' },
