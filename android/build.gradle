@@ -22,7 +22,7 @@ def safeExtGet(prop, fallback) {
 }
 
 group = 'com.hawcx.reactnative'
-version = project.findProperty('HAWCX_REACT_NATIVE_ANDROID_VERSION') ?: '1.1.5'
+version = project.findProperty('HAWCX_REACT_NATIVE_ANDROID_VERSION') ?: '2.0.0'
 
 // Local native-SDK testing only: -Phawcx.useMavenLocal=true together with
 // -PHAWCX_ANDROID_SDK_VERSION=<x.y.z-SNAPSHOT> resolves api.hawcx from ~/.m2.

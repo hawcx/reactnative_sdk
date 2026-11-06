@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased]
+## [2.0.0] - Unreleased
 
-> **Release as 2.0.0, not 1.x.** Not releasable yet: see "Release checklist" in the README (publish Android 6.2.0 first, vendor the iOS 6.2.0 release-tag xcframework, bump to 2.0.0, confirm prod `AUTH_SDK_MIN_VERSIONS_JSON`). The 426 gate note below must stay at the top of the release notes.
+> **Release as 2.0.0, not 1.x** (`package.json` is at 2.0.0). Not releasable yet: see "Release checklist" in the README (publish Android 6.2.0 first, replace the vendored iOS xcframework, a local build of the native branch, with the 6.2.0 release-tag build, confirm prod `AUTH_SDK_MIN_VERSIONS_JSON`). The 426 gate note below must stay at the top of the release notes.
 
 ### Breaking
 - Server 426 gate: the bridge now sends `X-Hawcx-SDK-Version`, so React Native apps fall under the server's `AUTH_SDK_MIN_VERSIONS_JSON` minimums. The prod value must not hold a minimum above the shipped native version (6.2.0).
@@ -19,11 +19,20 @@
 - `approvals_unavailable` is Android-only (the approvals service needs the device-key signer).
 - `enrolledIdentifiers()` rejects with retryable `keychain_unavailable` on both platforms while the device keys can't be read (iOS uses the native `enrolledIdentifiersOrThrow()`).
 - Unknown-step `rawType` is display-only: the native case name on iOS, the native prompt class name in wire form on Android.
+- `forgetDevice(identifier)` resolves true on iOS only when a record was removed (false: none was stored); on Android true once no record remains, also when none was stored (false: it could not be deleted).
 
 ### Not shipped
 - `HawcxV6Completed.sessionToken` / `state.sessionToken` from the plan and spec were deliberately not shipped: the session token stays native (`completed.hasSessionToken`, `getSessionToken()`).
 
 ### Added and changed
+- QR sign-in without an email, end to end (needs the native 6.2.0 builds with QR sign-in enrollment, `manualCode`, `resolveCode` and `forgetDevice`):
+  - `startQrLogin()` flows now finish: the native SDKs adopt the identifier the server names once the phone approves and enroll this device under it. Nothing new to call.
+  - `completed.identifier` (also `state.identifier` after completion): who the flow signed in as, i.e. the started identifier, or for a QR sign-in the account the approving phone chose.
+  - `await_approval.manualCode` / `state.approval.manualCode`: the 8-digit type-in code to show under the QR (QR mode only; only 8-digit strings pass through).
+- Approver "Enter code instead": `resolveApprovalCode(code)` and `useHawcxApprover().resolveCode(code)` resolve the 8-digit code to the same result as `scanApproval` for that QR. Spaces and hyphens are ignored; anything but 8 digits is refused locally with `invalid_code_format`. Other errors: `code_not_found`, `too_many_attempts` (`retryAfterSeconds`), `service_unavailable` (`serverCode`, a new `HawcxServiceError` field), `transport_error`, or the server's code (`http_error` without the endpoint).
+- `forgetDevice(identifier)` (also `hawcxV6Client.forgetDevice`): deletes this device's V6 device keys for one identifier (native `HawcxV1SDK.forgetDevice`). The legacy `forgetTrustedDevice` clears V4/V5 data only and never these keys.
+- `HAWCX_APPROVAL_NOTIFICATION_CATEGORY` (`HAWCX_APPROVAL`, exported by the native modules from the native SDKs): the category of approval notifications.
+- Example: an "Enter code instead" screen in the Approver card, and the "Sign in with QR (no email)" screen renders the QR (`react-native-qrcode-svg`) with the 8-digit code under it and shows the account it signed in as.
 - Approvals v2: the native SDKs sign `rememberDevice` into the decision and never send the requester session; `decideApproval` sends `rememberDevice=false` on deny. Requires iOS/Android 6.2.0 built after 2026-10-21.
 - Magic link: the `enter_code` prompt carries `pollInterval` on the magic-link code screen and the native SDKs poll in the background (`state.magicLinkPolling`), so a link confirmed on another device completes the flow.
 - Magic link: `initialize({ magicLinkLandingUrl })` and `completeMagicLinkRedirect(url)` (also on `HawcxV6Client` and `useHawcxV6Auth`) finish a same-device link from a Universal Link / App Link with typed outcomes `not_magic_link | resumed | handed_off | failed{code, message, retryable}`; `isHawcxMagicLinkUrl(url, landingUrl?)` routes incoming URLs.

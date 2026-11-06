@@ -1,6 +1,6 @@
 {
   "name": "hawcx-react-native-sdk-example",
-  "version": "1.1.5",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "start": "react-native start",
@@ -9,7 +9,7 @@
     "lint": "eslint . --ext .js,.ts,.tsx"
   },
   "dependencies": {
-    "@hawcx/react-native-sdk": "1.1.5",
+    "@hawcx/react-native-sdk": "2.0.0",
     "react": "18.2.0",
     "react-native": "0.73.9",
     "react-native-qrcode-svg": "6.3.54",
