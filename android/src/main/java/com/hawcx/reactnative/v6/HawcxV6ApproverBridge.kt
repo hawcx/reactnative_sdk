@@ -119,18 +119,17 @@ internal class HawcxV6ApproverBridge(
         return approvals.approvalReference(data)?.let(::encodeReference)
     }
 
-    fun scan(raw: String): WritableMap? {
-        return when (val scanned = approvals.scan(raw)) {
-            is HawcxV1ScannedApproval.V2 -> Arguments.createMap().apply {
-                putInt("version", 2)
-                putMap("reference", encodeReference(scanned.reference))
-            }
-            is HawcxV1ScannedApproval.V1 -> Arguments.createMap().apply {
-                putInt("version", 1)
-                putString("payloadType", scanned.payload.type.wireValue)
-            }
-            null -> null
-        }
+    fun scan(raw: String): WritableMap? = approvals.scan(raw)?.let(::encodeScanned)
+
+    /**
+     * The approval behind a requester screen's 8-digit code: the same JS shape
+     * as [scan]. The code is never logged; the SDK refuses anything but 8
+     * digits (after removing spaces and hyphens) before sending. Failures are
+     * [com.hawcx.protocol.v1.HawcxV1ApprovalCodeError]. Completion runs on a
+     * worker thread.
+     */
+    fun resolveCode(code: String, completion: (Result<WritableMap>) -> Unit) {
+        approvals.resolveCode(code) { result -> completion(result.map(::encodeScanned)) }
     }
 
     // MARK: - Context and decisions
@@ -259,6 +258,17 @@ internal class HawcxV6ApproverBridge(
             putString("projectId", reference.projectId)
             putString("approvalId", reference.approvalId)
             reference.expiresAtMillis?.let { putString("expiresAt", iso(it)) }
+        }
+
+        fun encodeScanned(scanned: HawcxV1ScannedApproval): WritableMap = when (scanned) {
+            is HawcxV1ScannedApproval.V2 -> Arguments.createMap().apply {
+                putInt("version", 2)
+                putMap("reference", encodeReference(scanned.reference))
+            }
+            is HawcxV1ScannedApproval.V1 -> Arguments.createMap().apply {
+                putInt("version", 1)
+                putString("payloadType", scanned.payload.type.wireValue)
+            }
         }
 
         fun decodeReference(raw: ReadableMap): HawcxV1ApprovalReference? {

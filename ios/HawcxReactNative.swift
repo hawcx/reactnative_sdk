@@ -27,6 +27,11 @@ class HawcxReactNative: RCTEventEmitter {
         [authEventName, sessionEventName, pushEventName, v6FlowEventName]
     }
 
+    /// `approvalNotificationCategory`: the APNs `aps.category` of approval pushes.
+    override func constantsToExport() -> [AnyHashable: Any]! {
+        ["approvalNotificationCategory": HawcxV1ApprovalService.notificationCategory]
+    }
+
     override func invalidate() {
         tearDownNativeLanes(resetV6Flow: true)
         super.invalidate()
@@ -678,6 +683,60 @@ class HawcxReactNative: RCTEventEmitter {
                 self.rejectApprovalError(error, reject: reject)
             }
         }
+    }
+
+    /// Resolves the scan shape (`{version: 2, reference}` / `{version: 1,
+    /// payloadType}`) for a requester screen's 8-digit code.
+    @objc
+    func v6ResolveApprovalCode(_ code: NSString,
+                               resolver resolve: @escaping RCTPromiseResolveBlock,
+                               rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let codeValue = code as String
+        withApprover(reject: reject) { approver in
+            approver.resolveCode(codeValue) { result in
+                switch result {
+                case let .success(scanned): resolve(scanned)
+                case let .failure(error): self.rejectApprovalCodeError(error, reject: reject)
+                }
+            }
+        }
+    }
+
+    /// Deletes this device's V6 key record for `identifier`; resolves whether
+    /// one was removed. Not the legacy `clearUserKeychainData`.
+    @objc
+    func v6ForgetDevice(_ identifier: NSString,
+                        resolver resolve: @escaping RCTPromiseResolveBlock,
+                        rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let trimmed = identifier.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            reject("hawcx.input", "identifier is required", nil)
+            return
+        }
+        DispatchQueue.main.async {
+            do {
+                guard let bridge = self.hawcxV6Bridge else {
+                    throw HawcxV6BridgeError.notInitialized
+                }
+                resolve(try bridge.forgetDevice(identifier: trimmed))
+            } catch {
+                self.rejectV6Error(error, reject: reject)
+            }
+        }
+    }
+
+    /// `resolveApprovalCode` failures: the same `userInfo` keys as
+    /// `rejectApprovalError`, plus `serverCode` for `service_unavailable`.
+    func rejectApprovalCodeError(_ error: HawcxV1ApprovalCodeError, reject: @escaping RCTPromiseRejectBlock) {
+        let message = HawcxV6ApproverBridge.message(for: error)
+        var userInfo: [String: Any] = [
+            NSLocalizedDescriptionKey: message,
+            "retryable": error.retryable
+        ]
+        if let status = error.status { userInfo["status"] = status }
+        if let retryAfterSeconds = error.retryAfterSeconds { userInfo["retryAfterSeconds"] = retryAfterSeconds }
+        if let serverCode = HawcxV6ApproverBridge.serverCode(of: error) { userInfo["serverCode"] = serverCode }
+        reject(error.code, message, NSError(domain: "com.hawcx.reactnative.approvals", code: error.status ?? 0, userInfo: userInfo))
     }
 
     /// Rejects with the error's code; `userInfo` carries

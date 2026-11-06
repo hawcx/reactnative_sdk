@@ -22,6 +22,8 @@ import {
 import { HawcxServiceError, toHawcxServiceError, withServiceErrors } from './v6Errors';
 import {
   apnsTokenHex,
+  DEFAULT_APPROVAL_NOTIFICATION_CATEGORY,
+  normalizeApprovalCode,
   normalizeApprovalReference,
   normalizeApprovalRequest,
   normalizeApprovalResult,
@@ -296,6 +298,8 @@ type NativeBridge = {
   ): Promise<unknown>;
   v6DiscardApproval(handle: string): Promise<void>;
   v6EnrolledIdentifiers(): Promise<unknown>;
+  v6ResolveApprovalCode(code: string): Promise<unknown>;
+  v6ForgetDevice(identifier: string): Promise<boolean>;
   storeBackendOAuthTokens(
     userId: string,
     accessToken: string,
@@ -316,7 +320,12 @@ type NativeBridge = {
   declinePushRequest(requestId: string): Promise<void>;
 };
 
-type HawcxNativeModule = NativeBridge & NativeModule;
+/** Constants the native modules export (`constantsToExport` / `getConstants`). */
+type NativeConstants = {
+  approvalNotificationCategory?: string;
+};
+
+type HawcxNativeModule = NativeBridge & NativeConstants & NativeModule;
 
 const HawcxReactNativeModule = NativeModules.HawcxReactNative as HawcxNativeModule | undefined;
 
@@ -325,6 +334,17 @@ if (!HawcxReactNativeModule) {
 }
 
 const HawcxReactNative = HawcxReactNativeModule;
+
+/**
+ * Category of the approval notification the server sends (APNs
+ * `aps.category`): `HAWCX_APPROVAL`, read from the native SDKs. Register your
+ * notification actions for it (iOS `UNNotificationCategory`) or route on it.
+ */
+export const HAWCX_APPROVAL_NOTIFICATION_CATEGORY: string =
+  typeof HawcxReactNativeModule.approvalNotificationCategory === 'string' &&
+  HawcxReactNativeModule.approvalNotificationCategory
+    ? HawcxReactNativeModule.approvalNotificationCategory
+    : DEFAULT_APPROVAL_NOTIFICATION_CATEGORY;
 
 const authEventEmitter = new NativeEventEmitter(HawcxReactNativeModule);
 const sessionEventEmitter = new NativeEventEmitter(HawcxReactNativeModule);
@@ -984,6 +1004,69 @@ export function scanApproval(raw: string): Promise<HawcxV6ScannedApproval | null
 }
 
 /**
+ * The approval behind the 8-digit code a requester screen shows under its QR
+ * (`await_approval.manualCode`), for a phone that can't scan the QR. Spaces and
+ * hyphens are ignored (`4821 7093`, `4821-7093`). Resolves exactly what
+ * `scanApproval` gives for that QR, so continue the same way:
+ * `{version: 2, reference}` -> `fetchApprovalContext` -> `decideApproval`.
+ * No device proof is sent and no key is used. Never retried automatically:
+ * each try counts against the server's attempt limit.
+ *
+ * Rejects with `HawcxServiceError`:
+ * - `invalid_code_format`: not 8 digits; refused here, nothing is sent.
+ * - `code_not_found` (404): mistyped, expired or already used.
+ * - `too_many_attempts` (429, retryable): wait `retryAfterSeconds` when set.
+ * - `service_unavailable` (503, retryable): `serverCode` carries the server's code.
+ * - `transport_error` (retryable, no answer), or another code (`http_error`
+ *   when the server lacks the endpoint, `sdk_outdated`, ...).
+ */
+export function resolveApprovalCode(code: string): Promise<HawcxV6ScannedApproval> {
+  const digits = normalizeApprovalCode(code);
+  if (!digits) {
+    return Promise.reject(
+      localServiceError('invalid_code_format', 'Enter the 8-digit code shown on the other screen.'),
+    );
+  }
+  return withServiceErrors(() => HawcxReactNative.v6ResolveApprovalCode(digits)).then((value) => {
+    const scanned = normalizeScannedApproval(value);
+    if (!scanned) {
+      throw localServiceError(
+        'response_decoding_failed',
+        'The code resolved to an approval this SDK cannot read',
+      );
+    }
+    return scanned;
+  });
+}
+
+/**
+ * Forgets this device for `identifier` in the V6 flow: deletes its V6 device
+ * key record (the keys `listDevices` / approvals / device trust use) for this
+ * project. The next sign-in as `identifier` runs without device trust and
+ * enrolls this device again; approvals no longer answer for it. Local only: it
+ * doesn't end server sessions or revoke the server's device row (use
+ * `revokeDevice`), and other identifiers are untouched.
+ *
+ * Call `unregisterPushToken(identifier)` first: the unregister is signed with
+ * these keys. The legacy `forgetTrustedDevice` clears V4/V5 data only and never
+ * these records.
+ *
+ * The boolean differs by platform. iOS: true when a record was removed, false
+ * when none was stored. Android: true once no record remains (also when none
+ * was stored), false when it could not be deleted (e.g. a Keystore failure).
+ */
+export function forgetDevice(identifier: string): Promise<boolean> {
+  try {
+    const trimmed = ensureNonEmpty(identifier, 'identifier');
+    return withServiceErrors(() => HawcxReactNative.v6ForgetDevice(trimmed)).then(
+      (value) => value === true,
+    );
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+/**
  * Fetches what to show for an approval (who is asking, whether a number is
  * required). push / qr_auth try the enrolled identifiers (most recently used
  * first) unless `identifier` is given; qr_login needs the `identifier` the user
@@ -1274,6 +1357,10 @@ export function logoutSession(userId: string): Promise<void> {
   }
 }
 
+/**
+ * Legacy (V4/V5): clears the user's legacy keychain data and resets the V6 flow.
+ * It does NOT remove the V6 device keys: use `forgetDevice(identifier)` for that.
+ */
 export function forgetTrustedDevice(userId: string): Promise<void> {
   try {
     return HawcxReactNative.clearUserKeychainData(ensureNonEmpty(userId, 'userId'));
@@ -1686,6 +1773,11 @@ export class HawcxV6Client {
     return v6LogoutEverywhere(sessionToken);
   }
 
+  /** See `forgetDevice` (V6 device keys; `forgetTrustedDevice` is the legacy V4/V5 clear). */
+  forgetDevice(identifier: string): Promise<boolean> {
+    return forgetDevice(identifier);
+  }
+
   /** See `v6LaunchRedirect`. */
   launchRedirect(url: string, returnScheme?: string): Promise<HawcxV6RedirectLaunch> {
     return v6LaunchRedirect(url, returnScheme);
@@ -1942,10 +2034,16 @@ export type HawcxApproverHookResult = {
   request?: HawcxV6ApprovalRequest;
   /** Result of the last decision. */
   result?: HawcxV6ApprovalResult;
-  /** Last error of fetch / approve / deny. */
+  /** Last error of resolveCode / fetch / approve / deny. */
   error?: HawcxServiceError;
   loading: boolean;
-  /** Fetches the context for a reference (from a push or a scan). */
+  /**
+   * Resolves the 8-digit code typed from the requester's screen (see
+   * `resolveApprovalCode`). The result is what scanning that QR gives: pass a
+   * `{version: 2}` reference to `fetch`. Sets `error` on failure.
+   */
+  resolveCode: (code: string) => Promise<HawcxV6ScannedApproval>;
+  /** Fetches the context for a reference (from a push, a scan or a typed code). */
   fetch: (
     reference: HawcxV6ApprovalReference,
     identifier?: string,
@@ -2016,6 +2114,8 @@ export function useHawcxApprover(): HawcxApproverHookResult {
     [run],
   );
 
+  const resolveCode = useCallback((code: string) => run(() => resolveApprovalCode(code)), [run]);
+
   const decide = useCallback(
     (
       handle: string,
@@ -2081,7 +2181,7 @@ export function useHawcxApprover(): HawcxApproverHookResult {
     [],
   );
 
-  return { request, result, error, loading, fetch, approve, deny, reset };
+  return { request, result, error, loading, resolveCode, fetch, approve, deny, reset };
 }
 
 export function useHawcxAuth(client: HawcxClient = hawcxClient) {

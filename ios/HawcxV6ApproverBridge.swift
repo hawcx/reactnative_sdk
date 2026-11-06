@@ -81,14 +81,32 @@ internal final class HawcxV6ApproverBridge {
     }
 
     func scan(_ raw: String) -> [String: Any]? {
-        guard let scanned = sdk.approvals.scan(raw) else { return nil }
-        switch scanned {
-        case let .v2(reference):
-            return ["version": 2, "reference": Self.encode(reference: reference)]
-        case let .v1(payload):
-            return ["version": 1, "payloadType": payload.type.rawValue]
-        @unknown default:
-            return nil
+        return sdk.approvals.scan(raw).flatMap(Self.encode(scanned:))
+    }
+
+    /// The approval behind a requester screen's 8-digit code: the same JS
+    /// shape as `scan`. The code is never logged; the SDK refuses anything but
+    /// 8 digits (after removing spaces and hyphens) before sending.
+    func resolveCode(
+        _ code: String,
+        completion: @escaping (Result<[String: Any], HawcxV1ApprovalCodeError>) -> Void
+    ) {
+        sdk.approvals.resolveCode(code) { result in
+            switch result {
+            case let .success(scanned):
+                guard let encoded = Self.encode(scanned: scanned) else {
+                    completion(.failure(.unknown(error: HawcxV1ApprovalError(
+                        code: "response_decoding_failed",
+                        message: "The code resolved to an approval this SDK cannot read",
+                        status: nil,
+                        retryable: false
+                    ))))
+                    return
+                }
+                completion(.success(encoded))
+            case let .failure(error):
+                completion(.failure(error))
+            }
         }
     }
 
@@ -260,6 +278,43 @@ internal final class HawcxV6ApproverBridge {
             payload["expiresAt"] = iso(expiresAt)
         }
         return payload
+    }
+
+    static func encode(scanned: HawcxV1ScannedApproval) -> [String: Any]? {
+        switch scanned {
+        case let .v2(reference):
+            return ["version": 2, "reference": encode(reference: reference)]
+        case let .v1(payload):
+            return ["version": 1, "payloadType": payload.type.rawValue]
+        @unknown default:
+            return nil
+        }
+    }
+
+    /// Message for a code lookup failure (the native enum carries none for its
+    /// own cases); the same text the Android SDK uses.
+    static func message(for error: HawcxV1ApprovalCodeError) -> String {
+        switch error {
+        case .codeNotFound:
+            return "No sign-in request has this code. Check it and try again."
+        case .tooManyAttempts:
+            return "Too many attempts. Wait before trying another code."
+        case .invalidCodeFormat:
+            return "Enter the 8-digit code shown on the other screen."
+        case .serviceUnavailable:
+            return "Codes can't be checked right now. Try again shortly."
+        case let .network(wrapped), let .unknown(wrapped):
+            return wrapped.message
+        @unknown default:
+            return "The code could not be checked."
+        }
+    }
+
+    /// `service_unavailable` only: the server's code, or `service_unavailable`
+    /// when it sent none (as Android reports it).
+    static func serverCode(of error: HawcxV1ApprovalCodeError) -> String? {
+        guard case let .serviceUnavailable(serverCode) = error else { return nil }
+        return serverCode ?? HawcxV1ErrorCode.serviceUnavailable
     }
 
     static func decode(reference raw: NSDictionary) -> HawcxV1ApprovalReference? {

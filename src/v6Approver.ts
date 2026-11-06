@@ -190,6 +190,26 @@ export const normalizeApprovalResult = (value: unknown): HawcxV6ApprovalResult =
   throw new Error('Invalid approval result from native bridge');
 };
 
+/**
+ * Category of the approval notification the server sends (APNs `aps.category`;
+ * the native SDKs' `HawcxV1ApprovalService` notification category). Register
+ * actions for it (iOS `UNNotificationCategory`) or route on it.
+ */
+export const DEFAULT_APPROVAL_NOTIFICATION_CATEGORY = 'HAWCX_APPROVAL';
+
+/**
+ * A typed approval code without spaces and hyphens (`4821 7093`, `4821-7093`
+ * -> `48217093`), or null unless that is exactly 8 ASCII digits. The native
+ * SDKs apply the same rule before sending anything.
+ */
+export const normalizeApprovalCode = (code: unknown): string | null => {
+  if (typeof code !== 'string') {
+    return null;
+  }
+  const digits = code.replace(/[\s-]+/g, '');
+  return /^[0-9]{8}$/.test(digits) ? digits : null;
+};
+
 /** Lowercase hex of an APNs token given as hex or bytes. */
 export const apnsTokenHex = (token: string | Uint8Array | number[]): string => {
   if (typeof token === 'string') {

@@ -26,11 +26,18 @@ const approvalDisplayOf = (prompt: HawcxV6PromptPayload): HawcxV6ApprovalDisplay
   if (prompt.prompt.type !== 'await_approval') {
     return undefined;
   }
-  const { mode, approvalId, number } = prompt.prompt;
-  if (mode === undefined && approvalId === undefined && number === undefined) {
+  const { mode, approvalId, number, manualCode } = prompt.prompt;
+  if (
+    mode === undefined &&
+    approvalId === undefined &&
+    number === undefined &&
+    manualCode === undefined
+  ) {
     return undefined;
   }
-  return { mode, approvalId, number };
+  return manualCode === undefined
+    ? { mode, approvalId, number }
+    : { mode, approvalId, number, manualCode };
 };
 
 const DEFAULT_FLOW_TYPE: HawcxV6FlowType = 'signin';
@@ -190,7 +197,8 @@ const reduceCompletedState = (
 ): HawcxV6AuthState => ({
   status: 'completed',
   flowType: previous.flowType,
-  identifier: previous.identifier,
+  // An anonymous QR sign-in learns who it is only now.
+  identifier: completed.identifier ?? previous.identifier,
   session: completed.session,
   traceId: completed.traceId,
   expiresAt: completed.expiresAt,

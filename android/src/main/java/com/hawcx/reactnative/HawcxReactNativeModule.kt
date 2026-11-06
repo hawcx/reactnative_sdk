@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.hawcx.internal.HawcxSDK
+import com.hawcx.protocol.v1.HawcxV1ApprovalService
 import com.hawcx.reactnative.v6.HawcxV6ApproverBridge
 import com.hawcx.reactnative.v6.HawcxV6Bridge
 import com.hawcx.reactnative.v6.HawcxV6InitializeOptions
@@ -59,6 +60,10 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     override fun getName(): String = NAME
+
+    /** `approvalNotificationCategory`: the category of approval notifications (`HAWCX_APPROVAL`). */
+    override fun getConstants(): Map<String, Any> =
+        mapOf("approvalNotificationCategory" to HawcxV1ApprovalService.NOTIFICATION_CATEGORY)
 
     @ReactMethod
     fun initialize(config: ReadableMap?, promise: Promise) {
@@ -526,6 +531,37 @@ class HawcxReactNativeModule(reactContext: ReactApplicationContext) :
                 }
                 .onFailure { promise.rejectApproval(it) }
         }
+    }
+
+    /** Resolves the scan shape for a requester screen's 8-digit code. */
+    @ReactMethod
+    fun v6ResolveApprovalCode(code: String?, promise: Promise) {
+        withApprover(promise) { approver ->
+            approver.resolveCode(code.orEmpty()) { result ->
+                result.onSuccess { promise.resolve(it) }.onFailure { promise.rejectApproval(it) }
+            }
+        }
+    }
+
+    /**
+     * Deletes this device's V6 device credentials for [identifier] (not the
+     * legacy `clearUserKeychainData`). Blocking Keystore I/O: it runs on the
+     * native-modules thread, never the main thread.
+     */
+    @ReactMethod
+    fun v6ForgetDevice(identifier: String?, promise: Promise) {
+        val bridge = hawcxV6Bridge ?: run {
+            promise.reject(CODE_SDK, "initialize must be called before using V6 bridge methods")
+            return
+        }
+        val sanitizedIdentifier = identifier?.trim().orEmpty()
+        if (sanitizedIdentifier.isEmpty()) {
+            promise.reject(CODE_INPUT, "identifier is required")
+            return
+        }
+        runCatching { bridge.forgetDevice(sanitizedIdentifier) }
+            .onSuccess { promise.resolve(it) }
+            .onFailure { error -> promise.reject(CODE_SDK, error.message, error) }
     }
 
     @ReactMethod

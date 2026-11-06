@@ -193,6 +193,16 @@ internal final class HawcxV6Bridge {
         return sdk.flow.backToMethodSelection()
     }
 
+    /// Deletes this device's V6 key record for `identifier` (Keychain,
+    /// synchronous). True when a record was removed, false when none was
+    /// stored. The legacy `clearUserKeychainData` never touches these records.
+    func forgetDevice(identifier: String) throws -> Bool {
+        guard let sdk else {
+            throw HawcxV6BridgeError.notInitialized
+        }
+        return sdk.forgetDevice(identifier: identifier)
+    }
+
     /// The last completed flow's session token (a secret; never logged here).
     func currentSessionToken() -> String? {
         return sdk?.flow.sessionToken
@@ -562,6 +572,11 @@ internal enum HawcxV6FlowEventCodec {
                 payload["codeVerifier"] = codeVerifier
             }
             payload["hasSessionToken"] = hasSessionToken
+            // Who signed in: the started identifier, or for a QR sign-in the
+            // account the approving phone chose (absent when not named).
+            if let identifier = update.identifier, !identifier.isEmpty {
+                payload["identifier"] = identifier
+            }
             return [
                 "type": "completed",
                 "payload": payload
@@ -698,6 +713,8 @@ internal enum HawcxV6FlowEventCodec {
                 if let mode = approval.mode, !mode.isEmpty { payload["mode"] = mode }
                 if let approvalId = approval.approvalId, !approvalId.isEmpty { payload["approvalId"] = approvalId }
                 if let number = approval.number { payload["number"] = number }
+                // QR mode only; the SDK keeps it only when it is 8 ASCII digits.
+                if let manualCode = approval.manualCode, !manualCode.isEmpty { payload["manualCode"] = manualCode }
             }
             return payload
         case let .locked(retryAfterSeconds, lockedUntil):

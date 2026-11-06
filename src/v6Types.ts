@@ -79,6 +79,13 @@ export type HawcxV6ApprovalDisplay = {
   approvalId?: string;
   /** Number-matching code (10-99) to show large; the user types it on the approving phone. */
   number?: number;
+  /**
+   * QR mode only: the 8-digit type-in code (e.g. `48217093`) to show under the
+   * QR for a phone that can't scan it; that phone sends it to
+   * `resolveApprovalCode`. Absent for push, on servers that don't send it, and
+   * when the value isn't exactly 8 ASCII digits. Show it, never log it.
+   */
+  manualCode?: string;
 };
 
 export type HawcxV6PromptBase = {
@@ -218,6 +225,14 @@ export type HawcxV6CompletedPayload = {
    * `logoutEverywhere`, or read it with `getSessionToken()`.
    */
   hasSessionToken?: boolean;
+  /**
+   * Who the flow signed in as: the identifier passed to `start` (trimmed), or,
+   * for an anonymous QR sign-in (`startQrLogin`), the account the approving
+   * phone chose, which this device is now enrolled under. Absent when the
+   * server completed a QR sign-in without naming the user. `state.identifier`
+   * takes this value on completion.
+   */
+  identifier?: string;
 };
 
 export type HawcxV6ErrorAction =

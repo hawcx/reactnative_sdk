@@ -7,6 +7,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.hawcx.internal.HawcxSDK
+import com.hawcx.protocol.v1.HawcxV1ApprovalCodeError
 import com.hawcx.protocol.v1.HawcxV1ApprovalError
 import com.hawcx.protocol.v1.HawcxV1QrApprovalError
 import com.hawcx.protocol.v1.HawcxV1DeviceSummary
@@ -196,6 +197,17 @@ internal class HawcxV6Bridge(
     fun backToMethodSelection(): Boolean {
         val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
         return sdk.flow.backToMethodSelection()
+    }
+
+    /**
+     * Deletes this device's V6 (protocol v1/v2) device credentials for
+     * [identifier]. Blocking Keystore I/O: never call it on the main thread.
+     * True once they are gone (also when none were stored). The legacy
+     * `clearUserKeychainData` never touches these records.
+     */
+    fun forgetDevice(identifier: String): Boolean {
+        val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
+        return sdk.forgetDevice(identifier)
     }
 
     /** The last completed flow's session token (a secret; never logged here). */
@@ -416,6 +428,15 @@ internal fun Promise.rejectApproval(error: Throwable) {
             error.decidedByThisDevice?.let { putBoolean("decidedByThisDevice", it) }
         }
         reject(error.code, error.message, userInfo)
+    } else if (error is HawcxV1ApprovalCodeError) {
+        // resolveApprovalCode: the same keys, plus serverCode for service_unavailable.
+        val userInfo = Arguments.createMap().apply {
+            putBoolean("retryable", error.retryable)
+            error.status?.let { putInt("status", it) }
+            error.retryAfterSeconds?.let { putInt("retryAfterSeconds", it) }
+            (error as? HawcxV1ApprovalCodeError.ServiceUnavailable)?.let { putString("serverCode", it.serverCode) }
+        }
+        reject(error.code, error.message, userInfo)
     } else if (error is HawcxV1QrApprovalError) {
         reject(error.code, error.message, HawcxV6ApproverBridge.qrUserInfo(error))
     } else if (error is IllegalArgumentException) {
@@ -455,6 +476,9 @@ private object HawcxV6FlowEventCodec {
                     update.codeVerifier?.let { putString("codeVerifier", it) }
                     putString("traceId", update.meta.traceId)
                     putBoolean("hasSessionToken", hasSessionToken)
+                    // Who signed in: the started identifier, or for a QR sign-in
+                    // the account the approving phone chose (absent when not named).
+                    update.identifier?.takeIf { it.isNotBlank() }?.let { putString("identifier", it) }
                 }
             )
 
@@ -542,6 +566,8 @@ private object HawcxV6FlowEventCodec {
                         approval.mode?.takeIf { it.isNotBlank() }?.let { putString("mode", it) }
                         approval.approvalId?.takeIf { it.isNotBlank() }?.let { putString("approvalId", it) }
                         approval.number?.let { putInt("number", it) }
+                        // QR mode only; the SDK keeps it only when it is 8 ASCII digits.
+                        approval.manualCode?.takeIf { it.isNotBlank() }?.let { putString("manualCode", it) }
                     }
                 }
                 is HawcxV1UserPrompt.Locked -> {

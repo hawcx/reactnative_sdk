@@ -170,6 +170,10 @@ const optional = <K extends string, V>(key: K, value: V | undefined): { [P in K]
 const approvalMode = (value: unknown): 'push' | 'qr' | undefined =>
   value === 'push' || value === 'qr' ? value : undefined;
 
+/** Exactly 8 ASCII digits, as the native SDKs keep it; anything else is dropped. */
+const asManualCode = (value: unknown): string | undefined =>
+  typeof value === 'string' && /^[0-9]{8}$/.test(value) ? value : undefined;
+
 const normalizePromptBase = (value: Record<string, unknown>): HawcxV6PromptBase | null => {
   const session = asString(value.session);
   const traceId = asString(value.traceId);
@@ -324,6 +328,7 @@ const normalizePromptPayload = (value: unknown): HawcxV6PromptPayload | null => 
           ...optional('mode', approvalMode(rawPrompt?.mode ?? value.mode)),
           ...optional('approvalId', asString(rawPrompt?.approvalId ?? value.approvalId)),
           ...optional('number', asInteger(rawPrompt?.number ?? value.number)),
+          ...optional('manualCode', asManualCode(rawPrompt?.manualCode ?? value.manualCode)),
         },
       };
       return payload;
@@ -369,6 +374,7 @@ const normalizeCompletedPayload = (value: unknown): HawcxV6CompletedPayload | nu
     codeVerifier: asString(value.codeVerifier),
     traceId,
     ...optional('hasSessionToken', asBoolean(value.hasSessionToken)),
+    ...optional('identifier', asString(value.identifier)),
   };
 };
 

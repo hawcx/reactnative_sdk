@@ -15,6 +15,12 @@ export class HawcxServiceError extends Error {
   public readonly outcome?: string;
   /** `approval_resolved`: whether this device made the decision. */
   public readonly decidedByThisDevice?: boolean;
+  /**
+   * `service_unavailable` from `resolveApprovalCode`: the server's own code
+   * (`approval_store_unavailable`, `rate_limit_unavailable`, or
+   * `service_unavailable` when it sent none).
+   */
+  public readonly serverCode?: string;
 
   constructor(init: {
     code: string;
@@ -24,6 +30,7 @@ export class HawcxServiceError extends Error {
     retryAfterSeconds?: number;
     outcome?: string;
     decidedByThisDevice?: boolean;
+    serverCode?: string;
   }) {
     super(init.message);
     this.name = 'HawcxServiceError';
@@ -33,6 +40,7 @@ export class HawcxServiceError extends Error {
     this.retryAfterSeconds = init.retryAfterSeconds;
     this.outcome = init.outcome;
     this.decidedByThisDevice = init.decidedByThisDevice;
+    this.serverCode = init.serverCode;
   }
 }
 
@@ -68,6 +76,10 @@ export const toHawcxServiceError = (error: unknown): HawcxServiceError => {
     outcome: typeof userInfo.outcome === 'string' ? userInfo.outcome : undefined,
     decidedByThisDevice:
       typeof userInfo.decidedByThisDevice === 'boolean' ? userInfo.decidedByThisDevice : undefined,
+    serverCode:
+      typeof userInfo.serverCode === 'string' && userInfo.serverCode
+        ? userInfo.serverCode
+        : undefined,
   });
 };
 
