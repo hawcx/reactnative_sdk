@@ -9,6 +9,7 @@ import com.hawcx.protocol.v1.HawcxV1ErrorDetails
 import com.hawcx.protocol.v1.HawcxV1FieldError
 import com.hawcx.protocol.v1.HawcxV1FlowUpdate
 import com.hawcx.protocol.v1.HawcxV1FlowType
+import com.hawcx.protocol.v1.HawcxV1MagicLinkRedirectOutcome
 import com.hawcx.protocol.v1.HawcxV1Method
 import com.hawcx.protocol.v1.HawcxV1OAuthCallbackParser
 import com.hawcx.protocol.v1.HawcxV1PromptContext
@@ -54,9 +55,30 @@ internal data class HawcxV6StartOptions(
     }
 }
 
+internal object HawcxV6MagicLinkLanding {
+    /**
+     * https with a host; no user info, query or fragment (the server matches
+     * registered URLs exactly; the native SDK applies the same rule).
+     */
+    fun parse(value: String?): String? {
+        val raw = value?.trim()?.takeUnless { it.isEmpty() } ?: return null
+        val uri = runCatching { java.net.URI(raw) }.getOrNull()
+        require(
+            uri != null &&
+                uri.scheme.equals("https", ignoreCase = true) &&
+                !uri.host.isNullOrEmpty() &&
+                uri.rawUserInfo == null &&
+                uri.rawQuery == null &&
+                uri.rawFragment == null
+        ) { "magicLinkLandingUrl must be an https URL without query or fragment" }
+        return raw
+    }
+}
+
 internal data class HawcxV6InitializeOptions(
     val relyingParty: String? = null,
-    val autoPollApprovals: Boolean = true
+    val autoPollApprovals: Boolean = true,
+    val magicLinkLandingUrl: String? = null
 ) {
     companion object {
         fun from(config: ReadableMap): HawcxV6InitializeOptions {
@@ -70,9 +92,13 @@ internal data class HawcxV6InitializeOptions(
             } else {
                 true
             }
+            val magicLinkLandingUrl = HawcxV6MagicLinkLanding.parse(
+                config.getOptionalString("magicLinkLandingUrl")
+            )
             return HawcxV6InitializeOptions(
                 relyingParty = relyingParty,
-                autoPollApprovals = autoPollApprovals
+                autoPollApprovals = autoPollApprovals,
+                magicLinkLandingUrl = magicLinkLandingUrl
             )
         }
     }
@@ -86,10 +112,13 @@ internal class HawcxV6Bridge(
     fun configure(legacySdk: HawcxSDK, configId: String, options: HawcxV6InitializeOptions) {
         dispose(resetFlow = true)
 
+        // buildProtocolV1Sdk wires the Keystore-backed saved-flow store, so a
+        // magic link can resume the sign-in after the app was killed.
         val sdk = legacySdk.buildProtocolV1Sdk(
             configId = configId,
             relyingParty = options.relyingParty,
-            autoPollApprovals = options.autoPollApprovals
+            autoPollApprovals = options.autoPollApprovals,
+            magicLinkLandingUrl = options.magicLinkLandingUrl
         )
 
         sdk.flow.onUpdate = { update ->
@@ -134,6 +163,15 @@ internal class HawcxV6Bridge(
     fun resend(): Boolean {
         val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
         return sdk.flow.resend()
+    }
+
+    /** Thread-safe in the SDK (guarded by the controller's poll lock). No-op before initialize. */
+    fun pausePolling() {
+        sdk?.flow?.pausePolling()
+    }
+
+    fun resumePolling() {
+        sdk?.flow?.resumePolling()
     }
 
     fun poll() {
@@ -205,6 +243,14 @@ internal class HawcxV6Bridge(
         sdk.flow.oauthCallback(callback.code, callback.state)
     }
 
+    /** Completion runs on a background thread (the SDK's magic-link executor). */
+    fun completeMagicLinkRedirect(url: String, completion: (WritableMap) -> Unit) {
+        val sdk = requireNotNull(sdk) { "initialize must be called before using V6 bridge methods" }
+        sdk.completeMagicLinkRedirect(url) { outcome ->
+            completion(HawcxV6MagicLinkOutcomeCodec.encode(outcome))
+        }
+    }
+
     fun dispose(resetFlow: Boolean) {
         val current = sdk ?: return
         current.flow.onUpdate = null
@@ -224,6 +270,23 @@ internal data class HawcxV6QrApprovalResult(
     val payloadType: String,
     val userId: String? = null
 )
+
+private object HawcxV6MagicLinkOutcomeCodec {
+    fun encode(outcome: HawcxV1MagicLinkRedirectOutcome): WritableMap =
+        Arguments.createMap().apply {
+            when (outcome) {
+                HawcxV1MagicLinkRedirectOutcome.NotMagicLink -> putString("outcome", "not_magic_link")
+                HawcxV1MagicLinkRedirectOutcome.Resumed -> putString("outcome", "resumed")
+                HawcxV1MagicLinkRedirectOutcome.HandedOff -> putString("outcome", "handed_off")
+                is HawcxV1MagicLinkRedirectOutcome.Failed -> {
+                    putString("outcome", "failed")
+                    putString("code", outcome.code)
+                    putString("message", outcome.message)
+                    putBoolean("retryable", outcome.retryable)
+                }
+            }
+        }
+}
 
 private data class HawcxV6EventEnvelope(
     val type: String,
@@ -283,6 +346,7 @@ private object HawcxV6FlowEventCodec {
             context.stepInfo?.let { putMap("step", encodeStepInfo(it)) }
             context.risk?.let { putMap("risk", encodeRiskInfo(it)) }
             context.codeChannel?.takeIf { it.isNotBlank() }?.let { putString("codeChannel", it) }
+            context.pollPath?.takeIf { it.isNotBlank() }?.let { putString("pollPath", it) }
             putMap("prompt", encodePrompt(prompt))
         }
     }
@@ -302,6 +366,7 @@ private object HawcxV6FlowEventCodec {
                     prompt.codeFormat?.takeIf { it.isNotBlank() }?.let { putString("codeFormat", it) }
                     prompt.codeExpiresAt?.takeIf { it.isNotBlank() }?.let { putString("codeExpiresAt", it) }
                     prompt.resendAt?.takeIf { it.isNotBlank() }?.let { putString("resendAt", it) }
+                    prompt.pollInterval?.let { putInt("pollInterval", it) }
                 }
                 HawcxV1UserPrompt.EnterTotp -> {
                     putString("type", "enter_totp")

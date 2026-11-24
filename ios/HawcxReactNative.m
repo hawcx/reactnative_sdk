@@ -42,6 +42,12 @@ RCT_EXTERN_METHOD(v6Resend:(RCTPromiseResolveBlock)resolve
 RCT_EXTERN_METHOD(v6Poll:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(v6PausePolling:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(v6ResumePolling:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
 RCT_EXTERN_METHOD(v6Cancel:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
@@ -55,6 +61,10 @@ RCT_EXTERN_METHOD(v6ApproveQr:(NSString *)rawPayload
                   rejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(v6HandleRedirectUrl:(NSString *)url
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(v6CompleteMagicLinkRedirect:(NSString *)url
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 

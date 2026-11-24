@@ -20,6 +20,7 @@ import {
   approveV6Qr,
   getLastLoggedInUser,
   initialize,
+  isHawcxMagicLinkUrl,
   notifyUserAuthenticated,
   routeWebLoginScan,
   storeBackendOAuthTokens,
@@ -28,6 +29,7 @@ import {
   type HawcxInitializeConfig,
   type HawcxV6AuthState,
   type HawcxV6CompletedPayload,
+  type HawcxV6MagicLinkRedirectOutcome,
   type HawcxV6Method,
   type HawcxV6PromptPayload,
 } from '@hawcx/react-native-sdk';
@@ -37,6 +39,10 @@ import {
   EXAMPLE_DEFAULT_IDENTIFIER,
   EXAMPLE_REDIRECT_SCHEMES,
 } from './hawcx.config';
+
+// Linking.getInitialURL() and the 'url' listener can both deliver the same URL
+// (cold start from a link); a magic-link token is single-use, so handle it once.
+let lastHandledUrl: string | null = null;
 
 const COLORS = {
   bg: '#09111f',
@@ -365,6 +371,21 @@ const preferredMethodFromIdentifier = (
     })?.id;
   }
   return undefined;
+};
+
+const describeMagicLinkOutcome = (outcome?: HawcxV6MagicLinkRedirectOutcome) => {
+  switch (outcome?.outcome) {
+    case 'resumed':
+      return 'Magic link confirmed. Finishing sign-in on this device.';
+    case 'handed_off':
+      return 'Magic link confirmed. Go back to where you started to finish signing in.';
+    case 'failed':
+      return outcome.retryable
+        ? `Sign-in is temporarily unavailable. Try the link again. (${outcome.code})`
+        : `This sign-in link has expired or was already used. Type the code or send a new link. (${outcome.code})`;
+    default:
+      return null;
+  }
 };
 
 const summarizeRedirectUrl = (rawUrl: string) => {
@@ -724,8 +745,17 @@ const App = () => {
 
   useEffect(() => {
     const receiveUrl = (url: string) => {
+      if (url === lastHandledUrl) {
+        return;
+      }
+      lastHandledUrl = url;
       setPendingRedirectUrl(url);
-      appendLog(`received redirect URL: ${summarizeRedirectUrl(url)}`);
+      // Never log a magic-link URL: it carries a single-use sign-in token.
+      appendLog(
+        isHawcxMagicLinkUrl(url)
+          ? 'received magic-link URL'
+          : `received redirect URL: ${summarizeRedirectUrl(url)}`,
+      );
     };
 
     const subscription = Linking.addEventListener('url', ({ url }) => receiveUrl(url));
@@ -748,6 +778,30 @@ const App = () => {
 
     const url = pendingRedirectUrl;
     setPendingRedirectUrl(null);
+
+    if (isHawcxMagicLinkUrl(url)) {
+      if (!isHawcxMagicLinkUrl(url, activeConfig?.magicLinkLandingUrl)) {
+        // Magic-link params on a page other than the configured landing URL:
+        // the native SDK would ignore it too, and it is not an OAuth callback.
+        appendLog('ignored magic-link URL outside the configured landing URL');
+        clearPendingAction('handle_redirect');
+        return;
+      }
+      // Finishes in place (resumed: flow events follow) or hands off to the
+      // window that started sign-in. OAuth callbacks keep the path below.
+      v6.completeMagicLinkRedirect(url)
+        .then((outcome) => appendLog(`magic-link redirect outcome: ${outcome.outcome}`))
+        .catch((error) => {
+          const message = (error as Error)?.message ?? 'Failed to complete the magic link.';
+          setWebError(message);
+          appendLog(`magic-link redirect failed: ${message}`);
+        })
+        .finally(() => {
+          clearPendingAction('handle_redirect');
+        });
+      return;
+    }
+
     setManualRedirectUrl(url);
 
     v6.handleRedirectUrl(url)
@@ -760,7 +814,7 @@ const App = () => {
       .finally(() => {
         clearPendingAction('handle_redirect');
       });
-  }, [appendLog, clearPendingAction, isReady, pendingRedirectUrl, v6]);
+  }, [activeConfig, appendLog, clearPendingAction, isReady, pendingRedirectUrl, v6]);
 
   const startFlow = useCallback(async () => {
     if (!requireReady()) {
@@ -1234,6 +1288,18 @@ const App = () => {
             </View>
           ) : null}
 
+          {describeMagicLinkOutcome(v6.state.magicLinkRedirect) ? (
+            <Text
+              testID="v6-magic-link-outcome"
+              style={[
+                styles.statusLine,
+                v6.state.magicLinkRedirect?.outcome === 'failed' ? styles.errorText : null,
+              ]}
+            >
+              {describeMagicLinkOutcome(v6.state.magicLinkRedirect)}
+            </Text>
+          ) : null}
+
           {currentPrompt?.prompt.type === 'select_method' ? (
             <View style={styles.methodGrid}>
               {currentPrompt.prompt.methods.map(renderMethodButton)}
@@ -1255,6 +1321,12 @@ const App = () => {
               {currentPrompt.prompt.codeExpiresAt ? (
                 <Text style={styles.statusLine}>
                   Code expires: {formatDateTime(currentPrompt.prompt.codeExpiresAt)}
+                </Text>
+              ) : null}
+              {v6.state.magicLinkPolling ? (
+                <Text testID="v6-magic-link-hint" style={styles.statusLine}>
+                  Or tap the sign-in link in the email. This screen finishes on its own once the
+                  link is confirmed.
                 </Text>
               ) : null}
               <TextInput

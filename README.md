@@ -235,6 +235,71 @@ const openRedirect = async () => {
 React Native handles the JavaScript callback side, but you still need to register your
 callback scheme natively on iOS and Android so the app receives the return URL.
 
+## Magic Links
+
+When the server sends a magic-link code screen, the `enter_code` prompt carries
+`pollInterval` (seconds). While that prompt shows, the native SDK polls in the
+background, so the flow can finish with a `completed` event when the user confirms the
+link on another device. `v6.state.magicLinkPolling` is `true` while this happens; keep
+the code field usable, the typed code still works.
+
+To finish a sign-in in the app when the user taps the link on the same phone, register
+a landing URL and pass it at initialization:
+
+```tsx
+await initialize({
+  projectApiKey: '<YOUR_CONFIG_ID>',
+  baseUrl: 'https://stage-api.hawcx.com',
+  magicLinkLandingUrl: 'https://login.example.com/app/magic-link/',
+});
+```
+
+- The landing URL must be https with no query, fragment or user info, and must match a
+  landing URL registered on the project exactly. The server redirects a confirmed link
+  to it with `?hawcx_magic_link=<token>&hawcx_project=<project_id>`.
+- Serve it as a Universal Link (iOS: `apple-app-site-association` plus the
+  `applinks:` associated domain) and an App Link (Android: `assetlinks.json` plus an
+  `autoVerify` intent filter for that path). Also serve a web page at that URL for
+  devices where the app is not installed or the link opens in an in-app browser.
+- With a landing URL set, the in-progress flow is saved in the Keychain / Android
+  Keystore while the code screen shows, so the link can resume it after the app was
+  killed.
+
+Pass every incoming URL to `completeMagicLinkRedirect`.
+`Linking.getInitialURL()` and the `'url'` listener can both deliver the same URL (for
+example, a cold start from the link), and a magic-link token is single-use, so skip a URL
+you have already handled:
+
+```tsx
+let lastHandledUrl: string | null = null; // module level: survives re-renders and remounts
+
+useEffect(() => {
+  const handle = async (url: string | null) => {
+    if (!url || url === lastHandledUrl || !isHawcxMagicLinkUrl(url, LANDING_URL)) {
+      return; // duplicate, or not a magic link: keep your other handlers (OAuth callbacks, ...)
+    }
+    lastHandledUrl = url;
+    const outcome = await v6.completeMagicLinkRedirect(url);
+    // outcome.outcome: 'resumed' | 'handed_off' | 'failed' | 'not_magic_link'
+  };
+  void Linking.getInitialURL().then(handle);
+  const subscription = Linking.addEventListener('url', ({ url }) => void handle(url));
+  return () => subscription.remove();
+}, [v6.completeMagicLinkRedirect]);
+```
+
+| Outcome | Meaning |
+|---|---|
+| `not_magic_link` | Not a landing URL (no `hawcx_magic_link`, or not on the configured landing URL). Nothing was sent. |
+| `resumed` | This app started the sign-in; it continues through the normal flow events (usually `completed`). |
+| `handed_off` | The sign-in was started elsewhere (another device or the web). Tell the user to go back there. |
+| `failed` | `{ code, message, retryable }`. `retryable: true` (service unavailable, network): the saved flow is kept, try the link again. Otherwise the link is expired or used, or the flow failed after the link was accepted (the error also arrives as a flow `error` event). |
+
+A link that the server refuses for this saved flow (`magic_link_resume_invalid`, for
+example a flow started on another device) falls back to the hand-off automatically.
+`v6.state.magicLinkRedirect` keeps the last outcome until the next `start` or `reset`.
+Never log the landing URL: it carries a single-use sign-in token.
+
 ## Backend Exchange
 
 When the flow completes, the SDK returns:
@@ -324,6 +389,21 @@ For backend implementation details, see:
 - [Node.js backend quickstart](https://docs.hawcx.com/docs/v1/sdk-reference/backend/nodejs/quickstart)
 - [Python backend quickstart](https://docs.hawcx.com/docs/v1/sdk-reference/backend/python/quickstart)
 
+## Polling (await approval and magic links)
+
+While an `await_approval` prompt (push or QR) or a magic-link code screen is showing, the
+**native SDK** polls by itself; there is no JavaScript poll loop. It polls the route the server
+advertises (`prompt.pollPath`, e.g. `/v1/auth/poll`, falling back to `POST /v1/auth` on older
+servers), every 2s for the first 30s, then every 5s until 2 minutes, then every 10s, never faster
+than `pollInterval`. It honours `Retry-After`, treats a 429 as "slow down" rather than an error,
+keeps one poll in flight, and never emits `loading` for a poll.
+
+Polling pauses on its own while the app is in the background (iOS app notifications, Android
+`ProcessLifecycleOwner`). For manual control, for example while a modal covers the waiting
+screen, call `pausePolling()` / `resumePolling()` (on `useHawcxV6Auth()`, `HawcxV6Client`, or as
+`v6PausePolling` / `v6ResumePolling`). Both are idempotent and resolve without effect before
+`initialize`.
+
 ## QR Approvals and Web Login Helpers
 
 The package also exposes helpers for QR approval and legacy web-login scans:
@@ -379,6 +459,21 @@ npm run android
 
 Use it to validate V6 auth flows against your environment before integrating into your
 own app.
+
+### Developing against local native SDK builds
+
+The package ships the released native SDKs. To try unreleased native builds locally
+(do not commit these overrides):
+
+- iOS: build `HawcxFramework.xcframework` with the iOS SDK's `build-sdk` script and copy
+  it over `ios/Frameworks/HawcxFramework.xcframework`, then run `pod install` in
+  `example/ios` (its Podfile syncs that framework into `node_modules`).
+- Android: publish the SDK to Maven Local (`./gradlew -PhawcxVersion=<x.y.z-SNAPSHOT>
+  :app:publishReleasePublicationToMavenLocal` in the Android SDK) and build with
+  `-Phawcx.useMavenLocal=true -PHAWCX_ANDROID_SDK_VERSION=<x.y.z-SNAPSHOT>`.
+- To make the example use this checkout instead of the npm release, replace
+  `example/node_modules/@hawcx/react-native-sdk` with a symlink to the repo root and run
+  `npm run build` at the root.
 
 ## Documentation
 

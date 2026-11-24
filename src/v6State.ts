@@ -4,6 +4,7 @@ import type {
   HawcxV6ErrorPayload,
   HawcxV6FlowEvent,
   HawcxV6FlowType,
+  HawcxV6MagicLinkRedirectOutcome,
   HawcxV6PromptPayload,
   HawcxV6ResendAvailability,
 } from './v6Types';
@@ -26,6 +27,11 @@ const isEnterCodePrompt = (
   prompt: HawcxV6PromptPayload | undefined,
 ): prompt is Extract<HawcxV6PromptPayload, { prompt: { type: 'enter_code' } }> =>
   prompt?.prompt.type === 'enter_code';
+
+const isMagicLinkPollingPrompt = (prompt: HawcxV6PromptPayload): boolean =>
+  isEnterCodePrompt(prompt) &&
+  prompt.prompt.pollInterval !== undefined &&
+  prompt.prompt.pollInterval > 0;
 
 export const normalizeHawcxV6FlowType = (value?: HawcxV6FlowType): HawcxV6FlowType => {
   switch (value) {
@@ -93,6 +99,7 @@ export const createInitialHawcxV6AuthState = (flowType?: HawcxV6FlowType): Hawcx
   isLoading: false,
   requiresRedirect: false,
   awaitingApproval: false,
+  magicLinkPolling: false,
 });
 
 export const createIdentifierHawcxV6AuthState = ({
@@ -111,6 +118,7 @@ export const createIdentifierHawcxV6AuthState = ({
   isLoading: false,
   requiresRedirect: false,
   awaitingApproval: false,
+  magicLinkPolling: false,
 });
 
 const reducePromptState = (
@@ -137,6 +145,8 @@ const reducePromptState = (
     isLoading: false,
     requiresRedirect: prompt.prompt.type === 'redirect',
     awaitingApproval: prompt.prompt.type === 'await_approval',
+    magicLinkPolling: isMagicLinkPollingPrompt(prompt),
+    magicLinkRedirect: previous.magicLinkRedirect,
   };
 };
 
@@ -157,6 +167,8 @@ const reduceCompletedState = (
   isLoading: false,
   requiresRedirect: false,
   awaitingApproval: false,
+  magicLinkPolling: false,
+  magicLinkRedirect: previous.magicLinkRedirect,
 });
 
 const reduceErrorState = (
@@ -179,6 +191,8 @@ const reduceErrorState = (
   isLoading: false,
   requiresRedirect: false,
   awaitingApproval: false,
+  magicLinkPolling: false,
+  magicLinkRedirect: previous.magicLinkRedirect,
 });
 
 export const reduceHawcxV6FlowEvent = (
@@ -200,6 +214,7 @@ export const reduceHawcxV6FlowEvent = (
         isLoading: true,
         requiresRedirect: false,
         awaitingApproval: false,
+        magicLinkPolling: false,
         error: undefined,
         completed: undefined,
       };
@@ -236,3 +251,13 @@ export const refreshHawcxV6AuthState = (
     resend,
   };
 };
+
+/**
+ * Records a `completeMagicLinkRedirect` result on the auth state. A
+ * `not_magic_link` result is not about this flow and leaves the state as is.
+ */
+export const applyHawcxV6MagicLinkRedirect = (
+  state: HawcxV6AuthState,
+  outcome: HawcxV6MagicLinkRedirectOutcome,
+): HawcxV6AuthState =>
+  outcome.outcome === 'not_magic_link' ? state : { ...state, magicLinkRedirect: outcome };

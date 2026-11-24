@@ -151,6 +151,7 @@ const normalizePromptBase = (value: Record<string, unknown>): HawcxV6PromptBase 
     step,
     risk: normalizeRisk(value.risk),
     codeChannel: asString(value.codeChannel),
+    pollPath: asString(value.pollPath),
   };
 };
 
@@ -200,6 +201,7 @@ const normalizePromptPayload = (value: unknown): HawcxV6PromptPayload | null => 
           codeFormat: asString(rawPrompt?.codeFormat ?? value.codeFormat),
           codeExpiresAt: asString(rawPrompt?.codeExpiresAt ?? value.codeExpiresAt),
           resendAt: asString(rawPrompt?.resendAt ?? value.resendAt),
+          pollInterval: asNumber(rawPrompt?.pollInterval ?? value.pollInterval),
         },
       };
       return payload;

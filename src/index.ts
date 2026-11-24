@@ -13,6 +13,7 @@ import {
   createInitialHawcxV6AuthState,
   getHawcxV6ResendAvailability,
   normalizeHawcxV6FlowType,
+  applyHawcxV6MagicLinkRedirect,
   refreshHawcxV6AuthState,
   reduceHawcxV6FlowEvent,
 } from './v6State';
@@ -20,6 +21,7 @@ import type {
   HawcxV6AuthState,
   HawcxV6FlowEvent,
   HawcxV6FlowType,
+  HawcxV6MagicLinkRedirectOutcome,
   HawcxV6StartOptions,
 } from './v6Types';
 import { routeWebLoginScan, type HawcxV6QrApprovalResult } from './v6WebLogin';
@@ -37,6 +39,7 @@ export type {
   HawcxV6FieldError,
   HawcxV6FlowEvent,
   HawcxV6FlowType,
+  HawcxV6MagicLinkRedirectOutcome,
   HawcxV6Method,
   HawcxV6PromptPayload,
   HawcxV6RedirectPrompt,
@@ -81,6 +84,15 @@ export type HawcxInitializeConfig = {
   };
   relyingParty?: string;
   autoPollApprovals?: boolean;
+  /**
+   * V6 magic link: https URL the server redirects a confirmed link to (must match
+   * a landing URL registered on the project exactly; no query, no fragment). The
+   * app opens it as a Universal Link / App Link and passes it to
+   * `completeMagicLinkRedirect`. When set, the in-progress flow is saved in the
+   * Keychain/Keystore while the code screen shows, so the link can resume it
+   * even after the app was killed.
+   */
+  magicLinkLandingUrl?: string;
   /**
    * @deprecated Use root-level `baseUrl` instead. Kept for backward compatibility during migration.
    */
@@ -151,10 +163,15 @@ export type HawcxV6AuthHookResult = {
   submitPhone: (phone: string) => Promise<void>;
   resend: () => Promise<boolean>;
   poll: () => Promise<void>;
+  /** Holds background polling on the waiting screen (see `HawcxV6Client.pausePolling`). */
+  pausePolling: () => Promise<void>;
+  /** Resumes polling held by `pausePolling`. */
+  resumePolling: () => Promise<void>;
   cancel: () => Promise<void>;
   changeIdentifier: () => Promise<void>;
   reset: () => Promise<void>;
   handleRedirectUrl: (url: string) => Promise<void>;
+  completeMagicLinkRedirect: (url: string) => Promise<HawcxV6MagicLinkRedirectOutcome>;
   canResend: boolean;
   resendAvailability: HawcxV6AuthState['resend'];
   secondsUntilResend?: number;
@@ -171,6 +188,8 @@ type NativeBridge = {
   v6SubmitPhone(phone: string): Promise<void>;
   v6Resend(): Promise<boolean>;
   v6Poll(): Promise<void>;
+  v6PausePolling(): Promise<void>;
+  v6ResumePolling(): Promise<void>;
   v6Cancel(): Promise<void>;
   v6Reset(): Promise<void>;
   v6ApproveQr(
@@ -179,6 +198,7 @@ type NativeBridge = {
     rememberDevice: boolean,
   ): Promise<Record<string, unknown>>;
   v6HandleRedirectUrl(url: string): Promise<void>;
+  v6CompleteMagicLinkRedirect(url: string): Promise<Record<string, unknown>>;
   storeBackendOAuthTokens(
     userId: string,
     accessToken: string,
@@ -268,6 +288,124 @@ const bytesToBase64 = (value: Uint8Array | number[], field: string): string => {
   return output;
 };
 
+const MAGIC_LINK_LANDING_URL_ERROR =
+  'magicLinkLandingUrl must be an https URL without query or fragment';
+
+type ParsedUrl = {
+  scheme: string;
+  userInfo?: string;
+  host: string;
+  port?: string;
+  path: string;
+  query?: string;
+  fragment?: string;
+};
+
+// Small RFC 3986 split; RN 0.73's URL polyfill lacks most accessors.
+const parseUrl = (value: string): ParsedUrl | undefined => {
+  const match = /^([a-z][a-z0-9+.-]*):\/\/([^/?#\s]*)([^?#\s]*)(?:\?([^#\s]*))?(?:#(\S*))?$/i.exec(
+    value,
+  );
+  if (!match) {
+    return undefined;
+  }
+  const [, scheme, authority, path, query, fragment] = match;
+  const at = authority.lastIndexOf('@');
+  const hostPort = at < 0 ? authority : authority.slice(at + 1);
+  const portMatch = /^(.*):(\d*)$/.exec(hostPort);
+  return {
+    scheme: scheme.toLowerCase(),
+    userInfo: at < 0 ? undefined : authority.slice(0, at),
+    host: (portMatch ? portMatch[1] : hostPort).toLowerCase(),
+    port: portMatch && portMatch[2] ? portMatch[2] : undefined,
+    path: path || '/',
+    query,
+    fragment,
+  };
+};
+
+const normalizeMagicLinkLandingUrl = (value: string | undefined): string | undefined => {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  const parsed = parseUrl(trimmed);
+  if (
+    !parsed ||
+    parsed.scheme !== 'https' ||
+    !parsed.host ||
+    parsed.userInfo !== undefined ||
+    parsed.query !== undefined ||
+    parsed.fragment !== undefined
+  ) {
+    throw new Error(MAGIC_LINK_LANDING_URL_ERROR);
+  }
+  return trimmed;
+};
+
+const isOnMagicLinkLandingPage = (url: string, landingUrl: string): boolean => {
+  const candidate = parseUrl(url.trim());
+  const landing = parseUrl(landingUrl);
+  return (
+    candidate !== undefined &&
+    landing !== undefined &&
+    candidate.scheme === landing.scheme &&
+    candidate.host === landing.host &&
+    candidate.port === landing.port &&
+    candidate.path === landing.path
+  );
+};
+
+const MAGIC_LINK_TOKEN_PARAM = 'hawcx_magic_link';
+const MAGIC_LINK_PROJECT_PARAM = 'hawcx_project';
+
+const readQueryParam = (url: string, name: string): string | undefined => {
+  const queryStart = url.indexOf('?');
+  if (queryStart < 0) {
+    return undefined;
+  }
+  const fragmentStart = url.indexOf('#', queryStart);
+  const query = url.slice(queryStart + 1, fragmentStart < 0 ? undefined : fragmentStart);
+  for (const pair of query.split('&')) {
+    const separator = pair.indexOf('=');
+    const key = separator < 0 ? pair : pair.slice(0, separator);
+    if (key === name) {
+      const raw = separator < 0 ? '' : pair.slice(separator + 1);
+      try {
+        // '+' stays literal (no form decoding), matching the native iOS parser.
+        return decodeURIComponent(raw).trim() || undefined;
+      } catch {
+        return undefined;
+      }
+    }
+  }
+  return undefined;
+};
+
+/**
+ * True when `url` is a Hawcx magic-link landing URL (carries both
+ * `hawcx_magic_link` and `hawcx_project`). Use it to route incoming links:
+ * anything else (OAuth callbacks, other deep links) keeps its existing handler.
+ *
+ * Pass the `magicLinkLandingUrl` given to `initialize` as `landingUrl` to apply
+ * the native SDKs' rule (`HawcxV1MagicLinkRedirectParser.parse(url, landingUrl)`):
+ * only a URL on that page counts (same scheme and host, case-insensitive; same
+ * port; exact path). `completeMagicLinkRedirect` applies the same rule natively.
+ */
+export function isHawcxMagicLinkUrl(url: string, landingUrl?: string): boolean {
+  if (typeof url !== 'string' || url.trim().length === 0) {
+    return false;
+  }
+  const landing = landingUrl?.trim();
+  if (landing && !isOnMagicLinkLandingPage(url, landing)) {
+    return false;
+  }
+  return (
+    readQueryParam(url, MAGIC_LINK_TOKEN_PARAM) !== undefined &&
+    readQueryParam(url, MAGIC_LINK_PROJECT_PARAM) !== undefined
+  );
+}
+
 const resolveBaseUrl = (config: HawcxInitializeConfig): string => {
   const candidate = config.baseUrl ?? config.endpoints?.authBaseUrl ?? '';
   return ensureNonEmpty(candidate, 'baseUrl');
@@ -277,10 +415,12 @@ export function initialize(config: HawcxInitializeConfig): Promise<void> {
   try {
     const apiKey = ensureNonEmpty(config.projectApiKey, 'projectApiKey');
     const baseUrl = resolveBaseUrl(config);
+    const magicLinkLandingUrl = normalizeMagicLinkLandingUrl(config.magicLinkLandingUrl);
     return HawcxReactNative.initialize({
       ...config,
       projectApiKey: apiKey,
       baseUrl,
+      magicLinkLandingUrl,
     });
   } catch (error) {
     return Promise.reject(error);
@@ -359,6 +499,26 @@ export function v6Poll(): Promise<void> {
   return HawcxReactNative.v6Poll();
 }
 
+/**
+ * Holds background polling on the current waiting screen (`await_approval`, or
+ * the magic-link code screen). The native SDKs already pause by themselves when
+ * the app goes to the background and resume when it returns; this is for manual
+ * control (e.g. while a modal covers the waiting screen). A poll already in
+ * flight still completes. Idempotent; resolves without effect before
+ * `initialize`.
+ */
+export function v6PausePolling(): Promise<void> {
+  return HawcxReactNative.v6PausePolling();
+}
+
+/**
+ * Resumes polling held by `v6PausePolling`. A poll that fell due meanwhile goes
+ * out straight away. Idempotent; resolves without effect before `initialize`.
+ */
+export function v6ResumePolling(): Promise<void> {
+  return HawcxReactNative.v6ResumePolling();
+}
+
 export function v6Cancel(): Promise<void> {
   return HawcxReactNative.v6Cancel();
 }
@@ -415,6 +575,44 @@ export function v6HandleRedirectUrl(url: string): Promise<void> {
     return Promise.reject(error);
   }
 }
+
+const normalizeV6MagicLinkRedirectOutcome = (value: unknown): HawcxV6MagicLinkRedirectOutcome => {
+  if (typeof value === 'object' && value !== null) {
+    const record = value as Record<string, unknown>;
+    switch (record.outcome) {
+      case 'not_magic_link':
+      case 'resumed':
+      case 'handed_off':
+        return { outcome: record.outcome };
+      case 'failed':
+        return {
+          outcome: 'failed',
+          code: typeof record.code === 'string' && record.code ? record.code : 'unknown_error',
+          message: typeof record.message === 'string' ? record.message : '',
+          retryable: record.retryable === true,
+        };
+      default:
+        break;
+    }
+  }
+  throw new Error('Invalid V6 magic-link redirect response from native bridge');
+};
+
+/**
+ * Finishes a magic-link sign-in from the landing URL the app was opened with
+ * (Universal Link / App Link). Pass every incoming URL; non-magic-link URLs
+ * resolve `{ outcome: 'not_magic_link' }` without a network call. Call
+ * `initialize` first (after a cold start too): the saved flow is keyed by the
+ * project. On `resumed` the flow continues through the V6 flow events.
+ */
+export async function completeHawcxMagicLinkRedirect(
+  url: string,
+): Promise<HawcxV6MagicLinkRedirectOutcome> {
+  const result = await HawcxReactNative.v6CompleteMagicLinkRedirect(ensureNonEmpty(url, 'url'));
+  return normalizeV6MagicLinkRedirectOutcome(result);
+}
+
+export const v6CompleteMagicLinkRedirect = completeHawcxMagicLinkRedirect;
 
 export function storeBackendOAuthTokens(
   userId: string,
@@ -893,6 +1091,16 @@ export class HawcxV6Client {
     return v6Poll();
   }
 
+  /** See `v6PausePolling`. */
+  pausePolling(): Promise<void> {
+    return v6PausePolling();
+  }
+
+  /** See `v6ResumePolling`. */
+  resumePolling(): Promise<void> {
+    return v6ResumePolling();
+  }
+
   cancel(): Promise<void> {
     return v6Cancel();
   }
@@ -915,6 +1123,10 @@ export class HawcxV6Client {
 
   handleRedirectUrl(url: string): Promise<void> {
     return v6HandleRedirectUrl(url);
+  }
+
+  completeMagicLinkRedirect(url: string): Promise<HawcxV6MagicLinkRedirectOutcome> {
+    return completeHawcxMagicLinkRedirect(url);
   }
 
   addFlowListener(handler: (event: HawcxV6FlowEvent) => void): EmitterSubscription {
@@ -1084,6 +1296,8 @@ export function useHawcxV6Auth(
 
   const resend = useCallback(() => client.resend(), [client]);
   const poll = useCallback(() => client.poll(), [client]);
+  const pausePolling = useCallback(() => client.pausePolling(), [client]);
+  const resumePolling = useCallback(() => client.resumePolling(), [client]);
 
   const cancel = useCallback(async () => {
     await client.cancel();
@@ -1116,6 +1330,15 @@ export function useHawcxV6Auth(
 
   const handleRedirectUrl = useCallback((url: string) => client.handleRedirectUrl(url), [client]);
 
+  const completeMagicLinkRedirect = useCallback(
+    async (url: string) => {
+      const outcome = await client.completeMagicLinkRedirect(url);
+      setState((previous) => applyHawcxV6MagicLinkRedirect(previous, outcome));
+      return outcome;
+    },
+    [client],
+  );
+
   return {
     state,
     start,
@@ -1125,10 +1348,13 @@ export function useHawcxV6Auth(
     submitPhone,
     resend,
     poll,
+    pausePolling,
+    resumePolling,
     cancel,
     changeIdentifier,
     reset,
     handleRedirectUrl,
+    completeMagicLinkRedirect,
     canResend: state.resend.canResend,
     resendAvailability: state.resend,
     secondsUntilResend: state.resend.secondsUntilResend,

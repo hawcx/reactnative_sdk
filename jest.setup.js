@@ -11,6 +11,8 @@ NativeModules.HawcxReactNative = NativeModules.HawcxReactNative || {
   v6SubmitPhone: jest.fn(() => Promise.resolve()),
   v6Resend: jest.fn(() => Promise.resolve(true)),
   v6Poll: jest.fn(() => Promise.resolve()),
+  v6PausePolling: jest.fn(() => Promise.resolve()),
+  v6ResumePolling: jest.fn(() => Promise.resolve()),
   v6Cancel: jest.fn(() => Promise.resolve()),
   v6Reset: jest.fn(() => Promise.resolve()),
   v6ApproveQr: jest.fn(() =>
@@ -20,6 +22,7 @@ NativeModules.HawcxReactNative = NativeModules.HawcxReactNative || {
     }),
   ),
   v6HandleRedirectUrl: jest.fn(() => Promise.resolve()),
+  v6CompleteMagicLinkRedirect: jest.fn(() => Promise.resolve({ outcome: 'not_magic_link' })),
   storeBackendOAuthTokens: jest.fn(() => Promise.resolve(true)),
   getLastLoggedInUser: jest.fn(() => Promise.resolve('')),
   clearSessionTokens: jest.fn(() => Promise.resolve()),

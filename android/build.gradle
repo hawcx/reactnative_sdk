@@ -24,7 +24,19 @@ def safeExtGet(prop, fallback) {
 group = 'com.hawcx.reactnative'
 version = project.findProperty('HAWCX_REACT_NATIVE_ANDROID_VERSION') ?: '1.1.5'
 
+// Local native-SDK testing only: -Phawcx.useMavenLocal=true together with
+// -PHAWCX_ANDROID_SDK_VERSION=<x.y.z-SNAPSHOT> resolves api.hawcx from ~/.m2.
+def hawcxUseMavenLocal = (project.findProperty('hawcx.useMavenLocal') ?: 'false').toString().toBoolean()
+def hawcxAndroidSdkVersion = project.findProperty('HAWCX_ANDROID_SDK_VERSION') ?: '6.1.0'
+
 repositories {
+    if (hawcxUseMavenLocal) {
+        mavenLocal {
+            content {
+                includeGroup "api.hawcx"
+            }
+        }
+    }
     mavenCentral()
     google()
     maven { url "$rootDir/../node_modules/react-native/android" }
@@ -124,7 +136,7 @@ afterEvaluate {
 }
 
 dependencies {
-    api("api.hawcx:hawcx:6.0.2")
+    api("api.hawcx:hawcx:$hawcxAndroidSdkVersion")
     def reactNativeVersion = safeExtGet('reactNativeAndroidVersion', '0.73.9')
     implementation "com.facebook.react:react-android:$reactNativeVersion"
     implementation 'androidx.annotation:annotation:1.8.1'
