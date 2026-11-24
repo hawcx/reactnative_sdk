@@ -40,6 +40,10 @@ import {
   EXAMPLE_REDIRECT_SCHEMES,
 } from './hawcx.config';
 
+// Linking.getInitialURL() and the 'url' listener can both deliver the same URL
+// (cold start from a link); a magic-link token is single-use, so handle it once.
+let lastHandledUrl: string | null = null;
+
 const COLORS = {
   bg: '#09111f',
   card: '#122033',
@@ -741,6 +745,10 @@ const App = () => {
 
   useEffect(() => {
     const receiveUrl = (url: string) => {
+      if (url === lastHandledUrl) {
+        return;
+      }
+      lastHandledUrl = url;
       setPendingRedirectUrl(url);
       // Never log a magic-link URL: it carries a single-use sign-in token.
       appendLog(

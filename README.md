@@ -265,14 +265,20 @@ await initialize({
   Keystore while the code screen shows, so the link can resume it after the app was
   killed.
 
-Pass every incoming URL to `completeMagicLinkRedirect`:
+Pass every incoming URL to `completeMagicLinkRedirect`.
+`Linking.getInitialURL()` and the `'url'` listener can both deliver the same URL (for
+example, a cold start from the link), and a magic-link token is single-use, so skip a URL
+you have already handled:
 
 ```tsx
+let lastHandledUrl: string | null = null; // module level: survives re-renders and remounts
+
 useEffect(() => {
   const handle = async (url: string | null) => {
-    if (!url || !isHawcxMagicLinkUrl(url, LANDING_URL)) {
-      return; // not a magic link: keep your other handlers (OAuth callbacks, ...)
+    if (!url || url === lastHandledUrl || !isHawcxMagicLinkUrl(url, LANDING_URL)) {
+      return; // duplicate, or not a magic link: keep your other handlers (OAuth callbacks, ...)
     }
+    lastHandledUrl = url;
     const outcome = await v6.completeMagicLinkRedirect(url);
     // outcome.outcome: 'resumed' | 'handed_off' | 'failed' | 'not_magic_link'
   };
