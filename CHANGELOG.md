@@ -4,7 +4,7 @@
 - Magic link: the `enter_code` prompt carries `pollInterval` on the magic-link code screen and the native SDKs poll in the background (`state.magicLinkPolling`), so a link confirmed on another device completes the flow.
 - Magic link: `initialize({ magicLinkLandingUrl })` and `completeMagicLinkRedirect(url)` (also on `HawcxV6Client` and `useHawcxV6Auth`) finish a same-device link from a Universal Link / App Link with typed outcomes `not_magic_link | resumed | handed_off | failed{code, message, retryable}`; `isHawcxMagicLinkUrl(url, landingUrl?)` routes incoming URLs.
 - Polling: the native SDKs follow the poll-route contract (advertised `pollPath`, 2s→5s→10s schedule, `Retry-After`, 429 keeps the flow, paused in the background). Prompts expose `pollPath`; `pausePolling()` / `resumePolling()` (also `v6PausePolling` / `v6ResumePolling`, `HawcxV6Client`, `useHawcxV6Auth`) give manual control. No JS poll loop.
-- Requires native iOS SDK `6.1.0` (vendored `HawcxFramework.xcframework`) and Android SDK `api.hawcx:hawcx:6.1.0`.
+- Requires native iOS SDK `6.1.0` (vendored `HawcxFramework.xcframework`) and Android SDK `api.hawcx:hawcx:6.1.0`. Do not merge or release this before both native `6.1.0` SDKs are published.
 
 ## [1.1.5] - 2026-04-24
 - Fix iOS React Native bridge exports for backend token persistence, post-auth session notification, and push helper APIs.
