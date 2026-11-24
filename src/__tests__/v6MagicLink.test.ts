@@ -170,6 +170,8 @@ describe('isHawcxMagicLinkUrl', () => {
     ['hawcxdemo://magic?hawcx_project=p&hawcx_magic_link=t', true],
     ['https://example.com/landing?hawcx_magic_link=&hawcx_project=p', false],
     ['https://example.com/landing?hawcx_magic_link=t', false],
+    // '+' is not form-decoded to a space (same as the native iOS parser).
+    ['https://example.com/landing?hawcx_magic_link=+&hawcx_project=p', true],
     ['hawcxdemo://oauth/callback?code=abc&state=xyz', false],
     ['https://example.com/landing#hawcx_magic_link=t&hawcx_project=p', false],
     ['', false],

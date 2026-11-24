@@ -372,7 +372,8 @@ const readQueryParam = (url: string, name: string): string | undefined => {
     if (key === name) {
       const raw = separator < 0 ? '' : pair.slice(separator + 1);
       try {
-        return decodeURIComponent(raw.replace(/\+/g, ' ')).trim() || undefined;
+        // '+' stays literal (no form decoding), matching the native iOS parser.
+        return decodeURIComponent(raw).trim() || undefined;
       } catch {
         return undefined;
       }
